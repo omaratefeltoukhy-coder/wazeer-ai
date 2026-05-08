@@ -1369,6 +1369,69 @@ export type Database = {
           },
         ]
       }
+      payment_links: {
+        Row: {
+          amount: number
+          clicks: number
+          collect_phone: boolean
+          created_at: string
+          currency: string
+          custom_title: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          pass_fee_to_buyer: boolean
+          product_id: string | null
+          redirect_url: string | null
+          sales_count: number
+          thank_you_message: string | null
+          unique_code: string
+          updated_at: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          amount?: number
+          clicks?: number
+          collect_phone?: boolean
+          created_at?: string
+          currency?: string
+          custom_title?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          pass_fee_to_buyer?: boolean
+          product_id?: string | null
+          redirect_url?: string | null
+          sales_count?: number
+          thank_you_message?: string | null
+          unique_code: string
+          updated_at?: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          amount?: number
+          clicks?: number
+          collect_phone?: boolean
+          created_at?: string
+          currency?: string
+          custom_title?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          pass_fee_to_buyer?: boolean
+          product_id?: string | null
+          redirect_url?: string | null
+          sales_count?: number
+          thank_you_message?: string | null
+          unique_code?: string
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       payout_methods: {
         Row: {
           created_at: string
@@ -1991,6 +2054,10 @@ export type Database = {
           _workspace_id: string
         }
         Returns: boolean
+      }
+      increment_payment_link_clicks: {
+        Args: { _code: string }
+        Returns: undefined
       }
       increment_usage: {
         Args: { _by?: number; _feature: string; _workspace_id: string }

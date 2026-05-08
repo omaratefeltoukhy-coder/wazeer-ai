@@ -8,7 +8,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   LayoutDashboard, ShoppingBag, Image as ImageIcon, Video, Mail, Megaphone, Target, Link2,
   BarChart3, Settings, LogOut, Plus, Loader2, CreditCard, Sparkles, FileVideo, Workflow, Users, Menu, Package,
-  DollarSign, Receipt, Wallet, Wand2,
+  DollarSign, Receipt, Wallet, Wand2, Link as LinkIcon,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -31,6 +31,7 @@ const sections: NavSection[] = [
     items: [
       { to: "/dashboard/earnings", label: "Earnings", icon: DollarSign },
       { to: "/dashboard/transactions", label: "Transactions", icon: Receipt },
+      { to: "/dashboard/payment-links", label: "Payment Links", icon: LinkIcon },
       { to: "/dashboard/payouts", label: "Payouts", icon: Wallet },
     ],
   },
