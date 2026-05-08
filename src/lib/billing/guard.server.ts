@@ -55,7 +55,7 @@ export async function consumeCredits(workspace_id: string, action: keyof typeof 
     _workspace_id: workspace_id,
     _amount: amount,
     _reason: action,
-    _metadata: metadata,
+    _metadata: metadata as never,
   });
   if (error) throw new Error(`Credit deduction failed: ${error.message}`);
   if (!data) throw new Error("Not enough credits. Top up or upgrade your plan to continue.");
