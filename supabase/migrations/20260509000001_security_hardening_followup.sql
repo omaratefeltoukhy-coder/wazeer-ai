@@ -117,8 +117,11 @@ BEGIN
     RAISE EXCEPTION 'Payment link not found or inactive';
   END IF;
 
-  -- Basic input validation.
-  IF _buyer_email IS NULL OR _buyer_email !~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' THEN
+  -- Basic input validation. Avoids regex flavor issues by using LIKE.
+  IF _buyer_email IS NULL
+     OR length(_buyer_email) < 5
+     OR _buyer_email NOT LIKE '%_@_%.__%'
+  THEN
     RAISE EXCEPTION 'Invalid buyer email';
   END IF;
 

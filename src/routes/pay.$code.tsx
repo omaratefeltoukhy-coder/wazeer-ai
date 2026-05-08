@@ -68,9 +68,7 @@ function PayPage() {
     if (!link) return;
     setPaying(true);
     try {
-      // Single SECURITY DEFINER call validates the link, inserts the
-      // transaction, and increments sales_count. Replaces the anon-client
-      // INSERT INTO transactions which silently failed under RLS.
+      // Primary path: SECURITY DEFINER atomic purchase function.
       const { error } = await (supabase as any).rpc("record_payment_link_purchase", {
         _code: code,
         _buyer_name: name,
@@ -79,7 +77,21 @@ function PayPage() {
         _amount: total,
         _currency: link.currency,
       });
-      if (error) throw error;
+
+      if (error) {
+        // PGRST202 means the function isn't deployed yet on this Supabase
+        // instance (migration not applied). Surface a clear actionable error
+        // rather than a generic toast.
+        if ((error as any)?.code === "PGRST202" || /record_payment_link_purchase.*not.*found/i.test(error.message ?? "")) {
+          toast.error(
+            "Checkout is being deployed. The new payment function is not yet active. Please try again in a few minutes — or contact support if it persists.",
+            { duration: 8000 },
+          );
+          return;
+        }
+        throw error;
+      }
+
       setDone(true);
       if (link.redirect_url) {
         setTimeout(() => { window.location.href = link.redirect_url!; }, 1500);
