@@ -57,6 +57,8 @@ import { Route as AuthenticatedDashboardAutomationsBusinessIdRouteImport } from 
 import { Route as AuthenticatedDashboardAnalyticsBusinessIdRouteImport } from './routes/_authenticated/dashboard.analytics.$businessId'
 import { Route as AuthenticatedDashboardAdsBusinessIdRouteImport } from './routes/_authenticated/dashboard.ads.$businessId'
 import { Route as AuthenticatedDashboardEmailCampaignsIndexRouteImport } from './routes/_authenticated/dashboard.email.campaigns.index'
+import { Route as AuthenticatedDashboardEmailCampaignsNewRouteImport } from './routes/_authenticated/dashboard.email.campaigns.new'
+import { Route as AuthenticatedDashboardEmailCampaignsIdRouteImport } from './routes/_authenticated/dashboard.email.campaigns.$id'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -337,6 +339,18 @@ const AuthenticatedDashboardEmailCampaignsIndexRoute =
     path: '/campaigns/',
     getParentRoute: () => AuthenticatedDashboardEmailRoute,
   } as any)
+const AuthenticatedDashboardEmailCampaignsNewRoute =
+  AuthenticatedDashboardEmailCampaignsNewRouteImport.update({
+    id: '/campaigns/new',
+    path: '/campaigns/new',
+    getParentRoute: () => AuthenticatedDashboardEmailRoute,
+  } as any)
+const AuthenticatedDashboardEmailCampaignsIdRoute =
+  AuthenticatedDashboardEmailCampaignsIdRouteImport.update({
+    id: '/campaigns/$id',
+    path: '/campaigns/$id',
+    getParentRoute: () => AuthenticatedDashboardEmailRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -385,6 +399,8 @@ export interface FileRoutesByFullPath {
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/dashboard/content/': typeof AuthenticatedDashboardContentIndexRoute
   '/dashboard/products/': typeof AuthenticatedDashboardProductsIndexRoute
+  '/dashboard/email/campaigns/$id': typeof AuthenticatedDashboardEmailCampaignsIdRoute
+  '/dashboard/email/campaigns/new': typeof AuthenticatedDashboardEmailCampaignsNewRoute
   '/dashboard/email/campaigns/': typeof AuthenticatedDashboardEmailCampaignsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -431,6 +447,8 @@ export interface FileRoutesByTo {
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/dashboard/content': typeof AuthenticatedDashboardContentIndexRoute
   '/dashboard/products': typeof AuthenticatedDashboardProductsIndexRoute
+  '/dashboard/email/campaigns/$id': typeof AuthenticatedDashboardEmailCampaignsIdRoute
+  '/dashboard/email/campaigns/new': typeof AuthenticatedDashboardEmailCampaignsNewRoute
   '/dashboard/email/campaigns': typeof AuthenticatedDashboardEmailCampaignsIndexRoute
 }
 export interface FileRoutesById {
@@ -482,6 +500,8 @@ export interface FileRoutesById {
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/_authenticated/dashboard/content/': typeof AuthenticatedDashboardContentIndexRoute
   '/_authenticated/dashboard/products/': typeof AuthenticatedDashboardProductsIndexRoute
+  '/_authenticated/dashboard/email/campaigns/$id': typeof AuthenticatedDashboardEmailCampaignsIdRoute
+  '/_authenticated/dashboard/email/campaigns/new': typeof AuthenticatedDashboardEmailCampaignsNewRoute
   '/_authenticated/dashboard/email/campaigns/': typeof AuthenticatedDashboardEmailCampaignsIndexRoute
 }
 export interface FileRouteTypes {
@@ -533,6 +553,8 @@ export interface FileRouteTypes {
     | '/api/public/payments/webhook'
     | '/dashboard/content/'
     | '/dashboard/products/'
+    | '/dashboard/email/campaigns/$id'
+    | '/dashboard/email/campaigns/new'
     | '/dashboard/email/campaigns/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -579,6 +601,8 @@ export interface FileRouteTypes {
     | '/api/public/payments/webhook'
     | '/dashboard/content'
     | '/dashboard/products'
+    | '/dashboard/email/campaigns/$id'
+    | '/dashboard/email/campaigns/new'
     | '/dashboard/email/campaigns'
   id:
     | '__root__'
@@ -629,6 +653,8 @@ export interface FileRouteTypes {
     | '/api/public/payments/webhook'
     | '/_authenticated/dashboard/content/'
     | '/_authenticated/dashboard/products/'
+    | '/_authenticated/dashboard/email/campaigns/$id'
+    | '/_authenticated/dashboard/email/campaigns/new'
     | '/_authenticated/dashboard/email/campaigns/'
   fileRoutesById: FileRoutesById
 }
@@ -981,6 +1007,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardEmailCampaignsIndexRouteImport
       parentRoute: typeof AuthenticatedDashboardEmailRoute
     }
+    '/_authenticated/dashboard/email/campaigns/new': {
+      id: '/_authenticated/dashboard/email/campaigns/new'
+      path: '/campaigns/new'
+      fullPath: '/dashboard/email/campaigns/new'
+      preLoaderRoute: typeof AuthenticatedDashboardEmailCampaignsNewRouteImport
+      parentRoute: typeof AuthenticatedDashboardEmailRoute
+    }
+    '/_authenticated/dashboard/email/campaigns/$id': {
+      id: '/_authenticated/dashboard/email/campaigns/$id'
+      path: '/campaigns/$id'
+      fullPath: '/dashboard/email/campaigns/$id'
+      preLoaderRoute: typeof AuthenticatedDashboardEmailCampaignsIdRouteImport
+      parentRoute: typeof AuthenticatedDashboardEmailRoute
+    }
   }
 }
 
@@ -1069,11 +1109,17 @@ const AuthenticatedDashboardContentRouteWithChildren =
   )
 
 interface AuthenticatedDashboardEmailRouteChildren {
+  AuthenticatedDashboardEmailCampaignsIdRoute: typeof AuthenticatedDashboardEmailCampaignsIdRoute
+  AuthenticatedDashboardEmailCampaignsNewRoute: typeof AuthenticatedDashboardEmailCampaignsNewRoute
   AuthenticatedDashboardEmailCampaignsIndexRoute: typeof AuthenticatedDashboardEmailCampaignsIndexRoute
 }
 
 const AuthenticatedDashboardEmailRouteChildren: AuthenticatedDashboardEmailRouteChildren =
   {
+    AuthenticatedDashboardEmailCampaignsIdRoute:
+      AuthenticatedDashboardEmailCampaignsIdRoute,
+    AuthenticatedDashboardEmailCampaignsNewRoute:
+      AuthenticatedDashboardEmailCampaignsNewRoute,
     AuthenticatedDashboardEmailCampaignsIndexRoute:
       AuthenticatedDashboardEmailCampaignsIndexRoute,
   }
@@ -1286,3 +1332,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
