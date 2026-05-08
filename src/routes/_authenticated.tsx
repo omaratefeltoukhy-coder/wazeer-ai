@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   LayoutDashboard, ShoppingBag, Image as ImageIcon, Video, Mail, Megaphone, Target, Link2,
-  BarChart3, Settings, LogOut, Plus, Loader2, CreditCard, Sparkles, FileVideo, Workflow, Users, Menu,
+  BarChart3, Settings, LogOut, Plus, Loader2, CreditCard, Sparkles, FileVideo, Workflow, Users, Menu, Package,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -16,6 +16,7 @@ export const Route = createFileRoute("/_authenticated")({
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/dashboard/products", label: "Products", icon: Package },
   { to: "/dashboard/storefront", label: "Storefront", icon: ShoppingBag },
   { to: "/dashboard/images", label: "AI Images", icon: ImageIcon },
   { to: "/dashboard/ugc", label: "UGC Scripts", icon: FileVideo },

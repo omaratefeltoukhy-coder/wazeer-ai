@@ -1192,6 +1192,78 @@ export type Database = {
           },
         ]
       }
+      products: {
+        Row: {
+          business_id: string | null
+          cover_image_url: string | null
+          created_at: string
+          currency: string
+          description: string | null
+          id: string
+          metadata: Json
+          price: number
+          revenue_total: number
+          sales_count: number
+          status: Database["public"]["Enums"]["product_status"]
+          title: string
+          type: Database["public"]["Enums"]["product_type"]
+          updated_at: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          business_id?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          metadata?: Json
+          price?: number
+          revenue_total?: number
+          sales_count?: number
+          status?: Database["public"]["Enums"]["product_status"]
+          title: string
+          type: Database["public"]["Enums"]["product_type"]
+          updated_at?: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          business_id?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          metadata?: Json
+          price?: number
+          revenue_total?: number
+          sales_count?: number
+          status?: Database["public"]["Enums"]["product_status"]
+          title?: string
+          type?: Database["public"]["Enums"]["product_type"]
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1605,6 +1677,16 @@ export type Database = {
       meta_platform: "facebook" | "instagram"
       offer_status: "draft" | "active" | "archived"
       post_status: "draft" | "approved" | "scheduled" | "posted" | "failed"
+      product_status: "draft" | "published" | "archived"
+      product_type:
+        | "physical_product"
+        | "digital_file"
+        | "online_course"
+        | "live_event"
+        | "coaching"
+        | "challenge"
+        | "lead_form"
+        | "membership"
       recommendation_priority: "low" | "medium" | "high"
       recommendation_status: "open" | "dismissed" | "done"
       storefront_status: "draft" | "published" | "unpublished"
@@ -1763,6 +1845,17 @@ export const Constants = {
       meta_platform: ["facebook", "instagram"],
       offer_status: ["draft", "active", "archived"],
       post_status: ["draft", "approved", "scheduled", "posted", "failed"],
+      product_status: ["draft", "published", "archived"],
+      product_type: [
+        "physical_product",
+        "digital_file",
+        "online_course",
+        "live_event",
+        "coaching",
+        "challenge",
+        "lead_form",
+        "membership",
+      ],
       recommendation_priority: ["low", "medium", "high"],
       recommendation_status: ["open", "dismissed", "done"],
       storefront_status: ["draft", "published", "unpublished"],
