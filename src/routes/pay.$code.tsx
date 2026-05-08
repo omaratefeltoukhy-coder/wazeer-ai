@@ -1,21 +1,21 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { createPaymentLinkCheckout } from "@/lib/billing/paymentLink.functions";
+import { getPaddleEnvironment } from "@/lib/paddle";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Lock, Loader2, CheckCircle2, ShieldCheck } from "lucide-react";
+import { Lock, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/pay/$code")({
   component: PayPage,
 });
 
-// Mirrors the RETURNS TABLE shape of public.get_public_payment_link.
-// workspace_id, product_id, sales_count and other internals are intentionally
-// not exposed to the anon client.
 type PaymentLinkRow = {
   unique_code: string;
   custom_title: string | null;
@@ -26,21 +26,17 @@ type PaymentLinkRow = {
   pass_fee_to_buyer: boolean;
   redirect_url: string | null;
   thank_you_message: string | null;
-  product_title: string | null;
-  product_image_url: string | null;
-  product_description: string | null;
-  seller_name: string | null;
 };
 
 function PayPage() {
   const { code } = useParams({ from: "/pay/$code" });
+  const startCheckout = useServerFn(createPaymentLinkCheckout);
   const [link, setLink] = useState<PaymentLinkRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [paying, setPaying] = useState(false);
-  const [done, setDone] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -68,38 +64,20 @@ function PayPage() {
     if (!link) return;
     setPaying(true);
     try {
-      // Primary path: SECURITY DEFINER atomic purchase function.
-      const { error } = await (supabase as any).rpc("record_payment_link_purchase", {
-        _code: code,
-        _buyer_name: name,
-        _buyer_email: email,
-        _buyer_phone: phone || null,
-        _amount: total,
-        _currency: link.currency,
+      const res = await startCheckout({
+        data: {
+          code,
+          environment: getPaddleEnvironment(),
+          buyer_email: email,
+          buyer_name: name,
+          buyer_phone: phone || undefined,
+        },
       });
-
-      if (error) {
-        // PGRST202 means the function isn't deployed yet on this Supabase
-        // instance (migration not applied). Surface a clear actionable error
-        // rather than a generic toast.
-        if ((error as any)?.code === "PGRST202" || /record_payment_link_purchase.*not.*found/i.test(error.message ?? "")) {
-          toast.error(
-            "Checkout is being deployed. The new payment function is not yet active. Please try again in a few minutes — or contact support if it persists.",
-            { duration: 8000 },
-          );
-          return;
-        }
-        throw error;
-      }
-
-      setDone(true);
-      if (link.redirect_url) {
-        setTimeout(() => { window.location.href = link.redirect_url!; }, 1500);
-      }
+      // Redirect to Paddle's hosted checkout.
+      window.location.href = res.url;
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Payment failed";
+      const msg = err instanceof Error ? err.message : "Could not start checkout";
       toast.error(msg);
-    } finally {
       setPaying(false);
     }
   };
@@ -119,34 +97,16 @@ function PayPage() {
     );
   }
 
-  if (done) {
-    return (
-      <div className="min-h-screen grid place-items-center p-4">
-        <Card className="p-8 max-w-md text-center space-y-3">
-          <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto" />
-          <h1 className="font-semibold text-xl">Payment received!</h1>
-          <p className="text-sm text-muted-foreground">{link.thank_you_message ?? "Thanks for your purchase!"}</p>
-        </Card>
-      </div>
-    );
-  }
-
-  const title = link.product_title ?? link.custom_title ?? "Payment";
-  const description = link.product_description ?? link.description;
-  const sellerLabel = link.seller_name ?? "Seller";
+  const title = link.custom_title ?? "Payment";
 
   return (
     <div className="min-h-screen bg-muted/30 grid place-items-center p-4">
       <Card className="w-full max-w-md overflow-hidden">
-        {link.product_image_url && (
-          <img src={link.product_image_url} alt={title} className="w-full h-48 object-cover" />
-        )}
         <div className="p-6 space-y-4">
           <div>
-            <div className="text-xs text-muted-foreground">From {sellerLabel}</div>
-            <h1 className="text-xl font-semibold mt-1">{title}</h1>
-            {description && (
-              <p className="text-sm text-muted-foreground mt-1">{description}</p>
+            <h1 className="text-xl font-semibold">{title}</h1>
+            {link.description && (
+              <p className="text-sm text-muted-foreground mt-1">{link.description}</p>
             )}
           </div>
 
@@ -172,17 +132,13 @@ function PayPage() {
               </div>
             )}
 
-            <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
-              Demo checkout — payments are not processed yet. Do not enter real card details. Real payments will go through Paddle's secure hosted checkout.
-            </div>
-
             <Button type="submit" className="w-full" disabled={paying}>
               {paying ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Lock className="h-4 w-4 mr-1" />}
-              Pay securely · {link.currency} {total.toFixed(2)}
+              Continue to secure checkout · {link.currency} {total.toFixed(2)}
             </Button>
 
             <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-              <ShieldCheck className="h-3.5 w-3.5" /> Secure payment
+              <ShieldCheck className="h-3.5 w-3.5" /> Payments processed securely by Paddle
             </div>
           </form>
         </div>
