@@ -103,6 +103,39 @@ export type Database = {
         }
         Relationships: []
       }
+      billing_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          external_event_id: string | null
+          id: string
+          payload_json: Json
+          processed_at: string | null
+          provider: string
+          workspace_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          external_event_id?: string | null
+          id?: string
+          payload_json?: Json
+          processed_at?: string | null
+          provider?: string
+          workspace_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          external_event_id?: string | null
+          id?: string
+          payload_json?: Json
+          processed_at?: string | null
+          provider?: string
+          workspace_id?: string | null
+        }
+        Relationships: []
+      }
       brand_profiles: {
         Row: {
           audience_json: Json | null
@@ -619,6 +652,51 @@ export type Database = {
           id?: string
           token?: string
           used_at?: string | null
+        }
+        Relationships: []
+      }
+      invoices: {
+        Row: {
+          amount_usd: number
+          created_at: string
+          currency: string
+          description: string | null
+          external_invoice_id: string | null
+          id: string
+          kind: string
+          metadata_json: Json
+          pdf_url: string | null
+          status: string
+          user_id: string | null
+          workspace_id: string
+        }
+        Insert: {
+          amount_usd: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          external_invoice_id?: string | null
+          id?: string
+          kind?: string
+          metadata_json?: Json
+          pdf_url?: string | null
+          status?: string
+          user_id?: string | null
+          workspace_id: string
+        }
+        Update: {
+          amount_usd?: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          external_invoice_id?: string | null
+          id?: string
+          kind?: string
+          metadata_json?: Json
+          pdf_url?: string | null
+          status?: string
+          user_id?: string | null
+          workspace_id?: string
         }
         Relationships: []
       }
