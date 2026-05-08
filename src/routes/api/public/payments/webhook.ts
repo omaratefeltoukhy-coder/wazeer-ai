@@ -125,16 +125,8 @@ async function handleSubscriptionCanceled(data: any, env: PaddleEnv) {
     .eq("paddle_subscription_id", id)
     .eq("environment", env);
 
-  if (workspaceId) {
-    await supabaseAdmin.from("billing_events").insert({
-      workspace_id: workspaceId,
-      provider: "paddle",
-      event_type: "subscription.canceled",
-      external_event_id: id,
-      payload_json: data as never,
-      processed_at: new Date().toISOString(),
-    });
-  }
+  // billing_events row is recorded centrally by the POST handler for idempotency.
+
 }
 
 async function handleTransactionCompleted(data: any, env: PaddleEnv) {
@@ -181,14 +173,8 @@ async function handleTransactionCompleted(data: any, env: PaddleEnv) {
     } as never,
   });
 
-  await supabaseAdmin.from("billing_events").insert({
-    workspace_id: workspaceId,
-    provider: "paddle",
-    event_type: "transaction.completed",
-    external_event_id: id,
-    payload_json: data as never,
-    processed_at: new Date().toISOString(),
-  });
+  // billing_events row is recorded centrally by the POST handler for idempotency.
+
 }
 
 export const Route = createFileRoute("/api/public/payments/webhook")({
