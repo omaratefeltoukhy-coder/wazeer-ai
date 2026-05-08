@@ -38,6 +38,7 @@ import { Route as AuthenticatedDashboardVideosBusinessIdRouteImport } from './ro
 import { Route as AuthenticatedDashboardUgcBusinessIdRouteImport } from './routes/_authenticated/dashboard.ugc.$businessId'
 import { Route as AuthenticatedDashboardStorefrontBusinessIdRouteImport } from './routes/_authenticated/dashboard.storefront.$businessId'
 import { Route as AuthenticatedDashboardProductsNewRouteImport } from './routes/_authenticated/dashboard.products.new'
+import { Route as AuthenticatedDashboardProductsProductIdRouteImport } from './routes/_authenticated/dashboard.products.$productId'
 import { Route as AuthenticatedDashboardPostsBusinessIdRouteImport } from './routes/_authenticated/dashboard.posts.$businessId'
 import { Route as AuthenticatedDashboardIntegrationsMetaRouteImport } from './routes/_authenticated/dashboard.integrations.meta'
 import { Route as AuthenticatedDashboardImagesBusinessIdRouteImport } from './routes/_authenticated/dashboard.images.$businessId'
@@ -212,6 +213,12 @@ const AuthenticatedDashboardProductsNewRoute =
     path: '/new',
     getParentRoute: () => AuthenticatedDashboardProductsRoute,
   } as any)
+const AuthenticatedDashboardProductsProductIdRoute =
+  AuthenticatedDashboardProductsProductIdRouteImport.update({
+    id: '/$productId',
+    path: '/$productId',
+    getParentRoute: () => AuthenticatedDashboardProductsRoute,
+  } as any)
 const AuthenticatedDashboardPostsBusinessIdRoute =
   AuthenticatedDashboardPostsBusinessIdRouteImport.update({
     id: '/$businessId',
@@ -292,6 +299,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/images/$businessId': typeof AuthenticatedDashboardImagesBusinessIdRoute
   '/dashboard/integrations/meta': typeof AuthenticatedDashboardIntegrationsMetaRoute
   '/dashboard/posts/$businessId': typeof AuthenticatedDashboardPostsBusinessIdRoute
+  '/dashboard/products/$productId': typeof AuthenticatedDashboardProductsProductIdRoute
   '/dashboard/products/new': typeof AuthenticatedDashboardProductsNewRoute
   '/dashboard/storefront/$businessId': typeof AuthenticatedDashboardStorefrontBusinessIdRoute
   '/dashboard/ugc/$businessId': typeof AuthenticatedDashboardUgcBusinessIdRoute
@@ -328,6 +336,7 @@ export interface FileRoutesByTo {
   '/dashboard/images/$businessId': typeof AuthenticatedDashboardImagesBusinessIdRoute
   '/dashboard/integrations/meta': typeof AuthenticatedDashboardIntegrationsMetaRoute
   '/dashboard/posts/$businessId': typeof AuthenticatedDashboardPostsBusinessIdRoute
+  '/dashboard/products/$productId': typeof AuthenticatedDashboardProductsProductIdRoute
   '/dashboard/products/new': typeof AuthenticatedDashboardProductsNewRoute
   '/dashboard/storefront/$businessId': typeof AuthenticatedDashboardStorefrontBusinessIdRoute
   '/dashboard/ugc/$businessId': typeof AuthenticatedDashboardUgcBusinessIdRoute
@@ -368,6 +377,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/images/$businessId': typeof AuthenticatedDashboardImagesBusinessIdRoute
   '/_authenticated/dashboard/integrations/meta': typeof AuthenticatedDashboardIntegrationsMetaRoute
   '/_authenticated/dashboard/posts/$businessId': typeof AuthenticatedDashboardPostsBusinessIdRoute
+  '/_authenticated/dashboard/products/$productId': typeof AuthenticatedDashboardProductsProductIdRoute
   '/_authenticated/dashboard/products/new': typeof AuthenticatedDashboardProductsNewRoute
   '/_authenticated/dashboard/storefront/$businessId': typeof AuthenticatedDashboardStorefrontBusinessIdRoute
   '/_authenticated/dashboard/ugc/$businessId': typeof AuthenticatedDashboardUgcBusinessIdRoute
@@ -408,6 +418,7 @@ export interface FileRouteTypes {
     | '/dashboard/images/$businessId'
     | '/dashboard/integrations/meta'
     | '/dashboard/posts/$businessId'
+    | '/dashboard/products/$productId'
     | '/dashboard/products/new'
     | '/dashboard/storefront/$businessId'
     | '/dashboard/ugc/$businessId'
@@ -444,6 +455,7 @@ export interface FileRouteTypes {
     | '/dashboard/images/$businessId'
     | '/dashboard/integrations/meta'
     | '/dashboard/posts/$businessId'
+    | '/dashboard/products/$productId'
     | '/dashboard/products/new'
     | '/dashboard/storefront/$businessId'
     | '/dashboard/ugc/$businessId'
@@ -483,6 +495,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/images/$businessId'
     | '/_authenticated/dashboard/integrations/meta'
     | '/_authenticated/dashboard/posts/$businessId'
+    | '/_authenticated/dashboard/products/$productId'
     | '/_authenticated/dashboard/products/new'
     | '/_authenticated/dashboard/storefront/$businessId'
     | '/_authenticated/dashboard/ugc/$businessId'
@@ -707,6 +720,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardProductsNewRouteImport
       parentRoute: typeof AuthenticatedDashboardProductsRoute
     }
+    '/_authenticated/dashboard/products/$productId': {
+      id: '/_authenticated/dashboard/products/$productId'
+      path: '/$productId'
+      fullPath: '/dashboard/products/$productId'
+      preLoaderRoute: typeof AuthenticatedDashboardProductsProductIdRouteImport
+      parentRoute: typeof AuthenticatedDashboardProductsRoute
+    }
     '/_authenticated/dashboard/posts/$businessId': {
       id: '/_authenticated/dashboard/posts/$businessId'
       path: '/$businessId'
@@ -872,12 +892,15 @@ const AuthenticatedDashboardPostsRouteWithChildren =
   )
 
 interface AuthenticatedDashboardProductsRouteChildren {
+  AuthenticatedDashboardProductsProductIdRoute: typeof AuthenticatedDashboardProductsProductIdRoute
   AuthenticatedDashboardProductsNewRoute: typeof AuthenticatedDashboardProductsNewRoute
   AuthenticatedDashboardProductsIndexRoute: typeof AuthenticatedDashboardProductsIndexRoute
 }
 
 const AuthenticatedDashboardProductsRouteChildren: AuthenticatedDashboardProductsRouteChildren =
   {
+    AuthenticatedDashboardProductsProductIdRoute:
+      AuthenticatedDashboardProductsProductIdRoute,
     AuthenticatedDashboardProductsNewRoute:
       AuthenticatedDashboardProductsNewRoute,
     AuthenticatedDashboardProductsIndexRoute:
