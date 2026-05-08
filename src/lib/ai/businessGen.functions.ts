@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { consumeCredits, refundCredits } from "@/lib/billing/guard.server";
 
 const InputSchema = z.object({
   workspace_id: z.string().uuid(),
@@ -16,7 +17,7 @@ const InputSchema = z.object({
   language: z.string().max(8).optional().default("en"),
 });
 
-const CREDIT_COST = 15;
+// (credit cost is centralised in src/lib/billing/plans.ts)
 
 function slugify(s: string, fallback: string) {
   const v = s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -28,6 +29,9 @@ export const generateBusiness = createServerFn({ method: "POST" })
   .inputValidator((input) => InputSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+
+    // 0) Reserve credits up-front; refund on failure.
+    await consumeCredits(data.workspace_id, "business_generation");
 
     // 1) Insert business as `generating`
     const { data: biz, error: bizErr } = await supabase
@@ -63,6 +67,7 @@ export const generateBusiness = createServerFn({ method: "POST" })
     // 3) Call Lovable AI for full plan via tool calling
     const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
     if (!LOVABLE_API_KEY) {
+      await refundCredits(data.workspace_id, "business_generation", { business_id: businessId });
       await supabase.from("businesses").update({ status: "failed" }).eq("id", businessId);
       throw new Error("AI gateway not configured");
     }
@@ -208,7 +213,8 @@ Language: ${data.language}`;
 
       if (!aiRes.ok) {
         const text = await aiRes.text();
-        await supabase.from("businesses").update({ status: "failed", generation_log_json: { error: text, status: aiRes.status } }).eq("id", businessId);
+        await refundCredits(data.workspace_id, "business_generation", { business_id: businessId });
+      await supabase.from("businesses").update({ status: "failed", generation_log_json: { error: text, status: aiRes.status } }).eq("id", businessId);
         if (aiRes.status === 429) throw new Error("Rate limit hit. Please wait a moment and try again.");
         if (aiRes.status === 402) throw new Error("AI credits exhausted. Add credits in Settings → Workspace → Usage.");
         throw new Error(`AI generation failed (${aiRes.status})`);
@@ -219,6 +225,7 @@ Language: ${data.language}`;
       if (!args) throw new Error("AI returned no structured output");
       kit = typeof args === "string" ? JSON.parse(args) : args;
     } catch (err) {
+      await refundCredits(data.workspace_id, "business_generation", { business_id: businessId });
       await supabase.from("businesses").update({ status: "failed" }).eq("id", businessId);
       throw err;
     }
@@ -275,23 +282,16 @@ Language: ${data.language}`;
 
     const writeError = writes.find((w) => w.error)?.error;
     if (writeError) {
+      await refundCredits(data.workspace_id, "business_generation", { business_id: businessId });
       await supabase.from("businesses").update({ status: "failed", generation_log_json: { write_error: writeError.message } }).eq("id", businessId);
       throw new Error(`Failed to save generated kit: ${writeError.message}`);
     }
 
-    // 5) Deduct credits + mark ready
-    await supabase.from("credit_transactions").insert({
-      workspace_id: data.workspace_id,
-      user_id: userId,
-      amount: -CREDIT_COST,
-      reason: "business_generation",
-      metadata_json: { business_id: businessId },
-    });
-
     await supabase
       .from("businesses")
-      .update({ status: "ready", generation_log_json: { model: "google/gemini-2.5-flash", credits: CREDIT_COST } })
+      .update({ status: "ready", generation_log_json: { model: "google/gemini-2.5-flash" } })
       .eq("id", businessId);
 
     return { business_id: businessId, slug };
   });
+
