@@ -86,7 +86,7 @@ function NewBusinessWizard() {
     if (!workspaceId) return toast.error("Workspace not ready");
     setSubmitting(true);
     try {
-      await generateFn({
+      const res = await generateFn({
         data: {
           workspace_id: workspaceId,
           name: form.name,
@@ -102,7 +102,7 @@ function NewBusinessWizard() {
         },
       });
       toast.success("Your business is ready");
-      navigate({ to: "/dashboard" });
+      navigate({ to: "/dashboard/storefront/$businessId", params: { businessId: res.business_id } });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       toast.error(msg);
