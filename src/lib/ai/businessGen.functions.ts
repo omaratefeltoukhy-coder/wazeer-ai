@@ -67,6 +67,7 @@ export const generateBusiness = createServerFn({ method: "POST" })
     // 3) Call Lovable AI for full plan via tool calling
     const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
     if (!LOVABLE_API_KEY) {
+      await refundCredits(data.workspace_id, "business_generation", { business_id: businessId });
       await supabase.from("businesses").update({ status: "failed" }).eq("id", businessId);
       throw new Error("AI gateway not configured");
     }
@@ -212,7 +213,8 @@ Language: ${data.language}`;
 
       if (!aiRes.ok) {
         const text = await aiRes.text();
-        await supabase.from("businesses").update({ status: "failed", generation_log_json: { error: text, status: aiRes.status } }).eq("id", businessId);
+        await refundCredits(data.workspace_id, "business_generation", { business_id: businessId });
+      await supabase.from("businesses").update({ status: "failed", generation_log_json: { error: text, status: aiRes.status } }).eq("id", businessId);
         if (aiRes.status === 429) throw new Error("Rate limit hit. Please wait a moment and try again.");
         if (aiRes.status === 402) throw new Error("AI credits exhausted. Add credits in Settings → Workspace → Usage.");
         throw new Error(`AI generation failed (${aiRes.status})`);
@@ -223,6 +225,7 @@ Language: ${data.language}`;
       if (!args) throw new Error("AI returned no structured output");
       kit = typeof args === "string" ? JSON.parse(args) : args;
     } catch (err) {
+      await refundCredits(data.workspace_id, "business_generation", { business_id: businessId });
       await supabase.from("businesses").update({ status: "failed" }).eq("id", businessId);
       throw err;
     }
@@ -279,6 +282,7 @@ Language: ${data.language}`;
 
     const writeError = writes.find((w) => w.error)?.error;
     if (writeError) {
+      await refundCredits(data.workspace_id, "business_generation", { business_id: businessId });
       await supabase.from("businesses").update({ status: "failed", generation_log_json: { write_error: writeError.message } }).eq("id", businessId);
       throw new Error(`Failed to save generated kit: ${writeError.message}`);
     }
