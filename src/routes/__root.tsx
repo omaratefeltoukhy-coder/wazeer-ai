@@ -74,14 +74,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Wazeer AI — Your AI growth partner for selling online" },
+      { name: "description", content: "Wazeer AI builds your offer, storefront, images, UGC videos, emails, Meta posts and ads from one simple input. Start selling with AI." },
+      { name: "author", content: "Wazeer AI" },
+      { property: "og:site_name", content: "Wazeer AI" },
+      { property: "og:title", content: "Wazeer AI — Your AI growth partner for selling online" },
+      { property: "og:description", content: "Generate your business in minutes. Storefront, content, ads, emails and dashboards — built and optimized by AI." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Wazeer AI — Start selling with AI" },
+      { name: "twitter:description", content: "Your AI growth partner for selling online." },
     ],
     links: [
       {
