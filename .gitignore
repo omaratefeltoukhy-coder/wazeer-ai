@@ -36,3 +36,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# mythos-router (per-developer agentic memory + scope config)
+.mythosignore
+MEMORY.md
+memory.db
+.mythos/
