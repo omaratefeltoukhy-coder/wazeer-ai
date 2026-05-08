@@ -271,6 +271,7 @@ export type Database = {
       contacts: {
         Row: {
           business_id: string
+          consent_at: string | null
           created_at: string
           email: string | null
           id: string
@@ -279,10 +280,12 @@ export type Database = {
           source: string | null
           status: string | null
           tags_json: Json | null
+          unsubscribed_at: string | null
           updated_at: string
         }
         Insert: {
           business_id: string
+          consent_at?: string | null
           created_at?: string
           email?: string | null
           id?: string
@@ -291,10 +294,12 @@ export type Database = {
           source?: string | null
           status?: string | null
           tags_json?: Json | null
+          unsubscribed_at?: string | null
           updated_at?: string
         }
         Update: {
           business_id?: string
+          consent_at?: string | null
           created_at?: string
           email?: string | null
           id?: string
@@ -303,6 +308,7 @@ export type Database = {
           source?: string | null
           status?: string | null
           tags_json?: Json | null
+          unsubscribed_at?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -519,6 +525,102 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      email_messages: {
+        Row: {
+          body_markdown: string | null
+          business_id: string
+          campaign_id: string
+          created_at: string
+          cta_text: string | null
+          cta_url_placeholder: string | null
+          goal: string | null
+          id: string
+          name: string
+          personalization_fields: Json
+          position: number
+          preview_text: string | null
+          scheduled_at: string | null
+          send_delay: string | null
+          sent_at: string | null
+          status: string
+          subject_line: string
+          success_metric: string | null
+          updated_at: string
+        }
+        Insert: {
+          body_markdown?: string | null
+          business_id: string
+          campaign_id: string
+          created_at?: string
+          cta_text?: string | null
+          cta_url_placeholder?: string | null
+          goal?: string | null
+          id?: string
+          name: string
+          personalization_fields?: Json
+          position?: number
+          preview_text?: string | null
+          scheduled_at?: string | null
+          send_delay?: string | null
+          sent_at?: string | null
+          status?: string
+          subject_line: string
+          success_metric?: string | null
+          updated_at?: string
+        }
+        Update: {
+          body_markdown?: string | null
+          business_id?: string
+          campaign_id?: string
+          created_at?: string
+          cta_text?: string | null
+          cta_url_placeholder?: string | null
+          goal?: string | null
+          id?: string
+          name?: string
+          personalization_fields?: Json
+          position?: number
+          preview_text?: string | null
+          scheduled_at?: string | null
+          send_delay?: string | null
+          sent_at?: string | null
+          status?: string
+          subject_line?: string
+          success_metric?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      email_unsubscribe_tokens: {
+        Row: {
+          business_id: string
+          contact_id: string | null
+          created_at: string
+          email: string
+          id: string
+          token: string
+          used_at: string | null
+        }
+        Insert: {
+          business_id: string
+          contact_id?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          token: string
+          used_at?: string | null
+        }
+        Update: {
+          business_id?: string
+          contact_id?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          token?: string
+          used_at?: string | null
+        }
+        Relationships: []
       }
       media_assets: {
         Row: {
@@ -1072,6 +1174,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      suppression_list: {
+        Row: {
+          business_id: string
+          created_at: string
+          email: string
+          id: string
+          metadata_json: Json
+          reason: string
+          source: string | null
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          email: string
+          id?: string
+          metadata_json?: Json
+          reason?: string
+          source?: string | null
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          email?: string
+          id?: string
+          metadata_json?: Json
+          reason?: string
+          source?: string | null
+        }
+        Relationships: []
       }
       ugc_scripts: {
         Row: {
