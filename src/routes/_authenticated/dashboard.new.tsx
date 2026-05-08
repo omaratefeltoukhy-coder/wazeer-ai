@@ -64,14 +64,20 @@ function NewBusinessWizard() {
     "Generating Wazeer AI recommendations",
   ];
 
-  useEffect(() => {
-    supabase
+  const loadWorkspace = async (): Promise<string | null> => {
+    const { data: m } = await supabase
       .from("workspace_members")
       .select("workspace_id")
       .limit(1)
-      .single()
-      .then(({ data }) => setWorkspaceId(data?.workspace_id ?? null));
-  }, []);
+      .maybeSingle();
+    if (m?.workspace_id) {
+      setWorkspaceId(m.workspace_id);
+      return m.workspace_id;
+    }
+    return null;
+  };
+
+  useEffect(() => { void loadWorkspace(); }, []);
 
   useEffect(() => {
     if (!submitting) return;
@@ -83,12 +89,17 @@ function NewBusinessWizard() {
   const update = (k: keyof Form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   const generate = async () => {
-    if (!workspaceId) return toast.error("Workspace not ready");
+    let wsId = workspaceId;
+    if (!wsId) wsId = await loadWorkspace();
+    if (!wsId) {
+      toast.error("Your workspace isn't ready yet. Please refresh the page and try again.");
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await generateFn({
         data: {
-          workspace_id: workspaceId,
+          workspace_id: wsId,
           name: form.name,
           type: form.type,
           description: form.description,
@@ -101,11 +112,17 @@ function NewBusinessWizard() {
           language: "en",
         },
       });
-      toast.success("Your business is ready");
+      toast.success("Your business is ready!");
       navigate({ to: "/dashboard/storefront/$businessId", params: { businessId: res.business_id } });
     } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      toast.error(msg);
+      let msg: string;
+      if (e instanceof Response) {
+        try { msg = (await e.text()) || `${e.status} ${e.statusText}`; } catch { msg = `${e.status} ${e.statusText}`; }
+      } else {
+        msg = e instanceof Error ? e.message : String(e);
+      }
+      console.error("[generateBusiness] failed:", e);
+      toast.error(msg || "Could not generate your business. Please try again.");
       setSubmitting(false);
     }
   };
