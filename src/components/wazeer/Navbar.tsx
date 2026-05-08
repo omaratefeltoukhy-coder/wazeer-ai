@@ -1,5 +1,6 @@
 import { Logo } from "./Logo";
 import { Button } from "@/components/ui/button";
+import { Link } from "@tanstack/react-router";
 
 const links = [
   { href: "#how", label: "How it works" },
@@ -22,10 +23,12 @@ export function Navbar() {
             ))}
           </nav>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="hidden sm:inline-flex">Sign in</Button>
-            <Button size="sm" className="bg-foreground text-background hover:opacity-90">
-              Start selling with AI
-            </Button>
+            <Link to="/login"><Button variant="ghost" size="sm" className="hidden sm:inline-flex">Sign in</Button></Link>
+            <Link to="/signup">
+              <Button size="sm" className="bg-foreground text-background hover:opacity-90">
+                Start selling with AI
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
