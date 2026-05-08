@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
+import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import { optionalSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 import { PLANS, type PlanId } from "./plans";
 import { getBillingContext } from "./guard.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
@@ -14,13 +15,52 @@ const fallbackEntitlements = {
   fallback: true,
 };
 
+const entitlementInputSchema = z.object({ workspace_id: z.string().uuid().nullable().optional() });
+
+async function resolveOptionalEntitlementsAuth() {
+  try {
+    const SUPABASE_URL = process.env.SUPABASE_URL;
+    const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
+    if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+      console.error("[getEntitlements] Missing backend environment for auth context");
+      return null;
+    }
+
+    const { getRequest } = await import("@tanstack/react-start/server");
+    const authHeader = getRequest()?.headers?.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) return null;
+
+    const token = authHeader.replace("Bearer ", "").trim();
+    if (!token) return null;
+
+    const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+      auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+    });
+
+    const { data, error } = await supabase.auth.getClaims(token);
+    if (error || !data?.claims?.sub) return null;
+
+    return { supabase, userId: data.claims.sub };
+  } catch (error) {
+    console.warn("[getEntitlements] Optional auth resolution failed", error);
+    return null;
+  }
+}
+
 export const getEntitlements = createServerFn({ method: "POST" })
-  .middleware([optionalSupabaseAuth])
-  .inputValidator((input) => z.object({ workspace_id: z.string().uuid() }).parse(input))
-  .handler(async ({ data, context }) => {
+  .inputValidator((input) => {
+    const parsed = entitlementInputSchema.safeParse(input);
+    return parsed.success ? parsed.data : { workspace_id: null };
+  })
+  .handler(async ({ data }) => {
     try {
-      const { supabase, userId } = (context ?? {}) as Record<string, any>;
-      if (!supabase || !userId) return fallbackEntitlements;
+      if (!data.workspace_id) return fallbackEntitlements;
+
+      const authContext = await resolveOptionalEntitlementsAuth();
+      if (!authContext) return fallbackEntitlements;
+
+      const { supabase, userId } = authContext;
       // Verify the caller is a member of this workspace
       const { data: m, error: memberError } = await supabase
         .from("workspace_members")
