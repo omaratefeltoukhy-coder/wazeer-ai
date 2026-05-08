@@ -3,7 +3,13 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-const TOKEN_KEY = () => process.env.META_TOKEN_KEY ?? "wazeer-demo-meta-key-change-me";
+const TOKEN_KEY = () => {
+  const key = process.env.META_TOKEN_ENCRYPTION_KEY;
+  if (!key || key.length < 16) {
+    throw new Error("META_TOKEN_ENCRYPTION_KEY is not configured. Set a 32-byte random key in project secrets.");
+  }
+  return key;
+};
 
 const KIND = z.enum(["facebook_page", "instagram", "ad_account", "pixel", "capi"]);
 type Kind = z.infer<typeof KIND>;

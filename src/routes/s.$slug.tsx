@@ -19,14 +19,17 @@ export const Route = createFileRoute("/s/$slug")({
       </div>
     </div>
   ),
-  errorComponent: ({ error }) => (
-    <div className="min-h-screen grid place-items-center p-6 text-center">
-      <div>
-        <h1 className="text-xl font-semibold">Something went wrong</h1>
-        <p className="text-muted-foreground mt-2 text-sm">{error.message}</p>
+  errorComponent: ({ error }) => {
+    if (typeof console !== "undefined") console.error("Storefront load error:", error);
+    return (
+      <div className="min-h-screen grid place-items-center p-6 text-center">
+        <div>
+          <h1 className="text-xl font-semibold">Something went wrong</h1>
+          <p className="text-muted-foreground mt-2 text-sm">We couldn't load this page. Please try again later.</p>
+        </div>
       </div>
-    </div>
-  ),
+    );
+  },
   head: ({ loaderData }) => {
     const sf = loaderData?.storefront as any;
     const title = sf?.title || sf?.content_json?.hero?.headline || "Wazeer AI Storefront";
