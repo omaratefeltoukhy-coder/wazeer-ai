@@ -20,6 +20,7 @@ import { Route as AuthenticatedDashboardUgcRouteImport } from './routes/_authent
 import { Route as AuthenticatedDashboardStorefrontRouteImport } from './routes/_authenticated/dashboard.storefront'
 import { Route as AuthenticatedDashboardNewRouteImport } from './routes/_authenticated/dashboard.new'
 import { Route as AuthenticatedDashboardImagesRouteImport } from './routes/_authenticated/dashboard.images'
+import { Route as AuthenticatedDashboardEmailsRouteImport } from './routes/_authenticated/dashboard.emails'
 import { Route as AuthenticatedDashboardBillingRouteImport } from './routes/_authenticated/dashboard.billing'
 import { Route as AuthenticatedDashboardVideosBusinessIdRouteImport } from './routes/_authenticated/dashboard.videos.$businessId'
 import { Route as AuthenticatedDashboardUgcBusinessIdRouteImport } from './routes/_authenticated/dashboard.ugc.$businessId'
@@ -85,6 +86,12 @@ const AuthenticatedDashboardImagesRoute =
     path: '/images',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const AuthenticatedDashboardEmailsRoute =
+  AuthenticatedDashboardEmailsRouteImport.update({
+    id: '/emails',
+    path: '/emails',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const AuthenticatedDashboardBillingRoute =
   AuthenticatedDashboardBillingRouteImport.update({
     id: '/billing',
@@ -123,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/s/$slug': typeof SSlugRoute
   '/dashboard/billing': typeof AuthenticatedDashboardBillingRoute
+  '/dashboard/emails': typeof AuthenticatedDashboardEmailsRoute
   '/dashboard/images': typeof AuthenticatedDashboardImagesRouteWithChildren
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRouteWithChildren
@@ -140,6 +148,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/s/$slug': typeof SSlugRoute
   '/dashboard/billing': typeof AuthenticatedDashboardBillingRoute
+  '/dashboard/emails': typeof AuthenticatedDashboardEmailsRoute
   '/dashboard/images': typeof AuthenticatedDashboardImagesRouteWithChildren
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRouteWithChildren
@@ -159,6 +168,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/s/$slug': typeof SSlugRoute
   '/_authenticated/dashboard/billing': typeof AuthenticatedDashboardBillingRoute
+  '/_authenticated/dashboard/emails': typeof AuthenticatedDashboardEmailsRoute
   '/_authenticated/dashboard/images': typeof AuthenticatedDashboardImagesRouteWithChildren
   '/_authenticated/dashboard/new': typeof AuthenticatedDashboardNewRoute
   '/_authenticated/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRouteWithChildren
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/s/$slug'
     | '/dashboard/billing'
+    | '/dashboard/emails'
     | '/dashboard/images'
     | '/dashboard/new'
     | '/dashboard/storefront'
@@ -195,6 +206,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/s/$slug'
     | '/dashboard/billing'
+    | '/dashboard/emails'
     | '/dashboard/images'
     | '/dashboard/new'
     | '/dashboard/storefront'
@@ -213,6 +225,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/s/$slug'
     | '/_authenticated/dashboard/billing'
+    | '/_authenticated/dashboard/emails'
     | '/_authenticated/dashboard/images'
     | '/_authenticated/dashboard/new'
     | '/_authenticated/dashboard/storefront'
@@ -309,6 +322,13 @@ declare module '@tanstack/react-router' {
       path: '/images'
       fullPath: '/dashboard/images'
       preLoaderRoute: typeof AuthenticatedDashboardImagesRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/emails': {
+      id: '/_authenticated/dashboard/emails'
+      path: '/emails'
+      fullPath: '/dashboard/emails'
+      preLoaderRoute: typeof AuthenticatedDashboardEmailsRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
     '/_authenticated/dashboard/billing': {
@@ -411,6 +431,7 @@ const AuthenticatedDashboardVideosRouteWithChildren =
 
 interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardBillingRoute: typeof AuthenticatedDashboardBillingRoute
+  AuthenticatedDashboardEmailsRoute: typeof AuthenticatedDashboardEmailsRoute
   AuthenticatedDashboardImagesRoute: typeof AuthenticatedDashboardImagesRouteWithChildren
   AuthenticatedDashboardNewRoute: typeof AuthenticatedDashboardNewRoute
   AuthenticatedDashboardStorefrontRoute: typeof AuthenticatedDashboardStorefrontRouteWithChildren
@@ -421,6 +442,7 @@ interface AuthenticatedDashboardRouteChildren {
 const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
   {
     AuthenticatedDashboardBillingRoute: AuthenticatedDashboardBillingRoute,
+    AuthenticatedDashboardEmailsRoute: AuthenticatedDashboardEmailsRoute,
     AuthenticatedDashboardImagesRoute:
       AuthenticatedDashboardImagesRouteWithChildren,
     AuthenticatedDashboardNewRoute: AuthenticatedDashboardNewRoute,
@@ -458,3 +480,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
