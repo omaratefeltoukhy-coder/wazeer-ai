@@ -31,6 +31,7 @@ import { Route as AuthenticatedDashboardBillingRouteImport } from './routes/_aut
 import { Route as AuthenticatedDashboardAutomationsRouteImport } from './routes/_authenticated/dashboard.automations'
 import { Route as AuthenticatedDashboardAnalyticsRouteImport } from './routes/_authenticated/dashboard.analytics'
 import { Route as AuthenticatedDashboardAdsRouteImport } from './routes/_authenticated/dashboard.ads'
+import { Route as AuthenticatedDashboardProductsIndexRouteImport } from './routes/_authenticated/dashboard.products.index'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as AuthenticatedDashboardVideosBusinessIdRouteImport } from './routes/_authenticated/dashboard.videos.$businessId'
 import { Route as AuthenticatedDashboardUgcBusinessIdRouteImport } from './routes/_authenticated/dashboard.ugc.$businessId'
@@ -167,6 +168,12 @@ const AuthenticatedDashboardAdsRoute =
     path: '/ads',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const AuthenticatedDashboardProductsIndexRoute =
+  AuthenticatedDashboardProductsIndexRouteImport.update({
+    id: '/products/',
+    path: '/products/',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -274,6 +281,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/ugc/$businessId': typeof AuthenticatedDashboardUgcBusinessIdRoute
   '/dashboard/videos/$businessId': typeof AuthenticatedDashboardVideosBusinessIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/dashboard/products/': typeof AuthenticatedDashboardProductsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -308,6 +316,7 @@ export interface FileRoutesByTo {
   '/dashboard/ugc/$businessId': typeof AuthenticatedDashboardUgcBusinessIdRoute
   '/dashboard/videos/$businessId': typeof AuthenticatedDashboardVideosBusinessIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/dashboard/products': typeof AuthenticatedDashboardProductsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -345,6 +354,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/ugc/$businessId': typeof AuthenticatedDashboardUgcBusinessIdRoute
   '/_authenticated/dashboard/videos/$businessId': typeof AuthenticatedDashboardVideosBusinessIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/_authenticated/dashboard/products/': typeof AuthenticatedDashboardProductsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -382,6 +392,7 @@ export interface FileRouteTypes {
     | '/dashboard/ugc/$businessId'
     | '/dashboard/videos/$businessId'
     | '/api/public/payments/webhook'
+    | '/dashboard/products/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -416,6 +427,7 @@ export interface FileRouteTypes {
     | '/dashboard/ugc/$businessId'
     | '/dashboard/videos/$businessId'
     | '/api/public/payments/webhook'
+    | '/dashboard/products'
   id:
     | '__root__'
     | '/'
@@ -452,6 +464,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/ugc/$businessId'
     | '/_authenticated/dashboard/videos/$businessId'
     | '/api/public/payments/webhook'
+    | '/_authenticated/dashboard/products/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -619,6 +632,13 @@ declare module '@tanstack/react-router' {
       path: '/ads'
       fullPath: '/dashboard/ads'
       preLoaderRoute: typeof AuthenticatedDashboardAdsRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/products/': {
+      id: '/_authenticated/dashboard/products/'
+      path: '/products'
+      fullPath: '/dashboard/products/'
+      preLoaderRoute: typeof AuthenticatedDashboardProductsIndexRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
     '/api/public/payments/webhook': {
@@ -874,6 +894,7 @@ interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardVideosRoute: typeof AuthenticatedDashboardVideosRouteWithChildren
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
   AuthenticatedDashboardIntegrationsMetaRoute: typeof AuthenticatedDashboardIntegrationsMetaRoute
+  AuthenticatedDashboardProductsIndexRoute: typeof AuthenticatedDashboardProductsIndexRoute
 }
 
 const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
@@ -902,6 +923,8 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
     AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
     AuthenticatedDashboardIntegrationsMetaRoute:
       AuthenticatedDashboardIntegrationsMetaRoute,
+    AuthenticatedDashboardProductsIndexRoute:
+      AuthenticatedDashboardProductsIndexRoute,
   }
 
 const AuthenticatedDashboardRouteWithChildren =
