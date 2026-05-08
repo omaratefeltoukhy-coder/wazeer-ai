@@ -64,14 +64,20 @@ function NewBusinessWizard() {
     "Generating Wazeer AI recommendations",
   ];
 
-  useEffect(() => {
-    supabase
+  const loadWorkspace = async (): Promise<string | null> => {
+    const { data: m } = await supabase
       .from("workspace_members")
       .select("workspace_id")
       .limit(1)
-      .single()
-      .then(({ data }) => setWorkspaceId(data?.workspace_id ?? null));
-  }, []);
+      .maybeSingle();
+    if (m?.workspace_id) {
+      setWorkspaceId(m.workspace_id);
+      return m.workspace_id;
+    }
+    return null;
+  };
+
+  useEffect(() => { void loadWorkspace(); }, []);
 
   useEffect(() => {
     if (!submitting) return;
