@@ -14,6 +14,116 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_analytics: {
+        Row: {
+          ad_views: number
+          campaign_id: string
+          created_at: string
+          date: string
+          id: string
+          leads: number
+          page_visits: number
+          spend: number
+          workspace_id: string
+        }
+        Insert: {
+          ad_views?: number
+          campaign_id: string
+          created_at?: string
+          date: string
+          id?: string
+          leads?: number
+          page_visits?: number
+          spend?: number
+          workspace_id: string
+        }
+        Update: {
+          ad_views?: number
+          campaign_id?: string
+          created_at?: string
+          date?: string
+          id?: string
+          leads?: number
+          page_visits?: number
+          spend?: number
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_analytics_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "ad_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_campaigns: {
+        Row: {
+          ad_variants: Json
+          audience_type: string | null
+          budget_daily: number
+          business_id: string | null
+          created_at: string
+          end_date: string | null
+          id: string
+          locations: Json
+          meta_campaign_id: string | null
+          name: string
+          objective: string | null
+          product_id: string | null
+          result_count: number
+          spent_amount: number
+          start_date: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          ad_variants?: Json
+          audience_type?: string | null
+          budget_daily?: number
+          business_id?: string | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          locations?: Json
+          meta_campaign_id?: string | null
+          name: string
+          objective?: string | null
+          product_id?: string | null
+          result_count?: number
+          spent_amount?: number
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          ad_variants?: Json
+          audience_type?: string | null
+          budget_daily?: number
+          business_id?: string | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          locations?: Json
+          meta_campaign_id?: string | null
+          name?: string
+          objective?: string | null
+          product_id?: string | null
+          result_count?: number
+          spent_amount?: number
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       ai_content: {
         Row: {
           business_id: string | null
@@ -1359,6 +1469,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pixel_integrations: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          pixel_id: string | null
+          provider: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          pixel_id?: string | null
+          provider: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          pixel_id?: string | null
+          provider?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: []
       }
       products: {
         Row: {
