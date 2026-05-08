@@ -15,7 +15,27 @@ const previewChips = [
 
 export function Hero() {
   const [idea, setIdea] = useState("");
+  const [file, setFile] = useState<File | null>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
+
+  const MAX_BYTES = 25 * 1024 * 1024; // 25MB
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (f.size > MAX_BYTES) {
+      toast.error("File is too large", { description: "Please choose a file under 25MB." });
+      e.target.value = "";
+      return;
+    }
+    setFile(f);
+    toast.success("Media attached", { description: f.name });
+  };
+
+  const clearFile = () => {
+    setFile(null);
+    if (uploadInputRef.current) uploadInputRef.current.value = "";
+  };
 
   return (
     <section className="relative overflow-hidden">
