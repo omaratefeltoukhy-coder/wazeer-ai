@@ -111,7 +111,7 @@ function NewBusinessWizard() {
           description: form.description,
           price: 49,
           currency: "USD",
-          billing_interval: form.type === "saas" || form.type === "course" ? "month" : null,
+          billing_interval: ["subscription", "course", "coaching", "membership"].includes(form.type) ? "month" : null,
           status: "draft",
         }),
         supabase.from("storefronts").insert({
