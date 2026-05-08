@@ -37,6 +37,7 @@ const sections: NavSection[] = [
   {
     heading: "Marketing",
     items: [
+      { to: "/dashboard/content", label: "Content Studio", icon: Wand2 },
       { to: "/dashboard/images", label: "AI Images", icon: ImageIcon },
       { to: "/dashboard/ugc", label: "UGC Scripts", icon: FileVideo },
       { to: "/dashboard/videos", label: "AI Videos", icon: Video },
