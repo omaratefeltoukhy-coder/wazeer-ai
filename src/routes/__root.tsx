@@ -11,6 +11,7 @@ import {
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/hooks/useAuth";
 import { Toaster } from "@/components/ui/sonner";
+import { ConfirmRoot } from "@/components/ui/confirm";
 
 function NotFoundComponent() {
   return (
@@ -120,6 +121,7 @@ function RootComponent() {
       <AuthProvider>
         <Outlet />
         <Toaster />
+        <ConfirmRoot />
       </AuthProvider>
     </QueryClientProvider>
   );

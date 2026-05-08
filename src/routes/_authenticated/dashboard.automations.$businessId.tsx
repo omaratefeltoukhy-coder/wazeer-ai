@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { confirmDialog, promptDialog } from "@/components/ui/confirm";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -90,7 +91,7 @@ function AutomationBuilder() {
   }
   async function remove() {
     if (!active?.id) return setActive(null);
-    if (!confirm("Delete automation?")) return;
+    if (!(await confirmDialog({ title: "Delete automation?", destructive: true, confirmText: "Delete" }))) return;
     await delFn({ data: { id: active.id } });
     toast.success("Deleted"); setActive(null); refresh();
   }

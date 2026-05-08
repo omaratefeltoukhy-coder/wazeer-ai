@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { confirmDialog, promptDialog } from "@/components/ui/confirm";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { listCampaigns, deleteCampaign } from "@/lib/email/marketing.functions";
@@ -30,7 +31,7 @@ function CampaignsPage() {
   useEffect(() => { load(); }, []);
 
   const onDelete = async (id: string) => {
-    if (!confirm("Delete this campaign?")) return;
+    if (!(await confirmDialog({ title: "Delete this campaign?", destructive: true, confirmText: "Delete" }))) return;
     try { await del({ data: { id } }); setItems((p) => p.filter((x) => x.id !== id)); toast.success("Deleted"); }
     catch (e: any) { toast.error(e?.message || "Delete failed"); }
   };

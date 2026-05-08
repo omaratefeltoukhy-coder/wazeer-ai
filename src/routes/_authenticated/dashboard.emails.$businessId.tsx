@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { confirmDialog, promptDialog } from "@/components/ui/confirm";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod";
@@ -123,7 +124,7 @@ function EmailEditor() {
   }
 
   async function test(id: string) {
-    const to = window.prompt("Send test email to:");
+    const to = await promptDialog({ title: "Send test email", label: "Recipient email", placeholder: "you@example.com" });
     if (!to) return;
     try {
       await testFn({ data: { message_id: id, to_email: to } });
@@ -131,7 +132,7 @@ function EmailEditor() {
     } catch (e: any) { toast.error(e?.message ?? "Failed"); }
   }
   async function schedule(id: string) {
-    const when = window.prompt("Schedule (ISO date, e.g. 2026-05-10T10:00:00Z):");
+    const when = await promptDialog({ title: "Schedule send", label: "ISO date", placeholder: "2026-05-10T10:00:00Z" });
     if (!when) return;
     try {
       const iso = new Date(when).toISOString();
@@ -142,7 +143,7 @@ function EmailEditor() {
   }
   async function approveAndSend() {
     if (!activeId) return;
-    if (!confirm("Send this campaign to all eligible contacts? (demo dispatcher)")) return;
+    if (!(await confirmDialog({ title: "Send campaign?", description: "Sends to all eligible contacts (demo dispatcher).", confirmText: "Send" }))) return;
     setBusy("send");
     try {
       const r: any = await sendFn({ data: { campaign_id: activeId } });

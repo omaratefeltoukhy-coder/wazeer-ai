@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { confirmDialog, promptDialog } from "@/components/ui/confirm";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { listContent, deleteContent } from "@/lib/content/studio.functions";
@@ -51,7 +52,7 @@ function ContentStudioPage() {
   useEffect(() => { load(filter); }, [filter]);
 
   const onDelete = async (id: string) => {
-    if (!confirm("Delete this creation?")) return;
+    if (!(await confirmDialog({ title: "Delete this creation?", destructive: true, confirmText: "Delete" }))) return;
     try {
       await del({ data: { id } });
       setItems((prev) => prev.filter((x) => x.id !== id));

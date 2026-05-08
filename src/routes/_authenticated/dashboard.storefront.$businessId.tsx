@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { confirmDialog, promptDialog } from "@/components/ui/confirm";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -102,7 +103,11 @@ function StorefrontEditor() {
   const togglePublish = async () => {
     const action = status === "published" ? "unpublish" : "publish";
     if (action === "publish") {
-      const ok = window.confirm(`Publish this storefront live at /s/${slug}? You can unpublish anytime.`);
+      const ok = await confirmDialog({
+        title: "Publish storefront?",
+        description: `It will go live at /s/${slug}. You can unpublish anytime.`,
+        confirmText: "Publish",
+      });
       if (!ok) return;
     }
     setPublishing(true);

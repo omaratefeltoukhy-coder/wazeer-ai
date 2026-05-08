@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { confirmDialog, promptDialog } from "@/components/ui/confirm";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -134,7 +135,7 @@ function ImagesGenerator() {
   };
 
   const handleDelete = async (img: Img) => {
-    if (!window.confirm("Delete this image?")) return;
+    if (!(await confirmDialog({ title: "Delete this image?", destructive: true, confirmText: "Delete" }))) return;
     try {
       await delFn({ data: { image_id: img.id } });
       setItems((prev) => (prev ?? []).filter((x) => x.id !== img.id));
