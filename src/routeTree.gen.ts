@@ -47,6 +47,7 @@ import { Route as AuthenticatedDashboardStorefrontBusinessIdRouteImport } from '
 import { Route as AuthenticatedDashboardProductsNewRouteImport } from './routes/_authenticated/dashboard.products.new'
 import { Route as AuthenticatedDashboardProductsProductIdRouteImport } from './routes/_authenticated/dashboard.products.$productId'
 import { Route as AuthenticatedDashboardPostsBusinessIdRouteImport } from './routes/_authenticated/dashboard.posts.$businessId'
+import { Route as AuthenticatedDashboardIntegrationsPixelsRouteImport } from './routes/_authenticated/dashboard.integrations.pixels'
 import { Route as AuthenticatedDashboardIntegrationsMetaRouteImport } from './routes/_authenticated/dashboard.integrations.meta'
 import { Route as AuthenticatedDashboardImagesBusinessIdRouteImport } from './routes/_authenticated/dashboard.images.$businessId'
 import { Route as AuthenticatedDashboardEmailsBusinessIdRouteImport } from './routes/_authenticated/dashboard.emails.$businessId'
@@ -284,6 +285,12 @@ const AuthenticatedDashboardPostsBusinessIdRoute =
     path: '/$businessId',
     getParentRoute: () => AuthenticatedDashboardPostsRoute,
   } as any)
+const AuthenticatedDashboardIntegrationsPixelsRoute =
+  AuthenticatedDashboardIntegrationsPixelsRouteImport.update({
+    id: '/integrations/pixels',
+    path: '/integrations/pixels',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const AuthenticatedDashboardIntegrationsMetaRoute =
   AuthenticatedDashboardIntegrationsMetaRouteImport.update({
     id: '/integrations/meta',
@@ -428,6 +435,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/emails/$businessId': typeof AuthenticatedDashboardEmailsBusinessIdRoute
   '/dashboard/images/$businessId': typeof AuthenticatedDashboardImagesBusinessIdRoute
   '/dashboard/integrations/meta': typeof AuthenticatedDashboardIntegrationsMetaRoute
+  '/dashboard/integrations/pixels': typeof AuthenticatedDashboardIntegrationsPixelsRoute
   '/dashboard/posts/$businessId': typeof AuthenticatedDashboardPostsBusinessIdRoute
   '/dashboard/products/$productId': typeof AuthenticatedDashboardProductsProductIdRoute
   '/dashboard/products/new': typeof AuthenticatedDashboardProductsNewRoute
@@ -478,6 +486,7 @@ export interface FileRoutesByTo {
   '/dashboard/emails/$businessId': typeof AuthenticatedDashboardEmailsBusinessIdRoute
   '/dashboard/images/$businessId': typeof AuthenticatedDashboardImagesBusinessIdRoute
   '/dashboard/integrations/meta': typeof AuthenticatedDashboardIntegrationsMetaRoute
+  '/dashboard/integrations/pixels': typeof AuthenticatedDashboardIntegrationsPixelsRoute
   '/dashboard/posts/$businessId': typeof AuthenticatedDashboardPostsBusinessIdRoute
   '/dashboard/products/$productId': typeof AuthenticatedDashboardProductsProductIdRoute
   '/dashboard/products/new': typeof AuthenticatedDashboardProductsNewRoute
@@ -536,6 +545,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/emails/$businessId': typeof AuthenticatedDashboardEmailsBusinessIdRoute
   '/_authenticated/dashboard/images/$businessId': typeof AuthenticatedDashboardImagesBusinessIdRoute
   '/_authenticated/dashboard/integrations/meta': typeof AuthenticatedDashboardIntegrationsMetaRoute
+  '/_authenticated/dashboard/integrations/pixels': typeof AuthenticatedDashboardIntegrationsPixelsRoute
   '/_authenticated/dashboard/posts/$businessId': typeof AuthenticatedDashboardPostsBusinessIdRoute
   '/_authenticated/dashboard/products/$productId': typeof AuthenticatedDashboardProductsProductIdRoute
   '/_authenticated/dashboard/products/new': typeof AuthenticatedDashboardProductsNewRoute
@@ -594,6 +604,7 @@ export interface FileRouteTypes {
     | '/dashboard/emails/$businessId'
     | '/dashboard/images/$businessId'
     | '/dashboard/integrations/meta'
+    | '/dashboard/integrations/pixels'
     | '/dashboard/posts/$businessId'
     | '/dashboard/products/$productId'
     | '/dashboard/products/new'
@@ -644,6 +655,7 @@ export interface FileRouteTypes {
     | '/dashboard/emails/$businessId'
     | '/dashboard/images/$businessId'
     | '/dashboard/integrations/meta'
+    | '/dashboard/integrations/pixels'
     | '/dashboard/posts/$businessId'
     | '/dashboard/products/$productId'
     | '/dashboard/products/new'
@@ -701,6 +713,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/emails/$businessId'
     | '/_authenticated/dashboard/images/$businessId'
     | '/_authenticated/dashboard/integrations/meta'
+    | '/_authenticated/dashboard/integrations/pixels'
     | '/_authenticated/dashboard/posts/$businessId'
     | '/_authenticated/dashboard/products/$productId'
     | '/_authenticated/dashboard/products/new'
@@ -995,6 +1008,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/posts/$businessId'
       preLoaderRoute: typeof AuthenticatedDashboardPostsBusinessIdRouteImport
       parentRoute: typeof AuthenticatedDashboardPostsRoute
+    }
+    '/_authenticated/dashboard/integrations/pixels': {
+      id: '/_authenticated/dashboard/integrations/pixels'
+      path: '/integrations/pixels'
+      fullPath: '/dashboard/integrations/pixels'
+      preLoaderRoute: typeof AuthenticatedDashboardIntegrationsPixelsRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
     }
     '/_authenticated/dashboard/integrations/meta': {
       id: '/_authenticated/dashboard/integrations/meta'
@@ -1392,6 +1412,7 @@ interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardVideosRoute: typeof AuthenticatedDashboardVideosRouteWithChildren
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
   AuthenticatedDashboardIntegrationsMetaRoute: typeof AuthenticatedDashboardIntegrationsMetaRoute
+  AuthenticatedDashboardIntegrationsPixelsRoute: typeof AuthenticatedDashboardIntegrationsPixelsRoute
 }
 
 const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
@@ -1430,6 +1451,8 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
     AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
     AuthenticatedDashboardIntegrationsMetaRoute:
       AuthenticatedDashboardIntegrationsMetaRoute,
+    AuthenticatedDashboardIntegrationsPixelsRoute:
+      AuthenticatedDashboardIntegrationsPixelsRoute,
   }
 
 const AuthenticatedDashboardRouteWithChildren =
