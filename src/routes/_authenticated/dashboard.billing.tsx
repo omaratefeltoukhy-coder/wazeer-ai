@@ -280,6 +280,7 @@ function BillingPage() {
           )}
         </div>
       </section>
+      </div>
     </div>
   );
 }
