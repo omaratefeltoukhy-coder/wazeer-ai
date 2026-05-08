@@ -57,9 +57,9 @@ export const updateStorefront = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const sf = await loadStorefront(context.supabase, data.business_id);
-    const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    const patch: { title?: string; content_json?: any } = {};
     if (data.title !== undefined) patch.title = data.title;
-    if (data.content_json !== undefined) patch.content_json = data.content_json;
+    if (data.content_json !== undefined) patch.content_json = data.content_json as any;
     const { error } = await context.supabase.from("storefronts").update(patch).eq("id", sf.id);
     if (error) throw new Error(error.message);
     return { ok: true };
