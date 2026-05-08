@@ -144,13 +144,13 @@ export const regenerateStorefrontSection = createServerFn({ method: "POST" })
       // editor flow stays usable without provider credentials.
       if (!LOVABLE_API_KEY) {
         const content = buildSectionMock(data.section, { brand, biz });
-        const next = { ...(sf.content_json as Record<string, unknown>), [data.section]: content };
+        const next = { ...(sf.content_json as Record<string, any>), [data.section]: content };
         const { error: upErr } = await context.supabase
           .from("storefronts")
-          .update({ content_json: next })
+          .update({ content_json: next as any })
           .eq("id", sf.id);
         if (upErr) throw new Error(upErr.message);
-        return { ok: true, section: data.section, content, provider: "mock" as const };
+        return { ok: true, section: data.section, content: content as any, provider: "mock" as const };
       }
 
       const sectionSchemas: Record<Section, any> = {
@@ -213,10 +213,10 @@ Extra instructions: ${data.brief || "(none)"}`;
       const next = { ...(sf.content_json as any), [data.section]: content };
       const { error: upErr } = await context.supabase
         .from("storefronts")
-        .update({ content_json: next })
+        .update({ content_json: next as any })
         .eq("id", sf.id);
       if (upErr) throw new Error(upErr.message);
-      return { ok: true, section: data.section, content, provider: "lovable_ai" as const };
+      return { ok: true, section: data.section, content: content as any, provider: "lovable_ai" as const };
     } catch (err) {
       await refundCredits(workspace_id, "storefront_section_regenerate", { business_id: data.business_id });
       throw err;
