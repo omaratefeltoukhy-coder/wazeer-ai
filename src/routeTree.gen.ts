@@ -25,6 +25,7 @@ import { Route as AuthenticatedDashboardStorefrontRouteImport } from './routes/_
 import { Route as AuthenticatedDashboardSettingsRouteImport } from './routes/_authenticated/dashboard.settings'
 import { Route as AuthenticatedDashboardProductsRouteImport } from './routes/_authenticated/dashboard.products'
 import { Route as AuthenticatedDashboardPostsRouteImport } from './routes/_authenticated/dashboard.posts'
+import { Route as AuthenticatedDashboardPayoutsRouteImport } from './routes/_authenticated/dashboard.payouts'
 import { Route as AuthenticatedDashboardNewRouteImport } from './routes/_authenticated/dashboard.new'
 import { Route as AuthenticatedDashboardImagesRouteImport } from './routes/_authenticated/dashboard.images'
 import { Route as AuthenticatedDashboardEmailsRouteImport } from './routes/_authenticated/dashboard.emails'
@@ -135,6 +136,12 @@ const AuthenticatedDashboardPostsRoute =
   AuthenticatedDashboardPostsRouteImport.update({
     id: '/posts',
     path: '/posts',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardPayoutsRoute =
+  AuthenticatedDashboardPayoutsRouteImport.update({
+    id: '/payouts',
+    path: '/payouts',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
 const AuthenticatedDashboardNewRoute =
@@ -298,6 +305,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/emails': typeof AuthenticatedDashboardEmailsRouteWithChildren
   '/dashboard/images': typeof AuthenticatedDashboardImagesRouteWithChildren
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
+  '/dashboard/payouts': typeof AuthenticatedDashboardPayoutsRoute
   '/dashboard/posts': typeof AuthenticatedDashboardPostsRouteWithChildren
   '/dashboard/products': typeof AuthenticatedDashboardProductsRouteWithChildren
   '/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
@@ -338,6 +346,7 @@ export interface FileRoutesByTo {
   '/dashboard/emails': typeof AuthenticatedDashboardEmailsRouteWithChildren
   '/dashboard/images': typeof AuthenticatedDashboardImagesRouteWithChildren
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
+  '/dashboard/payouts': typeof AuthenticatedDashboardPayoutsRoute
   '/dashboard/posts': typeof AuthenticatedDashboardPostsRouteWithChildren
   '/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
   '/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRouteWithChildren
@@ -380,6 +389,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/emails': typeof AuthenticatedDashboardEmailsRouteWithChildren
   '/_authenticated/dashboard/images': typeof AuthenticatedDashboardImagesRouteWithChildren
   '/_authenticated/dashboard/new': typeof AuthenticatedDashboardNewRoute
+  '/_authenticated/dashboard/payouts': typeof AuthenticatedDashboardPayoutsRoute
   '/_authenticated/dashboard/posts': typeof AuthenticatedDashboardPostsRouteWithChildren
   '/_authenticated/dashboard/products': typeof AuthenticatedDashboardProductsRouteWithChildren
   '/_authenticated/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
@@ -423,6 +433,7 @@ export interface FileRouteTypes {
     | '/dashboard/emails'
     | '/dashboard/images'
     | '/dashboard/new'
+    | '/dashboard/payouts'
     | '/dashboard/posts'
     | '/dashboard/products'
     | '/dashboard/settings'
@@ -463,6 +474,7 @@ export interface FileRouteTypes {
     | '/dashboard/emails'
     | '/dashboard/images'
     | '/dashboard/new'
+    | '/dashboard/payouts'
     | '/dashboard/posts'
     | '/dashboard/settings'
     | '/dashboard/storefront'
@@ -504,6 +516,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/emails'
     | '/_authenticated/dashboard/images'
     | '/_authenticated/dashboard/new'
+    | '/_authenticated/dashboard/payouts'
     | '/_authenticated/dashboard/posts'
     | '/_authenticated/dashboard/products'
     | '/_authenticated/dashboard/settings'
@@ -653,6 +666,13 @@ declare module '@tanstack/react-router' {
       path: '/posts'
       fullPath: '/dashboard/posts'
       preLoaderRoute: typeof AuthenticatedDashboardPostsRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/payouts': {
+      id: '/_authenticated/dashboard/payouts'
+      path: '/payouts'
+      fullPath: '/dashboard/payouts'
+      preLoaderRoute: typeof AuthenticatedDashboardPayoutsRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
     '/_authenticated/dashboard/new': {
@@ -1007,6 +1027,7 @@ interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardEmailsRoute: typeof AuthenticatedDashboardEmailsRouteWithChildren
   AuthenticatedDashboardImagesRoute: typeof AuthenticatedDashboardImagesRouteWithChildren
   AuthenticatedDashboardNewRoute: typeof AuthenticatedDashboardNewRoute
+  AuthenticatedDashboardPayoutsRoute: typeof AuthenticatedDashboardPayoutsRoute
   AuthenticatedDashboardPostsRoute: typeof AuthenticatedDashboardPostsRouteWithChildren
   AuthenticatedDashboardProductsRoute: typeof AuthenticatedDashboardProductsRouteWithChildren
   AuthenticatedDashboardSettingsRoute: typeof AuthenticatedDashboardSettingsRoute
@@ -1034,6 +1055,7 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
     AuthenticatedDashboardImagesRoute:
       AuthenticatedDashboardImagesRouteWithChildren,
     AuthenticatedDashboardNewRoute: AuthenticatedDashboardNewRoute,
+    AuthenticatedDashboardPayoutsRoute: AuthenticatedDashboardPayoutsRoute,
     AuthenticatedDashboardPostsRoute:
       AuthenticatedDashboardPostsRouteWithChildren,
     AuthenticatedDashboardProductsRoute:

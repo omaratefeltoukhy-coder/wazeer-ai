@@ -8,6 +8,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   LayoutDashboard, ShoppingBag, Image as ImageIcon, Video, Mail, Megaphone, Target, Link2,
   BarChart3, Settings, LogOut, Plus, Loader2, CreditCard, Sparkles, FileVideo, Workflow, Users, Menu, Package,
+  DollarSign, Receipt, Wallet,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
