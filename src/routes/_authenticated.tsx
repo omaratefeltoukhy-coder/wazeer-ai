@@ -42,6 +42,7 @@ const sections: NavSection[] = [
       { to: "/dashboard/ugc", label: "UGC Scripts", icon: FileVideo },
       { to: "/dashboard/videos", label: "AI Videos", icon: Video },
       { to: "/dashboard/emails", label: "Emails", icon: Mail },
+      { to: "/dashboard/email/campaigns", label: "Email Marketing", icon: Mail },
       { to: "/dashboard/automations", label: "Automations", icon: Workflow },
       { to: "/dashboard/contacts", label: "Contacts", icon: Users },
       { to: "/dashboard/posts", label: "Meta Posts", icon: Megaphone },

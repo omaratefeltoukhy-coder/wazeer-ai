@@ -481,32 +481,53 @@ export type Database = {
       }
       email_automations: {
         Row: {
+          automation_type: string | null
+          body_html: string | null
           business_id: string
           created_at: string
+          delay_minutes: number
           id: string
+          is_active: boolean
           name: string
+          opens_count: number
+          sent_count: number
           status: Database["public"]["Enums"]["automation_status"]
           steps_json: Json | null
+          subject: string | null
           trigger_type: string | null
           updated_at: string
         }
         Insert: {
+          automation_type?: string | null
+          body_html?: string | null
           business_id: string
           created_at?: string
+          delay_minutes?: number
           id?: string
+          is_active?: boolean
           name: string
+          opens_count?: number
+          sent_count?: number
           status?: Database["public"]["Enums"]["automation_status"]
           steps_json?: Json | null
+          subject?: string | null
           trigger_type?: string | null
           updated_at?: string
         }
         Update: {
+          automation_type?: string | null
+          body_html?: string | null
           business_id?: string
           created_at?: string
+          delay_minutes?: number
           id?: string
+          is_active?: boolean
           name?: string
+          opens_count?: number
+          sent_count?: number
           status?: Database["public"]["Enums"]["automation_status"]
           steps_json?: Json | null
+          subject?: string | null
           trigger_type?: string | null
           updated_at?: string
         }
@@ -522,33 +543,63 @@ export type Database = {
       }
       email_campaigns: {
         Row: {
+          audience_type: string | null
+          body_html: string | null
+          bounces_count: number
           business_id: string
+          clicks_count: number
           content_json: Json | null
           created_at: string
           id: string
           name: string
+          opens_count: number
+          recipients_count: number
+          scheduled_at: string | null
+          sent_at: string | null
           status: Database["public"]["Enums"]["email_status"]
+          subject: string | null
           type: string | null
+          unsubscribes_count: number
           updated_at: string
         }
         Insert: {
+          audience_type?: string | null
+          body_html?: string | null
+          bounces_count?: number
           business_id: string
+          clicks_count?: number
           content_json?: Json | null
           created_at?: string
           id?: string
           name: string
+          opens_count?: number
+          recipients_count?: number
+          scheduled_at?: string | null
+          sent_at?: string | null
           status?: Database["public"]["Enums"]["email_status"]
+          subject?: string | null
           type?: string | null
+          unsubscribes_count?: number
           updated_at?: string
         }
         Update: {
+          audience_type?: string | null
+          body_html?: string | null
+          bounces_count?: number
           business_id?: string
+          clicks_count?: number
           content_json?: Json | null
           created_at?: string
           id?: string
           name?: string
+          opens_count?: number
+          recipients_count?: number
+          scheduled_at?: string | null
+          sent_at?: string | null
           status?: Database["public"]["Enums"]["email_status"]
+          subject?: string | null
           type?: string | null
+          unsubscribes_count?: number
           updated_at?: string
         }
         Relationships: [
