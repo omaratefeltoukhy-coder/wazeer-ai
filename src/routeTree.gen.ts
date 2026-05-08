@@ -14,9 +14,9 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDashboardStorefrontRouteImport } from './routes/_authenticated/dashboard.storefront'
 import { Route as AuthenticatedDashboardNewRouteImport } from './routes/_authenticated/dashboard.new'
 import { Route as AuthenticatedDashboardBillingRouteImport } from './routes/_authenticated/dashboard.billing'
-import { Route as AuthenticatedDashboardStorefrontIndexRouteImport } from './routes/_authenticated/dashboard.storefront.index'
 import { Route as AuthenticatedDashboardStorefrontBusinessIdRouteImport } from './routes/_authenticated/dashboard.storefront.$businessId'
 
 const SignupRoute = SignupRouteImport.update({
@@ -43,6 +43,12 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedDashboardStorefrontRoute =
+  AuthenticatedDashboardStorefrontRouteImport.update({
+    id: '/storefront',
+    path: '/storefront',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const AuthenticatedDashboardNewRoute =
   AuthenticatedDashboardNewRouteImport.update({
     id: '/new',
@@ -55,17 +61,11 @@ const AuthenticatedDashboardBillingRoute =
     path: '/billing',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
-const AuthenticatedDashboardStorefrontIndexRoute =
-  AuthenticatedDashboardStorefrontIndexRouteImport.update({
-    id: '/storefront/',
-    path: '/storefront/',
-    getParentRoute: () => AuthenticatedDashboardRoute,
-  } as any)
 const AuthenticatedDashboardStorefrontBusinessIdRoute =
   AuthenticatedDashboardStorefrontBusinessIdRouteImport.update({
-    id: '/storefront/$businessId',
-    path: '/storefront/$businessId',
-    getParentRoute: () => AuthenticatedDashboardRoute,
+    id: '/$businessId',
+    path: '/$businessId',
+    getParentRoute: () => AuthenticatedDashboardStorefrontRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -75,8 +75,8 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/dashboard/billing': typeof AuthenticatedDashboardBillingRoute
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
+  '/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRouteWithChildren
   '/dashboard/storefront/$businessId': typeof AuthenticatedDashboardStorefrontBusinessIdRoute
-  '/dashboard/storefront/': typeof AuthenticatedDashboardStorefrontIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -85,8 +85,8 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/dashboard/billing': typeof AuthenticatedDashboardBillingRoute
   '/dashboard/new': typeof AuthenticatedDashboardNewRoute
+  '/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRouteWithChildren
   '/dashboard/storefront/$businessId': typeof AuthenticatedDashboardStorefrontBusinessIdRoute
-  '/dashboard/storefront': typeof AuthenticatedDashboardStorefrontIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -97,8 +97,8 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/_authenticated/dashboard/billing': typeof AuthenticatedDashboardBillingRoute
   '/_authenticated/dashboard/new': typeof AuthenticatedDashboardNewRoute
+  '/_authenticated/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRouteWithChildren
   '/_authenticated/dashboard/storefront/$businessId': typeof AuthenticatedDashboardStorefrontBusinessIdRoute
-  '/_authenticated/dashboard/storefront/': typeof AuthenticatedDashboardStorefrontIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -109,8 +109,8 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/dashboard/billing'
     | '/dashboard/new'
+    | '/dashboard/storefront'
     | '/dashboard/storefront/$businessId'
-    | '/dashboard/storefront/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -119,8 +119,8 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/dashboard/billing'
     | '/dashboard/new'
-    | '/dashboard/storefront/$businessId'
     | '/dashboard/storefront'
+    | '/dashboard/storefront/$businessId'
   id:
     | '__root__'
     | '/'
@@ -130,8 +130,8 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/dashboard/billing'
     | '/_authenticated/dashboard/new'
+    | '/_authenticated/dashboard/storefront'
     | '/_authenticated/dashboard/storefront/$businessId'
-    | '/_authenticated/dashboard/storefront/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -178,6 +178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/dashboard/storefront': {
+      id: '/_authenticated/dashboard/storefront'
+      path: '/storefront'
+      fullPath: '/dashboard/storefront'
+      preLoaderRoute: typeof AuthenticatedDashboardStorefrontRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
     '/_authenticated/dashboard/new': {
       id: '/_authenticated/dashboard/new'
       path: '/new'
@@ -192,38 +199,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardBillingRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
-    '/_authenticated/dashboard/storefront/': {
-      id: '/_authenticated/dashboard/storefront/'
-      path: '/storefront'
-      fullPath: '/dashboard/storefront/'
-      preLoaderRoute: typeof AuthenticatedDashboardStorefrontIndexRouteImport
-      parentRoute: typeof AuthenticatedDashboardRoute
-    }
     '/_authenticated/dashboard/storefront/$businessId': {
       id: '/_authenticated/dashboard/storefront/$businessId'
-      path: '/storefront/$businessId'
+      path: '/$businessId'
       fullPath: '/dashboard/storefront/$businessId'
       preLoaderRoute: typeof AuthenticatedDashboardStorefrontBusinessIdRouteImport
-      parentRoute: typeof AuthenticatedDashboardRoute
+      parentRoute: typeof AuthenticatedDashboardStorefrontRoute
     }
   }
 }
 
+interface AuthenticatedDashboardStorefrontRouteChildren {
+  AuthenticatedDashboardStorefrontBusinessIdRoute: typeof AuthenticatedDashboardStorefrontBusinessIdRoute
+}
+
+const AuthenticatedDashboardStorefrontRouteChildren: AuthenticatedDashboardStorefrontRouteChildren =
+  {
+    AuthenticatedDashboardStorefrontBusinessIdRoute:
+      AuthenticatedDashboardStorefrontBusinessIdRoute,
+  }
+
+const AuthenticatedDashboardStorefrontRouteWithChildren =
+  AuthenticatedDashboardStorefrontRoute._addFileChildren(
+    AuthenticatedDashboardStorefrontRouteChildren,
+  )
+
 interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardBillingRoute: typeof AuthenticatedDashboardBillingRoute
   AuthenticatedDashboardNewRoute: typeof AuthenticatedDashboardNewRoute
-  AuthenticatedDashboardStorefrontBusinessIdRoute: typeof AuthenticatedDashboardStorefrontBusinessIdRoute
-  AuthenticatedDashboardStorefrontIndexRoute: typeof AuthenticatedDashboardStorefrontIndexRoute
+  AuthenticatedDashboardStorefrontRoute: typeof AuthenticatedDashboardStorefrontRouteWithChildren
 }
 
 const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
   {
     AuthenticatedDashboardBillingRoute: AuthenticatedDashboardBillingRoute,
     AuthenticatedDashboardNewRoute: AuthenticatedDashboardNewRoute,
-    AuthenticatedDashboardStorefrontBusinessIdRoute:
-      AuthenticatedDashboardStorefrontBusinessIdRoute,
-    AuthenticatedDashboardStorefrontIndexRoute:
-      AuthenticatedDashboardStorefrontIndexRoute,
+    AuthenticatedDashboardStorefrontRoute:
+      AuthenticatedDashboardStorefrontRouteWithChildren,
   }
 
 const AuthenticatedDashboardRouteWithChildren =

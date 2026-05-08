@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Plus, ShoppingBag } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/dashboard/storefront/")({
+export const Route = createFileRoute("/_authenticated/dashboard/storefront")({
   component: StorefrontIndex,
 });
 
