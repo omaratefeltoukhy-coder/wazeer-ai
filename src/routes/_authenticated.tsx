@@ -52,6 +52,7 @@ const sections: NavSection[] = [
   {
     items: [
       { to: "/dashboard/integrations/meta", label: "Integrations", icon: Link2 },
+      { to: "/dashboard/integrations/pixels", label: "Tracking Pixels", icon: Target },
       { to: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
       { to: "/dashboard/billing", label: "Plans & Credits", icon: CreditCard },
       { to: "/dashboard/settings", label: "Settings", icon: Settings },
