@@ -67,6 +67,42 @@ export type Database = {
           },
         ]
       }
+      audit_logs: {
+        Row: {
+          action: string
+          business_id: string | null
+          created_at: string
+          entity: string
+          entity_id: string | null
+          id: string
+          metadata_json: Json
+          user_id: string | null
+          workspace_id: string
+        }
+        Insert: {
+          action: string
+          business_id?: string | null
+          created_at?: string
+          entity: string
+          entity_id?: string | null
+          id?: string
+          metadata_json?: Json
+          user_id?: string | null
+          workspace_id: string
+        }
+        Update: {
+          action?: string
+          business_id?: string | null
+          created_at?: string
+          entity?: string
+          entity_id?: string | null
+          id?: string
+          metadata_json?: Json
+          user_id?: string | null
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       brand_profiles: {
         Row: {
           audience_json: Json | null
