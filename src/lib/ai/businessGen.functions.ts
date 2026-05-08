@@ -24,6 +24,118 @@ function slugify(s: string, fallback: string) {
   return v || fallback;
 }
 
+type GenInput = z.infer<typeof InputSchema>;
+
+// Deterministic mock kit used when LOVABLE_API_KEY is missing so the
+// demo / preview flow works without provider credentials. Mirrors the
+// shape returned by the real AI tool so downstream persistence is identical.
+function buildMockKit(data: GenInput) {
+  const brandName = data.name || "Your Business";
+  const audience = data.target_audience || "small business owners";
+  const pain = data.pain_point || "growth feels slow and overwhelming";
+  const result = data.desired_result || "a steady stream of customers without the marketing grind";
+  const goalCopy: Record<string, string> = {
+    sales: "drive sales",
+    leads: "capture qualified leads",
+    subscribers: "grow recurring subscribers",
+    awareness: "build brand awareness",
+  };
+  const goal = goalCopy[data.goal] ?? "drive sales";
+
+  const isSubLike = ["subscription", "course", "coaching", "membership"].includes(data.type);
+  const billing = isSubLike ? "month" : "one_time";
+  const price = isSubLike ? 29 : 49;
+
+  return {
+    brand: {
+      brand_name: brandName,
+      tone: "Confident, helpful, and approachable — premium without being stiff.",
+      visual_style: "Clean, modern SaaS with rounded cards, soft shadows, and gradient accents.",
+      positioning: `${brandName} helps ${audience} ${result}, without needing a marketing team.`,
+      colors: { primary: "#07111F", accent: "#10B981", background: "#F8FAFC" },
+      audience: {
+        persona: `Busy ${audience} who want results without the learning curve.`,
+        demographics: data.country ? `Adults 25–55, primarily in ${data.country}.` : "Adults 25–55, English-speaking markets.",
+        psychographics: "Time-strapped, ambitious, prefers tools that ship work over tools that show dashboards.",
+      },
+      benefits: [
+        "Skip the setup — start selling on day one",
+        "Stay on-brand without hiring a designer",
+        "Know exactly what to do next every week",
+      ],
+      pain_points: [pain, "Drowning in tools that don't talk to each other", "No idea which campaigns are actually working"],
+      objections: [
+        "I'm not technical, will I figure this out?",
+        "Will the AI sound like me, or generic?",
+        "Is this another subscription that won't pay for itself?",
+      ],
+    },
+    offer: {
+      name: `${brandName} — Launch Offer`,
+      description: `A focused offer designed to ${goal} for ${audience}. Built around the outcome they actually pay for: ${result}.`,
+      price,
+      billing_interval: billing as "one_time" | "month" | "year",
+      free_trial_days: isSubLike ? 7 : 0,
+    },
+    storefront: {
+      title: brandName,
+      hero: {
+        headline: `${brandName}: ${result}.`,
+        sub: `For ${audience} who are tired of ${pain}.`,
+        cta: data.goal === "leads" ? "Get the free guide" : data.goal === "subscribers" ? "Start free trial" : "Get started",
+      },
+      benefits: [
+        { title: "Set up in minutes, not weeks", body: "Wazeer AI builds your storefront, content, and growth plan from one input." },
+        { title: "Stays on-brand automatically", body: `Every asset matches ${brandName}'s tone, colors, and audience without manual tweaks.` },
+        { title: "Always know your next move", body: "AI recommendations spotlight what's working and what to fix — no analyst needed." },
+      ],
+      how_it_works: [
+        { step: "Tell us about your business", body: `Describe what you sell — we already captured: ${data.description.slice(0, 140)}${data.description.length > 140 ? "…" : ""}` },
+        { step: "Wazeer AI builds the kit", body: "Storefront, offer, content, ads, and emails — drafted for your review in minutes." },
+        { step: "Approve and launch", body: "Edit anything, then go live with one click. Performance dashboards and recommendations turn on automatically." },
+      ],
+      testimonials: [
+        { quote: `Finally, ${result} without doing five things at once. ${brandName} feels like a small team in my pocket.`, author: `Early ${brandName} user` },
+        { quote: "I used to spend weekends writing emails and ad copy. Now I review and approve in minutes.", author: "Founder, beta cohort" },
+      ],
+      faq: [
+        { q: "How long does setup take?", a: "Most users have a complete kit ready within minutes of finishing the wizard." },
+        { q: "Can I edit the AI output?", a: "Yes. Every section, image, email, and ad is fully editable. AI gives you a strong first draft, you keep control." },
+        { q: "What if my brand changes?", a: "Update your business profile and Wazeer AI re-aligns new content with the latest brand voice and visuals." },
+        { q: "Will my ads launch automatically?", a: "Never. Ads, emails, and posts always need your explicit approval before they go live." },
+      ],
+      final_cta: {
+        headline: `Ready to ${goal}?`,
+        sub: `${brandName} is set up. Launch in one click.`,
+        cta: "Start selling with AI",
+      },
+    },
+    recommendations: [
+      {
+        category: "storefront",
+        title: "Publish your storefront",
+        problem: "Your storefront is in draft mode — no one can see it yet.",
+        recommendation: "Review the AI-generated copy, replace one or two lines with your own voice, and publish.",
+        priority: "high" as const,
+      },
+      {
+        category: "creative",
+        title: "Generate your first ad creative",
+        problem: "You don't have any ad assets ready, which means no paid traffic experiments yet.",
+        recommendation: "Open AI Images and generate 3 ad creatives in your brand colors. Use them in a small Meta ads test.",
+        priority: "medium" as const,
+      },
+      {
+        category: "email",
+        title: "Set up a welcome email sequence",
+        problem: "New leads don't get a follow-up, so you're losing them silently.",
+        recommendation: "Generate a 3-email welcome sequence and turn on the automation when you're ready.",
+        priority: "medium" as const,
+      },
+    ],
+  };
+}
+
 export const generateBusiness = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => InputSchema.parse(input))
@@ -65,13 +177,11 @@ export const generateBusiness = createServerFn({ method: "POST" })
       extracted_data_json: JSON.parse(JSON.stringify(data)),
     });
 
-    // 3) Call Lovable AI for full plan via tool calling
+    // 3) Call Lovable AI for full plan via tool calling.
+    // If LOVABLE_API_KEY is missing, fall back to a deterministic mock kit so
+    // the wizard still produces a complete, persistable result for demos.
     const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
-    if (!LOVABLE_API_KEY) {
-      await refundCredits(data.workspace_id, "business_generation", { business_id: businessId });
-      await supabase.from("businesses").update({ status: "failed" }).eq("id", businessId);
-      throw new Error("AI gateway not configured");
-    }
+    let provider: "lovable_ai" | "mock" = LOVABLE_API_KEY ? "lovable_ai" : "mock";
 
     const sysPrompt = `You are Wazeer AI, a senior brand & growth strategist. Given a business brief, you produce a complete go-to-market kit: brand profile, opening offer, storefront sections, and 3 high-impact recommendations. Be specific, premium, conversion-focused. Always reply via the provided tool.`;
 
@@ -193,42 +303,49 @@ Language: ${data.language}`;
       },
     };
 
-    let kit: any;
-    try {
-      const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
-            { role: "system", content: sysPrompt },
-            { role: "user", content: userPrompt },
-          ],
-          tools: [tool],
-          tool_choice: { type: "function", function: { name: "build_business_kit" } },
-        }),
-      });
+    let kit: ReturnType<typeof buildMockKit>;
+    if (provider === "mock") {
+      kit = buildMockKit(data);
+    } else {
+      try {
+        const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash",
+            messages: [
+              { role: "system", content: sysPrompt },
+              { role: "user", content: userPrompt },
+            ],
+            tools: [tool],
+            tool_choice: { type: "function", function: { name: "build_business_kit" } },
+          }),
+        });
 
-      if (!aiRes.ok) {
-        const text = await aiRes.text();
+        if (!aiRes.ok) {
+          const text = await aiRes.text();
+          await refundCredits(data.workspace_id, "business_generation", { business_id: businessId });
+          await supabase.from("businesses").update({ status: "failed", generation_log_json: { error: text, status: aiRes.status, provider } }).eq("id", businessId);
+          if (aiRes.status === 429) throw new Error("Rate limit hit. Please wait a moment and try again.");
+          if (aiRes.status === 402) throw new Error("AI credits exhausted. Add credits in Settings → Workspace → Usage.");
+          throw new Error(`AI generation failed (${aiRes.status})`);
+        }
+
+        const json = await aiRes.json();
+        const args = json?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+        if (!args) throw new Error("AI returned no structured output");
+        kit = typeof args === "string" ? JSON.parse(args) : args;
+      } catch (err) {
+        // Provider call failed mid-flight (network, parse, etc). Refund and
+        // surface the error — falling back to mock here would hide real
+        // outages from operators.
         await refundCredits(data.workspace_id, "business_generation", { business_id: businessId });
-      await supabase.from("businesses").update({ status: "failed", generation_log_json: { error: text, status: aiRes.status } }).eq("id", businessId);
-        if (aiRes.status === 429) throw new Error("Rate limit hit. Please wait a moment and try again.");
-        if (aiRes.status === 402) throw new Error("AI credits exhausted. Add credits in Settings → Workspace → Usage.");
-        throw new Error(`AI generation failed (${aiRes.status})`);
+        await supabase.from("businesses").update({ status: "failed", generation_log_json: { provider, error: err instanceof Error ? err.message : String(err) } }).eq("id", businessId);
+        throw err;
       }
-
-      const json = await aiRes.json();
-      const args = json?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
-      if (!args) throw new Error("AI returned no structured output");
-      kit = typeof args === "string" ? JSON.parse(args) : args;
-    } catch (err) {
-      await refundCredits(data.workspace_id, "business_generation", { business_id: businessId });
-      await supabase.from("businesses").update({ status: "failed" }).eq("id", businessId);
-      throw err;
     }
 
     // 4) Persist generated artifacts
@@ -290,9 +407,14 @@ Language: ${data.language}`;
 
     await supabase
       .from("businesses")
-      .update({ status: "ready", generation_log_json: { model: "google/gemini-2.5-flash" } })
+      .update({
+        status: "ready",
+        generation_log_json: provider === "mock"
+          ? { provider: "mock", note: "LOVABLE_API_KEY not set — content is templated." }
+          : { provider: "lovable_ai", model: "google/gemini-2.5-flash" },
+      })
       .eq("id", businessId);
 
-    return { business_id: businessId, slug };
+    return { business_id: businessId, slug, provider };
   });
 
