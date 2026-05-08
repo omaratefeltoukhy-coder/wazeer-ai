@@ -45,7 +45,7 @@ const sections: NavSection[] = [
       { to: "/dashboard/emails", label: "Emails", icon: Mail },
       { to: "/dashboard/email/campaigns", label: "Email Marketing", icon: Mail },
       { to: "/dashboard/automations", label: "Automations", icon: Workflow },
-      { to: "/dashboard/contacts", label: "Contacts", icon: Users },
+      { to: "/dashboard/contacts", label: "Customers", icon: Users },
       { to: "/dashboard/posts", label: "Meta Posts", icon: Megaphone },
       { to: "/dashboard/ads", label: "Meta Ads", icon: Target },
     ],
