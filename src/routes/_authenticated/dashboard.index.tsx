@@ -175,9 +175,9 @@ function DashboardHome() {
     window.open(`/s/${storefront.slug}`, "_blank");
   };
 
-  const goNew = (type?: string) => {
+  const goNew = (_type?: string) => {
     setProductPickerOpen(false);
-    navigate({ to: "/dashboard/new", search: type ? { type } : undefined });
+    navigate({ to: "/dashboard/new" });
   };
 
   // Empty state — no business yet
