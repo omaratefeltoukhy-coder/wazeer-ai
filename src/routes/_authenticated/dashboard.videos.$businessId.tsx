@@ -128,7 +128,7 @@ function VideoEditor() {
 
   const handleRender = async () => {
     if (!active) return;
-    if (!window.confirm("Render this video? 10 credits will be used.")) return;
+    if (!(await confirmDialog({ title: "Render this video?", description: "10 credits will be used.", confirmText: "Render" }))) return;
     setRendering(true);
     try {
       await handleSave();
@@ -142,7 +142,7 @@ function VideoEditor() {
 
   const handleDelete = async () => {
     if (!active) return;
-    if (!window.confirm("Delete this video?")) return;
+    if (!(await confirmDialog({ title: "Delete this video?", destructive: true, confirmText: "Delete" }))) return;
     try {
       await delFn({ data: { video_id: active.id } });
       toast.success("Deleted");

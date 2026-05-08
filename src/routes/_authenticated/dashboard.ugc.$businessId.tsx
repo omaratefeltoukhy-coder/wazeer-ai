@@ -139,7 +139,7 @@ function UgcScriptEditor() {
 
   const handleDelete = async () => {
     if (!active) return;
-    if (!window.confirm("Delete this script?")) return;
+    if (!(await confirmDialog({ title: "Delete this script?", destructive: true, confirmText: "Delete" }))) return;
     try {
       await delFn({ data: { script_id: active.id } });
       toast.success("Deleted");

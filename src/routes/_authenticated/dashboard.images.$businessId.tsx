@@ -135,7 +135,7 @@ function ImagesGenerator() {
   };
 
   const handleDelete = async (img: Img) => {
-    if (!window.confirm("Delete this image?")) return;
+    if (!(await confirmDialog({ title: "Delete this image?", destructive: true, confirmText: "Delete" }))) return;
     try {
       await delFn({ data: { image_id: img.id } });
       setItems((prev) => (prev ?? []).filter((x) => x.id !== img.id));

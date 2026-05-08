@@ -54,15 +54,17 @@ function PublicStorefront() {
   const { storefront, offer, brand } = Route.useLoaderData() as any;
   const sf = storefront.content_json ?? {};
 
-  const checkout = () => {
+  const checkout = async () => {
     if (!offer) {
-      alert("Checkout is not configured yet.");
+      await confirmDialog({ title: "Checkout not configured", description: "This storefront has no offer attached yet.", confirmText: "OK", cancelText: "Close" });
       return;
     }
-    // Demo checkout flow — payments not enabled.
-    window.alert(
-      `Demo checkout\n\n${offer.name}\n${fmtPrice(offer.price, offer.currency, offer.billing_interval)}\n\nReal payments will be wired via the billing integration.`,
-    );
+    await confirmDialog({
+      title: "Demo checkout",
+      description: `${offer.name} — ${fmtPrice(offer.price, offer.currency, offer.billing_interval)}. Real payments will be wired via the billing integration.`,
+      confirmText: "OK",
+      cancelText: "Close",
+    });
   };
 
   return (

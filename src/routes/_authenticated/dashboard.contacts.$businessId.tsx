@@ -124,7 +124,7 @@ function ContactsDetail() {
   };
 
   const onDelete = async (id: string) => {
-    if (!confirm("Delete this contact? This cannot be undone.")) return;
+    if (!(await confirmDialog({ title: "Delete contact?", description: "This cannot be undone.", destructive: true, confirmText: "Delete" }))) return;
     try {
       await callDelete({ data: { business_id: businessId, id } });
       toast.success("Contact deleted");
