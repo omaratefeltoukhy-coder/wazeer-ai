@@ -36,7 +36,7 @@ type Form = {
 
 const empty: Form = {
   name: "",
-  type: "ecommerce",
+  type: "physical_product",
   description: "",
   target_audience: "",
   pain_point: "",
