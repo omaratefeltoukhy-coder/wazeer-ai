@@ -138,9 +138,8 @@ function PayPage() {
                 <Input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
               </div>
             )}
-            <div>
-              <Label>Card number</Label>
-              <Input required placeholder="4242 4242 4242 4242" value={card} onChange={(e) => setCard(e.target.value)} />
+            <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
+              Demo checkout — payments are not processed yet. Do not enter real card details. Real payments will go through Paddle's secure hosted checkout.
             </div>
 
             <Button type="submit" className="w-full" disabled={paying}>
