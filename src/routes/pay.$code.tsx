@@ -28,12 +28,8 @@ function PayPage() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
-        .from("payment_links")
-        .select("*")
-        .eq("unique_code", code)
-        .eq("is_active", true)
-        .maybeSingle();
+      const { data: rows } = await (supabase as any).rpc("get_public_payment_link", { _code: code });
+      const data = Array.isArray(rows) ? rows[0] : rows;
       setLink(data);
       if (data) {
         await supabase.rpc("increment_payment_link_clicks", { _code: code });
