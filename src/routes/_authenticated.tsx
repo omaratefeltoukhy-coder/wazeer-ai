@@ -5,7 +5,7 @@ import { Logo } from "@/components/wazeer/Logo";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard, ShoppingBag, Image as ImageIcon, Video, Mail, Megaphone,
-  BarChart3, Lightbulb, Settings, LogOut, Plus, Loader2, CreditCard, Sparkles,
+  BarChart3, Lightbulb, Settings, LogOut, Plus, Loader2, CreditCard, Sparkles, FileVideo,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -16,7 +16,8 @@ const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/dashboard/storefront", label: "Storefront", icon: ShoppingBag },
   { to: "/dashboard/images", label: "AI Images", icon: ImageIcon },
-  { to: "/dashboard/ugc", label: "UGC Videos", icon: Video },
+  { to: "/dashboard/ugc", label: "UGC Scripts", icon: FileVideo },
+  { to: "/dashboard/videos", label: "AI Videos", icon: Video },
   { to: "/dashboard/emails", label: "Emails", icon: Mail },
   { to: "/dashboard/meta", label: "Meta", icon: Megaphone },
   { to: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
