@@ -60,11 +60,17 @@ async function handleSubscriptionCreatedOrUpdated(data: any, env: PaddleEnv) {
     .limit(1)
     .maybeSingle();
 
+  const mappedStatus: "active" | "canceled" | "past_due" | "trialing" | "unpaid" =
+    status === "trialing" ? "trialing"
+    : status === "canceled" ? "canceled"
+    : status === "past_due" ? "past_due"
+    : "active";
+
   const subRow = {
     workspace_id: workspaceId,
     user_id: userId,
     plan,
-    status: status === "trialing" ? "trialing" : status === "canceled" ? "canceled" : "active",
+    status: mappedStatus,
     paddle_subscription_id: id,
     paddle_customer_id: customerId,
     paddle_price_id: priceExtId,
