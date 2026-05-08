@@ -150,24 +150,10 @@ async function handleTransactionCompleted(data: any, env: PaddleEnv) {
     if (code) {
       await supabaseAdmin.rpc("record_payment_link_sale", { _code: code });
     }
-    await supabaseAdmin.from("orders").insert({
-      business_id: null as never,
-      workspace_id: workspaceId,
-      amount,
-      currency,
-      payment_status: "paid",
-      source: "payment_link",
-      metadata_json: {
-        paddle_transaction_id: id,
-        paddle_customer_id: customerId,
-        payment_link_code: code,
-        product_id: productId ?? null,
-        buyer_name: buyerName ?? null,
-        buyer_email: buyerEmail ?? null,
-        buyer_phone: buyerPhone ?? null,
-        environment: env,
-      } as never,
-    });
+    // Note: skip `orders` insert — that table requires a business_id, but
+    // payment links are workspace-scoped and may not be tied to a business.
+    // The invoice + payment_links.sales_count counter cover reporting.
+    void productId; void buyerName; void buyerPhone; void buyerEmail;
     await supabaseAdmin.from("invoices").insert({
       workspace_id: workspaceId,
       user_id: null,
