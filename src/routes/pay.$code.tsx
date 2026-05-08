@@ -61,7 +61,7 @@ function PayPage() {
         currency: link.currency,
         status: "completed",
       } as any);
-      await supabase.from("payment_links").update({ sales_count: (link.sales_count ?? 0) + 1 }).eq("id", link.id);
+      await (supabase as any).rpc("record_payment_link_sale", { _code: code });
       setDone(true);
       if (link.redirect_url) {
         setTimeout(() => { window.location.href = link.redirect_url; }, 1500);
