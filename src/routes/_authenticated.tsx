@@ -31,6 +31,7 @@ const sections: NavSection[] = [
     items: [
       { to: "/dashboard/earnings", label: "Earnings", icon: DollarSign },
       { to: "/dashboard/transactions", label: "Transactions", icon: Receipt },
+      { to: "/dashboard/payment-links", label: "Payment Links", icon: LinkIcon },
       { to: "/dashboard/payouts", label: "Payouts", icon: Wallet },
     ],
   },
