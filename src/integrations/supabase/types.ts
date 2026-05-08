@@ -2142,6 +2142,25 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      get_public_payment_link: {
+        Args: { _code: string }
+        Returns: {
+          amount: number
+          collect_phone: boolean
+          currency: string
+          custom_title: string
+          description: string
+          id: string
+          is_active: boolean
+          pass_fee_to_buyer: boolean
+          product_id: string
+          redirect_url: string
+          sales_count: number
+          thank_you_message: string
+          unique_code: string
+          workspace_id: string
+        }[]
+      }
       has_workspace_role: {
         Args: {
           _roles: Database["public"]["Enums"]["app_role"][]
@@ -2179,6 +2198,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      record_payment_link_sale: { Args: { _code: string }; Returns: undefined }
     }
     Enums: {
       app_role: "owner" | "admin" | "editor" | "viewer"
