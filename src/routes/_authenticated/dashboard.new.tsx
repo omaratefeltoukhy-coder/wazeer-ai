@@ -1,11 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { generateBusiness } from "@/lib/ai/businessGen.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, ArrowRight, Loader2, Sparkles, Wand2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Sparkles, Wand2, Check } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/new")({
@@ -51,6 +53,16 @@ function NewBusinessWizard() {
   const [form, setForm] = useState<Form>(empty);
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [progressIdx, setProgressIdx] = useState(0);
+  const generateFn = useServerFn(generateBusiness);
+
+  const generationSteps = [
+    "Analyzing your business",
+    "Crafting brand voice & positioning",
+    "Designing your opening offer",
+    "Writing your storefront",
+    "Generating Wazeer AI recommendations",
+  ];
 
   useEffect(() => {
     supabase
@@ -61,22 +73,22 @@ function NewBusinessWizard() {
       .then(({ data }) => setWorkspaceId(data?.workspace_id ?? null));
   }, []);
 
+  useEffect(() => {
+    if (!submitting) return;
+    setProgressIdx(0);
+    const t = setInterval(() => setProgressIdx((i) => Math.min(i + 1, generationSteps.length - 1)), 1500);
+    return () => clearInterval(t);
+  }, [submitting]);
+
   const update = (k: keyof Form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   const generate = async () => {
     if (!workspaceId) return toast.error("Workspace not ready");
     setSubmitting(true);
     try {
-      const { data: userRes } = await supabase.auth.getUser();
-      const uid = userRes.user?.id;
-      if (!uid) throw new Error("Not signed in");
-
-      // 1) Insert business (real DB save)
-      const { data: biz, error: bizErr } = await supabase
-        .from("businesses")
-        .insert({
+      await generateFn({
+        data: {
           workspace_id: workspaceId,
-          user_id: uid,
           name: form.name,
           type: form.type,
           description: form.description,
@@ -84,57 +96,20 @@ function NewBusinessWizard() {
           pain_point: form.pain_point,
           desired_result: form.desired_result,
           goal: form.goal,
-          country: form.country || null,
-        })
-        .select("id")
-        .single();
-      if (bizErr) throw bizErr;
-      const businessId = biz.id;
-
-      // 2) Mock AI generation → save brand profile, offer, storefront draft
-      const slug = form.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || `biz-${businessId.slice(0, 6)}`;
-
-      await Promise.all([
-        supabase.from("brand_profiles").insert({
-          business_id: businessId,
-          brand_name: form.name,
-          tone: "Confident, warm, modern",
-          visual_style: "Clean, premium, minimal",
-          positioning: `Helps ${form.target_audience || "customers"} achieve ${form.desired_result || "their goal"}`,
-          benefits_json: [form.desired_result, "Saves time", "Easy to start"].filter(Boolean),
-          pain_points_json: [form.pain_point].filter(Boolean),
-        }),
-        supabase.from("offers").insert({
-          business_id: businessId,
-          name: `${form.name} — Starter Offer`,
-          type: form.type,
-          description: form.description,
-          price: 49,
+          country: form.country,
           currency: "USD",
-          billing_interval: ["subscription", "course", "coaching", "membership"].includes(form.type) ? "month" : null,
-          status: "draft",
-        }),
-        supabase.from("storefronts").insert({
-          business_id: businessId,
-          slug,
-          title: form.name,
-          status: "draft",
-          content_json: {
-            hero: { headline: form.name, sub: form.description },
-            sections: ["hero", "benefits", "offer", "faq"],
-          },
-        }),
-      ]);
-
-      toast.success("Business created");
+          language: "en",
+        },
+      });
+      toast.success("Your business is ready");
       navigate({ to: "/dashboard" });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       toast.error(msg);
-    } finally {
       setSubmitting(false);
     }
   };
+
 
   const steps = [
     {
@@ -237,6 +212,32 @@ function NewBusinessWizard() {
   ];
 
   const cur = steps[step];
+
+  if (submitting) {
+    return (
+      <div className="p-6 lg:p-10 max-w-xl mx-auto min-h-[80vh] flex flex-col items-center justify-center text-center">
+        <div className="h-16 w-16 rounded-2xl bg-brand-gradient grid place-items-center shadow-glow mb-6 animate-pulse">
+          <Sparkles className="h-7 w-7 text-primary-foreground" />
+        </div>
+        <h2 className="text-2xl font-semibold mb-1">Building {form.name || "your business"}…</h2>
+        <p className="text-sm text-muted-foreground mb-8">Wazeer AI is doing the work. This takes ~20–40 seconds.</p>
+        <ul className="w-full max-w-sm space-y-3 text-left">
+          {generationSteps.map((label, i) => {
+            const done = i < progressIdx;
+            const active = i === progressIdx;
+            return (
+              <li key={label} className="flex items-center gap-3 text-sm">
+                <span className={`h-6 w-6 rounded-full grid place-items-center border ${done ? "bg-brand-gradient border-transparent text-primary-foreground" : active ? "border-foreground" : "border-border text-muted-foreground"}`}>
+                  {done ? <Check className="h-3.5 w-3.5" /> : active ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : i + 1}
+                </span>
+                <span className={done || active ? "text-foreground" : "text-muted-foreground"}>{label}</span>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 lg:p-10 max-w-2xl mx-auto">

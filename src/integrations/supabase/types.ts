@@ -169,11 +169,13 @@ export type Database = {
           currency: string | null
           description: string | null
           desired_result: string | null
+          generation_log_json: Json
           goal: string | null
           id: string
           language: string | null
           name: string
           pain_point: string | null
+          status: string
           target_audience: string | null
           type: Database["public"]["Enums"]["business_type"]
           updated_at: string
@@ -187,11 +189,13 @@ export type Database = {
           currency?: string | null
           description?: string | null
           desired_result?: string | null
+          generation_log_json?: Json
           goal?: string | null
           id?: string
           language?: string | null
           name: string
           pain_point?: string | null
+          status?: string
           target_audience?: string | null
           type?: Database["public"]["Enums"]["business_type"]
           updated_at?: string
@@ -205,11 +209,13 @@ export type Database = {
           currency?: string | null
           description?: string | null
           desired_result?: string | null
+          generation_log_json?: Json
           goal?: string | null
           id?: string
           language?: string | null
           name?: string
           pain_point?: string | null
+          status?: string
           target_audience?: string | null
           type?: Database["public"]["Enums"]["business_type"]
           updated_at?: string
