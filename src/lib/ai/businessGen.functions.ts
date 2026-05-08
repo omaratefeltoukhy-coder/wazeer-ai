@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { consumeCredits, refundCredits } from "@/lib/billing/guard.server";
+import { consumeCredits, refundCredits, requireEntitlement } from "@/lib/billing/guard.server";
 
 const InputSchema = z.object({
   workspace_id: z.string().uuid(),
@@ -31,6 +31,7 @@ export const generateBusiness = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
 
     // 0) Reserve credits up-front; refund on failure.
+    await requireEntitlement(data.workspace_id, "storefront");
     await consumeCredits(data.workspace_id, "business_generation");
 
     // 1) Insert business as `generating`
