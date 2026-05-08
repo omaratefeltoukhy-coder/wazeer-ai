@@ -5,7 +5,7 @@ import { Logo } from "@/components/wazeer/Logo";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard, ShoppingBag, Image as ImageIcon, Video, Mail, Megaphone,
-  BarChart3, Lightbulb, Settings, LogOut, Plus, Loader2, CreditCard, Sparkles, FileVideo,
+  BarChart3, Lightbulb, Settings, LogOut, Plus, Loader2, CreditCard, Sparkles, FileVideo, Workflow,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
