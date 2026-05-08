@@ -28,6 +28,7 @@ import { Route as AuthenticatedDashboardUgcBusinessIdRouteImport } from './route
 import { Route as AuthenticatedDashboardStorefrontBusinessIdRouteImport } from './routes/_authenticated/dashboard.storefront.$businessId'
 import { Route as AuthenticatedDashboardImagesBusinessIdRouteImport } from './routes/_authenticated/dashboard.images.$businessId'
 import { Route as AuthenticatedDashboardEmailsBusinessIdRouteImport } from './routes/_authenticated/dashboard.emails.$businessId'
+import { Route as AuthenticatedDashboardAutomationsBusinessIdRouteImport } from './routes/_authenticated/dashboard.automations.$businessId'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -136,6 +137,12 @@ const AuthenticatedDashboardEmailsBusinessIdRoute =
     path: '/$businessId',
     getParentRoute: () => AuthenticatedDashboardEmailsRoute,
   } as any)
+const AuthenticatedDashboardAutomationsBusinessIdRoute =
+  AuthenticatedDashboardAutomationsBusinessIdRouteImport.update({
+    id: '/$businessId',
+    path: '/$businessId',
+    getParentRoute: () => AuthenticatedDashboardAutomationsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -143,7 +150,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/s/$slug': typeof SSlugRoute
-  '/dashboard/automations': typeof AuthenticatedDashboardAutomationsRoute
+  '/dashboard/automations': typeof AuthenticatedDashboardAutomationsRouteWithChildren
   '/dashboard/billing': typeof AuthenticatedDashboardBillingRoute
   '/dashboard/emails': typeof AuthenticatedDashboardEmailsRouteWithChildren
   '/dashboard/images': typeof AuthenticatedDashboardImagesRouteWithChildren
@@ -151,6 +158,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRouteWithChildren
   '/dashboard/ugc': typeof AuthenticatedDashboardUgcRouteWithChildren
   '/dashboard/videos': typeof AuthenticatedDashboardVideosRouteWithChildren
+  '/dashboard/automations/$businessId': typeof AuthenticatedDashboardAutomationsBusinessIdRoute
   '/dashboard/emails/$businessId': typeof AuthenticatedDashboardEmailsBusinessIdRoute
   '/dashboard/images/$businessId': typeof AuthenticatedDashboardImagesBusinessIdRoute
   '/dashboard/storefront/$businessId': typeof AuthenticatedDashboardStorefrontBusinessIdRoute
@@ -163,7 +171,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/s/$slug': typeof SSlugRoute
-  '/dashboard/automations': typeof AuthenticatedDashboardAutomationsRoute
+  '/dashboard/automations': typeof AuthenticatedDashboardAutomationsRouteWithChildren
   '/dashboard/billing': typeof AuthenticatedDashboardBillingRoute
   '/dashboard/emails': typeof AuthenticatedDashboardEmailsRouteWithChildren
   '/dashboard/images': typeof AuthenticatedDashboardImagesRouteWithChildren
@@ -171,6 +179,7 @@ export interface FileRoutesByTo {
   '/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRouteWithChildren
   '/dashboard/ugc': typeof AuthenticatedDashboardUgcRouteWithChildren
   '/dashboard/videos': typeof AuthenticatedDashboardVideosRouteWithChildren
+  '/dashboard/automations/$businessId': typeof AuthenticatedDashboardAutomationsBusinessIdRoute
   '/dashboard/emails/$businessId': typeof AuthenticatedDashboardEmailsBusinessIdRoute
   '/dashboard/images/$businessId': typeof AuthenticatedDashboardImagesBusinessIdRoute
   '/dashboard/storefront/$businessId': typeof AuthenticatedDashboardStorefrontBusinessIdRoute
@@ -185,7 +194,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
   '/s/$slug': typeof SSlugRoute
-  '/_authenticated/dashboard/automations': typeof AuthenticatedDashboardAutomationsRoute
+  '/_authenticated/dashboard/automations': typeof AuthenticatedDashboardAutomationsRouteWithChildren
   '/_authenticated/dashboard/billing': typeof AuthenticatedDashboardBillingRoute
   '/_authenticated/dashboard/emails': typeof AuthenticatedDashboardEmailsRouteWithChildren
   '/_authenticated/dashboard/images': typeof AuthenticatedDashboardImagesRouteWithChildren
@@ -193,6 +202,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRouteWithChildren
   '/_authenticated/dashboard/ugc': typeof AuthenticatedDashboardUgcRouteWithChildren
   '/_authenticated/dashboard/videos': typeof AuthenticatedDashboardVideosRouteWithChildren
+  '/_authenticated/dashboard/automations/$businessId': typeof AuthenticatedDashboardAutomationsBusinessIdRoute
   '/_authenticated/dashboard/emails/$businessId': typeof AuthenticatedDashboardEmailsBusinessIdRoute
   '/_authenticated/dashboard/images/$businessId': typeof AuthenticatedDashboardImagesBusinessIdRoute
   '/_authenticated/dashboard/storefront/$businessId': typeof AuthenticatedDashboardStorefrontBusinessIdRoute
@@ -215,6 +225,7 @@ export interface FileRouteTypes {
     | '/dashboard/storefront'
     | '/dashboard/ugc'
     | '/dashboard/videos'
+    | '/dashboard/automations/$businessId'
     | '/dashboard/emails/$businessId'
     | '/dashboard/images/$businessId'
     | '/dashboard/storefront/$businessId'
@@ -235,6 +246,7 @@ export interface FileRouteTypes {
     | '/dashboard/storefront'
     | '/dashboard/ugc'
     | '/dashboard/videos'
+    | '/dashboard/automations/$businessId'
     | '/dashboard/emails/$businessId'
     | '/dashboard/images/$businessId'
     | '/dashboard/storefront/$businessId'
@@ -256,6 +268,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/storefront'
     | '/_authenticated/dashboard/ugc'
     | '/_authenticated/dashboard/videos'
+    | '/_authenticated/dashboard/automations/$businessId'
     | '/_authenticated/dashboard/emails/$businessId'
     | '/_authenticated/dashboard/images/$businessId'
     | '/_authenticated/dashboard/storefront/$businessId'
@@ -406,8 +419,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardEmailsBusinessIdRouteImport
       parentRoute: typeof AuthenticatedDashboardEmailsRoute
     }
+    '/_authenticated/dashboard/automations/$businessId': {
+      id: '/_authenticated/dashboard/automations/$businessId'
+      path: '/$businessId'
+      fullPath: '/dashboard/automations/$businessId'
+      preLoaderRoute: typeof AuthenticatedDashboardAutomationsBusinessIdRouteImport
+      parentRoute: typeof AuthenticatedDashboardAutomationsRoute
+    }
   }
 }
+
+interface AuthenticatedDashboardAutomationsRouteChildren {
+  AuthenticatedDashboardAutomationsBusinessIdRoute: typeof AuthenticatedDashboardAutomationsBusinessIdRoute
+}
+
+const AuthenticatedDashboardAutomationsRouteChildren: AuthenticatedDashboardAutomationsRouteChildren =
+  {
+    AuthenticatedDashboardAutomationsBusinessIdRoute:
+      AuthenticatedDashboardAutomationsBusinessIdRoute,
+  }
+
+const AuthenticatedDashboardAutomationsRouteWithChildren =
+  AuthenticatedDashboardAutomationsRoute._addFileChildren(
+    AuthenticatedDashboardAutomationsRouteChildren,
+  )
 
 interface AuthenticatedDashboardEmailsRouteChildren {
   AuthenticatedDashboardEmailsBusinessIdRoute: typeof AuthenticatedDashboardEmailsBusinessIdRoute
@@ -485,7 +520,7 @@ const AuthenticatedDashboardVideosRouteWithChildren =
   )
 
 interface AuthenticatedDashboardRouteChildren {
-  AuthenticatedDashboardAutomationsRoute: typeof AuthenticatedDashboardAutomationsRoute
+  AuthenticatedDashboardAutomationsRoute: typeof AuthenticatedDashboardAutomationsRouteWithChildren
   AuthenticatedDashboardBillingRoute: typeof AuthenticatedDashboardBillingRoute
   AuthenticatedDashboardEmailsRoute: typeof AuthenticatedDashboardEmailsRouteWithChildren
   AuthenticatedDashboardImagesRoute: typeof AuthenticatedDashboardImagesRouteWithChildren
@@ -498,7 +533,7 @@ interface AuthenticatedDashboardRouteChildren {
 const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
   {
     AuthenticatedDashboardAutomationsRoute:
-      AuthenticatedDashboardAutomationsRoute,
+      AuthenticatedDashboardAutomationsRouteWithChildren,
     AuthenticatedDashboardBillingRoute: AuthenticatedDashboardBillingRoute,
     AuthenticatedDashboardEmailsRoute:
       AuthenticatedDashboardEmailsRouteWithChildren,
