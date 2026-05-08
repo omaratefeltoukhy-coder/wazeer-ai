@@ -50,16 +50,18 @@ async function loadBrandContext(supabase: any, business_id: string) {
 
 export const generateImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z.object({
-      business_id: z.string().uuid(),
-      type: z.enum(TYPES),
-      style: z.enum(STYLES),
-      format: z.enum(FORMATS),
-      brief: z.string().max(800).optional().default(""),
-      reference_url: z.string().url().nullable().optional(),
-    }).parse(input),
-  )
+const GenSchema = z.object({
+  business_id: z.string().uuid(),
+  type: z.enum(TYPES),
+  style: z.enum(STYLES),
+  format: z.enum(FORMATS),
+  brief: z.string().max(800).optional().default(""),
+  reference_url: z.string().url().nullable().optional(),
+});
+
+export const generateImage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => GenSchema.parse(input))
   .handler(async ({ data, context }) => {
     const workspace_id = await loadWorkspaceId(context.supabase, data.business_id);
     await requireEntitlement(workspace_id, "ai_images");
