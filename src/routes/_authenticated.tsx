@@ -4,7 +4,7 @@ import { useEntitlements } from "@/hooks/useEntitlements";
 import { Logo } from "@/components/wazeer/Logo";
 import { Button } from "@/components/ui/button";
 import {
-  LayoutDashboard, ShoppingBag, Image as ImageIcon, Video, Mail, Megaphone,
+  LayoutDashboard, ShoppingBag, Image as ImageIcon, Video, Mail, Megaphone, Target, Link2,
   BarChart3, Lightbulb, Settings, LogOut, Plus, Loader2, CreditCard, Sparkles, FileVideo, Workflow,
 } from "lucide-react";
 
@@ -20,9 +20,9 @@ const nav = [
   { to: "/dashboard/videos", label: "AI Videos", icon: Video },
   { to: "/dashboard/emails", label: "Emails", icon: Mail },
   { to: "/dashboard/automations", label: "Automations", icon: Workflow },
-  { to: "/dashboard/meta", label: "Meta", icon: Megaphone },
-  { to: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
-  { to: "/dashboard/recommendations", label: "Recommendations", icon: Lightbulb },
+  { to: "/dashboard/posts", label: "Meta Posts", icon: Megaphone },
+  { to: "/dashboard/ads", label: "Meta Ads", icon: Target },
+  { to: "/dashboard/integrations/meta", label: "Integrations", icon: Link2 },
   { to: "/dashboard/billing", label: "Plans & Credits", icon: CreditCard },
   { to: "/dashboard/settings", label: "Settings", icon: Settings },
 ];

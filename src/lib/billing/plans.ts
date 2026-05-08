@@ -84,7 +84,10 @@ export const CREDIT_COST: Record<string, number> = {
   email_send: 0,
   email_test_send: 0,
   meta_post_draft: 2,
+  meta_post: 1,
   meta_ad_draft: 4,
+  meta_ad: 5,
+  meta_ad_creative: 1,
   analytics_refresh: 1,
 };
 

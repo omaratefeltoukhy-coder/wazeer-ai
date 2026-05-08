@@ -668,8 +668,10 @@ export type Database = {
       }
       meta_ads: {
         Row: {
+          approval_status: string
           business_id: string
           campaign_id: string | null
+          copy_json: Json
           created_at: string
           creative_id: string | null
           cta: string | null
@@ -678,13 +680,16 @@ export type Database = {
           id: string
           insights_json: Json | null
           media_asset_id: string | null
+          paused_at: string | null
           primary_text: string | null
           status: Database["public"]["Enums"]["campaign_status"]
           updated_at: string
         }
         Insert: {
+          approval_status?: string
           business_id: string
           campaign_id?: string | null
+          copy_json?: Json
           created_at?: string
           creative_id?: string | null
           cta?: string | null
@@ -693,13 +698,16 @@ export type Database = {
           id?: string
           insights_json?: Json | null
           media_asset_id?: string | null
+          paused_at?: string | null
           primary_text?: string | null
           status?: Database["public"]["Enums"]["campaign_status"]
           updated_at?: string
         }
         Update: {
+          approval_status?: string
           business_id?: string
           campaign_id?: string | null
+          copy_json?: Json
           created_at?: string
           creative_id?: string | null
           cta?: string | null
@@ -708,6 +716,7 @@ export type Database = {
           id?: string
           insights_json?: Json | null
           media_asset_id?: string | null
+          paused_at?: string | null
           primary_text?: string | null
           status?: Database["public"]["Enums"]["campaign_status"]
           updated_at?: string
@@ -738,45 +747,57 @@ export type Database = {
       }
       meta_campaigns: {
         Row: {
+          audience_json: Json
           budget: number | null
           business_id: string
           created_at: string
+          daily_budget: number | null
           end_date: string | null
           external_campaign_id: string | null
+          goal: string | null
           id: string
           insights_json: Json | null
           name: string
           objective: string | null
           start_date: string | null
           status: Database["public"]["Enums"]["campaign_status"]
+          total_budget: number | null
           updated_at: string
         }
         Insert: {
+          audience_json?: Json
           budget?: number | null
           business_id: string
           created_at?: string
+          daily_budget?: number | null
           end_date?: string | null
           external_campaign_id?: string | null
+          goal?: string | null
           id?: string
           insights_json?: Json | null
           name: string
           objective?: string | null
           start_date?: string | null
           status?: Database["public"]["Enums"]["campaign_status"]
+          total_budget?: number | null
           updated_at?: string
         }
         Update: {
+          audience_json?: Json
           budget?: number | null
           business_id?: string
           created_at?: string
+          daily_budget?: number | null
           end_date?: string | null
           external_campaign_id?: string | null
+          goal?: string | null
           id?: string
           insights_json?: Json | null
           name?: string
           objective?: string | null
           start_date?: string | null
           status?: Database["public"]["Enums"]["campaign_status"]
+          total_budget?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -794,9 +815,14 @@ export type Database = {
           ad_account_id: string | null
           business_id: string
           created_at: string
+          encrypted_token: string | null
+          error_message: string | null
           id: string
           instagram_account_id: string | null
+          kind: string
+          label: string | null
           last_synced_at: string | null
+          metadata_json: Json
           page_id: string | null
           permissions_json: Json | null
           provider: string
@@ -808,9 +834,14 @@ export type Database = {
           ad_account_id?: string | null
           business_id: string
           created_at?: string
+          encrypted_token?: string | null
+          error_message?: string | null
           id?: string
           instagram_account_id?: string | null
+          kind?: string
+          label?: string | null
           last_synced_at?: string | null
+          metadata_json?: Json
           page_id?: string | null
           permissions_json?: Json | null
           provider?: string
@@ -822,9 +853,14 @@ export type Database = {
           ad_account_id?: string | null
           business_id?: string
           created_at?: string
+          encrypted_token?: string | null
+          error_message?: string | null
           id?: string
           instagram_account_id?: string | null
+          kind?: string
+          label?: string | null
           last_synced_at?: string | null
+          metadata_json?: Json
           page_id?: string | null
           permissions_json?: Json | null
           provider?: string
@@ -844,42 +880,63 @@ export type Database = {
       }
       meta_posts: {
         Row: {
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
           business_id: string
           caption: string | null
           created_at: string
+          cta_text: string | null
+          error_message: string | null
           external_post_id: string | null
+          hashtags: string | null
           id: string
           insights_json: Json | null
           media_asset_id: string | null
           platform: Database["public"]["Enums"]["meta_platform"]
+          post_type: string | null
           published_at: string | null
           scheduled_at: string | null
           status: Database["public"]["Enums"]["post_status"]
           updated_at: string
         }
         Insert: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           business_id: string
           caption?: string | null
           created_at?: string
+          cta_text?: string | null
+          error_message?: string | null
           external_post_id?: string | null
+          hashtags?: string | null
           id?: string
           insights_json?: Json | null
           media_asset_id?: string | null
           platform: Database["public"]["Enums"]["meta_platform"]
+          post_type?: string | null
           published_at?: string | null
           scheduled_at?: string | null
           status?: Database["public"]["Enums"]["post_status"]
           updated_at?: string
         }
         Update: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
           business_id?: string
           caption?: string | null
           created_at?: string
+          cta_text?: string | null
+          error_message?: string | null
           external_post_id?: string | null
+          hashtags?: string | null
           id?: string
           insights_json?: Json | null
           media_asset_id?: string | null
           platform?: Database["public"]["Enums"]["meta_platform"]
+          post_type?: string | null
           published_at?: string | null
           scheduled_at?: string | null
           status?: Database["public"]["Enums"]["post_status"]
@@ -1403,6 +1460,14 @@ export type Database = {
           _workspace_id: string
         }
         Returns: boolean
+      }
+      decrypt_meta_token: {
+        Args: { _cipher: string; _key: string }
+        Returns: string
+      }
+      encrypt_meta_token: {
+        Args: { _key: string; _plaintext: string }
+        Returns: string
       }
       has_workspace_role: {
         Args: {
