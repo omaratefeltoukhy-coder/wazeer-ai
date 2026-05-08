@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_authenticated/dashboard/new")({
 });
 
 const businessTypes = [
-  "ecommerce", "service", "creator", "coach", "course", "saas", "agency", "other",
+  "physical_product", "digital_product", "service", "subscription", "course", "coaching", "membership", "event", "other",
 ] as const;
 
 const goals = [
