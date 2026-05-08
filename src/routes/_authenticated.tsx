@@ -15,22 +15,46 @@ export const Route = createFileRoute("/_authenticated")({
   component: AuthenticatedLayout,
 });
 
-const nav = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/dashboard/products", label: "Products", icon: Package },
-  { to: "/dashboard/storefront", label: "Storefront", icon: ShoppingBag },
-  { to: "/dashboard/images", label: "AI Images", icon: ImageIcon },
-  { to: "/dashboard/ugc", label: "UGC Scripts", icon: FileVideo },
-  { to: "/dashboard/videos", label: "AI Videos", icon: Video },
-  { to: "/dashboard/emails", label: "Emails", icon: Mail },
-  { to: "/dashboard/automations", label: "Automations", icon: Workflow },
-  { to: "/dashboard/contacts", label: "Contacts", icon: Users },
-  { to: "/dashboard/posts", label: "Meta Posts", icon: Megaphone },
-  { to: "/dashboard/ads", label: "Meta Ads", icon: Target },
-  { to: "/dashboard/integrations/meta", label: "Integrations", icon: Link2 },
-  { to: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
-  { to: "/dashboard/billing", label: "Plans & Credits", icon: CreditCard },
-  { to: "/dashboard/settings", label: "Settings", icon: Settings },
+type NavItem = { to: string; label: string; icon: typeof LayoutDashboard };
+type NavSection = { heading?: string; items: NavItem[] };
+
+const sections: NavSection[] = [
+  {
+    items: [
+      { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { to: "/dashboard/products", label: "Products", icon: Package },
+      { to: "/dashboard/storefront", label: "Storefront", icon: ShoppingBag },
+    ],
+  },
+  {
+    heading: "Money",
+    items: [
+      { to: "/dashboard/earnings", label: "Earnings", icon: DollarSign },
+      { to: "/dashboard/transactions", label: "Transactions", icon: Receipt },
+      { to: "/dashboard/payouts", label: "Payouts", icon: Wallet },
+    ],
+  },
+  {
+    heading: "Marketing",
+    items: [
+      { to: "/dashboard/images", label: "AI Images", icon: ImageIcon },
+      { to: "/dashboard/ugc", label: "UGC Scripts", icon: FileVideo },
+      { to: "/dashboard/videos", label: "AI Videos", icon: Video },
+      { to: "/dashboard/emails", label: "Emails", icon: Mail },
+      { to: "/dashboard/automations", label: "Automations", icon: Workflow },
+      { to: "/dashboard/contacts", label: "Contacts", icon: Users },
+      { to: "/dashboard/posts", label: "Meta Posts", icon: Megaphone },
+      { to: "/dashboard/ads", label: "Meta Ads", icon: Target },
+    ],
+  },
+  {
+    items: [
+      { to: "/dashboard/integrations/meta", label: "Integrations", icon: Link2 },
+      { to: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
+      { to: "/dashboard/billing", label: "Plans & Credits", icon: CreditCard },
+      { to: "/dashboard/settings", label: "Settings", icon: Settings },
+    ],
+  },
 ];
 
 function NavList({
