@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Upload, Wand2, ShoppingBag, Video, Mail, Megaphone, BarChart3 } from "lucide-react";
+import { ArrowRight, Sparkles, Upload, Wand2, ShoppingBag, Video, Mail, Megaphone, BarChart3, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 import heroGlow from "@/assets/hero-glow.jpg";
 
 const previewChips = [
@@ -14,7 +15,27 @@ const previewChips = [
 
 export function Hero() {
   const [idea, setIdea] = useState("");
+  const [file, setFile] = useState<File | null>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
+
+  const MAX_BYTES = 25 * 1024 * 1024; // 25MB
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (f.size > MAX_BYTES) {
+      toast.error("File is too large", { description: "Please choose a file under 25MB." });
+      e.target.value = "";
+      return;
+    }
+    setFile(f);
+    toast.success("Media attached", { description: f.name });
+  };
+
+  const clearFile = () => {
+    setFile(null);
+    if (uploadInputRef.current) uploadInputRef.current.value = "";
+  };
 
   return (
     <section className="relative overflow-hidden">
@@ -58,10 +79,29 @@ export function Hero() {
                 className="mt-2 w-full resize-none rounded-xl border bg-background px-4 py-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
               <div className="mt-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                <input ref={uploadInputRef} type="file" accept="image/*,video/*" className="sr-only" />
+                <input
+                  ref={uploadInputRef}
+                  type="file"
+                  accept="image/*,video/*"
+                  className="sr-only"
+                  onChange={handleFileChange}
+                />
                 <Button type="button" variant="outline" className="sm:w-auto" onClick={() => uploadInputRef.current?.click()}>
-                  <Upload className="h-4 w-4" /> Upload media
+                  <Upload className="h-4 w-4" /> {file ? "Replace media" : "Upload media"}
                 </Button>
+                {file && (
+                  <div className="flex items-center gap-2 rounded-lg border bg-background px-3 py-1.5 text-xs text-muted-foreground">
+                    <span className="max-w-[180px] truncate">{file.name}</span>
+                    <button
+                      type="button"
+                      aria-label="Remove file"
+                      onClick={clearFile}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
                 <div className="flex-1" />
                 <Button asChild className="bg-brand-gradient text-primary-foreground shadow-glow hover:opacity-95">
                   <Link to="/signup">
