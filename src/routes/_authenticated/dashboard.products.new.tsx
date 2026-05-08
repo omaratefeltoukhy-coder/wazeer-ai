@@ -132,9 +132,9 @@ function NewProductPage() {
         description: description.trim() || null,
         price: isFree ? 0 : Number(price) || 0,
         currency,
-        status: publish ? "published" : "draft",
+        status: (publish ? "published" : "draft") as "published" | "draft",
         cover_image_url: coverUrl || null,
-        metadata,
+        metadata: metadata as never,
       };
       const { data, error } = await supabase.from("products").insert(insert).select("id").single();
       if (error) throw error;
