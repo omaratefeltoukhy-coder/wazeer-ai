@@ -30,6 +30,7 @@ import { Route as AuthenticatedDashboardNewRouteImport } from './routes/_authent
 import { Route as AuthenticatedDashboardImagesRouteImport } from './routes/_authenticated/dashboard.images'
 import { Route as AuthenticatedDashboardEmailsRouteImport } from './routes/_authenticated/dashboard.emails'
 import { Route as AuthenticatedDashboardEarningsRouteImport } from './routes/_authenticated/dashboard.earnings'
+import { Route as AuthenticatedDashboardContentRouteImport } from './routes/_authenticated/dashboard.content'
 import { Route as AuthenticatedDashboardContactsRouteImport } from './routes/_authenticated/dashboard.contacts'
 import { Route as AuthenticatedDashboardBillingRouteImport } from './routes/_authenticated/dashboard.billing'
 import { Route as AuthenticatedDashboardAutomationsRouteImport } from './routes/_authenticated/dashboard.automations'
@@ -168,6 +169,12 @@ const AuthenticatedDashboardEarningsRoute =
     path: '/earnings',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const AuthenticatedDashboardContentRoute =
+  AuthenticatedDashboardContentRouteImport.update({
+    id: '/content',
+    path: '/content',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
 const AuthenticatedDashboardContactsRoute =
   AuthenticatedDashboardContactsRouteImport.update({
     id: '/contacts',
@@ -301,6 +308,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/automations': typeof AuthenticatedDashboardAutomationsRouteWithChildren
   '/dashboard/billing': typeof AuthenticatedDashboardBillingRoute
   '/dashboard/contacts': typeof AuthenticatedDashboardContactsRouteWithChildren
+  '/dashboard/content': typeof AuthenticatedDashboardContentRoute
   '/dashboard/earnings': typeof AuthenticatedDashboardEarningsRoute
   '/dashboard/emails': typeof AuthenticatedDashboardEmailsRouteWithChildren
   '/dashboard/images': typeof AuthenticatedDashboardImagesRouteWithChildren
@@ -342,6 +350,7 @@ export interface FileRoutesByTo {
   '/dashboard/automations': typeof AuthenticatedDashboardAutomationsRouteWithChildren
   '/dashboard/billing': typeof AuthenticatedDashboardBillingRoute
   '/dashboard/contacts': typeof AuthenticatedDashboardContactsRouteWithChildren
+  '/dashboard/content': typeof AuthenticatedDashboardContentRoute
   '/dashboard/earnings': typeof AuthenticatedDashboardEarningsRoute
   '/dashboard/emails': typeof AuthenticatedDashboardEmailsRouteWithChildren
   '/dashboard/images': typeof AuthenticatedDashboardImagesRouteWithChildren
@@ -385,6 +394,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/automations': typeof AuthenticatedDashboardAutomationsRouteWithChildren
   '/_authenticated/dashboard/billing': typeof AuthenticatedDashboardBillingRoute
   '/_authenticated/dashboard/contacts': typeof AuthenticatedDashboardContactsRouteWithChildren
+  '/_authenticated/dashboard/content': typeof AuthenticatedDashboardContentRoute
   '/_authenticated/dashboard/earnings': typeof AuthenticatedDashboardEarningsRoute
   '/_authenticated/dashboard/emails': typeof AuthenticatedDashboardEmailsRouteWithChildren
   '/_authenticated/dashboard/images': typeof AuthenticatedDashboardImagesRouteWithChildren
@@ -429,6 +439,7 @@ export interface FileRouteTypes {
     | '/dashboard/automations'
     | '/dashboard/billing'
     | '/dashboard/contacts'
+    | '/dashboard/content'
     | '/dashboard/earnings'
     | '/dashboard/emails'
     | '/dashboard/images'
@@ -470,6 +481,7 @@ export interface FileRouteTypes {
     | '/dashboard/automations'
     | '/dashboard/billing'
     | '/dashboard/contacts'
+    | '/dashboard/content'
     | '/dashboard/earnings'
     | '/dashboard/emails'
     | '/dashboard/images'
@@ -512,6 +524,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/automations'
     | '/_authenticated/dashboard/billing'
     | '/_authenticated/dashboard/contacts'
+    | '/_authenticated/dashboard/content'
     | '/_authenticated/dashboard/earnings'
     | '/_authenticated/dashboard/emails'
     | '/_authenticated/dashboard/images'
@@ -701,6 +714,13 @@ declare module '@tanstack/react-router' {
       path: '/earnings'
       fullPath: '/dashboard/earnings'
       preLoaderRoute: typeof AuthenticatedDashboardEarningsRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/content': {
+      id: '/_authenticated/dashboard/content'
+      path: '/content'
+      fullPath: '/dashboard/content'
+      preLoaderRoute: typeof AuthenticatedDashboardContentRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
     '/_authenticated/dashboard/contacts': {
@@ -1023,6 +1043,7 @@ interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardAutomationsRoute: typeof AuthenticatedDashboardAutomationsRouteWithChildren
   AuthenticatedDashboardBillingRoute: typeof AuthenticatedDashboardBillingRoute
   AuthenticatedDashboardContactsRoute: typeof AuthenticatedDashboardContactsRouteWithChildren
+  AuthenticatedDashboardContentRoute: typeof AuthenticatedDashboardContentRoute
   AuthenticatedDashboardEarningsRoute: typeof AuthenticatedDashboardEarningsRoute
   AuthenticatedDashboardEmailsRoute: typeof AuthenticatedDashboardEmailsRouteWithChildren
   AuthenticatedDashboardImagesRoute: typeof AuthenticatedDashboardImagesRouteWithChildren
@@ -1049,6 +1070,7 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
     AuthenticatedDashboardBillingRoute: AuthenticatedDashboardBillingRoute,
     AuthenticatedDashboardContactsRoute:
       AuthenticatedDashboardContactsRouteWithChildren,
+    AuthenticatedDashboardContentRoute: AuthenticatedDashboardContentRoute,
     AuthenticatedDashboardEarningsRoute: AuthenticatedDashboardEarningsRoute,
     AuthenticatedDashboardEmailsRoute:
       AuthenticatedDashboardEmailsRouteWithChildren,
