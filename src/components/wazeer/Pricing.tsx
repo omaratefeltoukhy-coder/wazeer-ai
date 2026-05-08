@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 const tiers = [
   {
@@ -61,11 +62,16 @@ export function Pricing() {
                 ))}
               </ul>
               <Button
+                asChild
                 className={`mt-6 w-full ${
                   t.highlight ? "bg-brand-gradient text-primary-foreground shadow-glow" : "bg-foreground text-background"
                 }`}
               >
-                {t.cta}
+                {t.cta === "Talk to sales" ? (
+                  <a href="mailto:sales@wazeer.ai?subject=Agency%20plan%20inquiry">{t.cta}</a>
+                ) : (
+                  <Link to="/signup">{t.cta}</Link>
+                )}
               </Button>
             </div>
           ))}
