@@ -3,8 +3,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Logo } from "@/components/wazeer/Logo";
 import { Button } from "@/components/ui/button";
 import {
-  LayoutDashboard, Sparkles, ShoppingBag, Image as ImageIcon, Video, Mail, Megaphone,
-  BarChart3, Lightbulb, Settings, LogOut, Plus, Loader2,
+  LayoutDashboard, ShoppingBag, Image as ImageIcon, Video, Mail, Megaphone,
+  BarChart3, Lightbulb, Settings, LogOut, Plus, Loader2, CreditCard,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -20,6 +20,7 @@ const nav = [
   { to: "/dashboard/meta", label: "Meta", icon: Megaphone },
   { to: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/dashboard/recommendations", label: "Recommendations", icon: Lightbulb },
+  { to: "/dashboard/billing", label: "Plans & Credits", icon: CreditCard },
   { to: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
