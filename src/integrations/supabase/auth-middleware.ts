@@ -4,7 +4,7 @@ import { getRequest } from '@tanstack/react-start/server'
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from './types'
 
-export async function resolveSupabaseAuthContext() {
+async function resolveSupabaseAuthContext() {
   const SUPABASE_URL = process.env.SUPABASE_URL;
   const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
 
@@ -79,5 +79,24 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
     return next({
       context: authContext,
     })
+  }
+)
+
+export const optionalSupabaseAuth = createMiddleware({ type: 'function' }).server(
+  async ({ next }) => {
+    try {
+      const authContext = await resolveSupabaseAuthContext();
+      return (next as any)({ context: { ...authContext, authError: null } });
+    } catch (error) {
+      console.warn('[Supabase] Optional auth unavailable', error);
+      return (next as any)({
+        context: {
+          supabase: null,
+          userId: null,
+          claims: null,
+          authError: error,
+        },
+      });
+    }
   }
 )
