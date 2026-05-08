@@ -279,6 +279,39 @@ export type Database = {
           },
         ]
       }
+      credit_grants: {
+        Row: {
+          amount: number
+          balance: number
+          created_at: string
+          expires_at: string | null
+          id: string
+          metadata_json: Json
+          source: string
+          workspace_id: string
+        }
+        Insert: {
+          amount: number
+          balance: number
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          metadata_json?: Json
+          source: string
+          workspace_id: string
+        }
+        Update: {
+          amount?: number
+          balance?: number
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          metadata_json?: Json
+          source?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       credit_transactions: {
         Row: {
           amount: number
@@ -1102,6 +1135,33 @@ export type Database = {
           },
         ]
       }
+      usage_counters: {
+        Row: {
+          count: number
+          feature: string
+          id: string
+          period_start: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          count?: number
+          feature: string
+          id?: string
+          period_start: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          count?: number
+          feature?: string
+          id?: string
+          period_start?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: []
+      }
       workspace_members: {
         Row: {
           created_at: string
@@ -1167,6 +1227,15 @@ export type Database = {
         Args: { _business_id: string; _user_id: string }
         Returns: boolean
       }
+      consume_credits: {
+        Args: {
+          _amount: number
+          _metadata?: Json
+          _reason: string
+          _workspace_id: string
+        }
+        Returns: boolean
+      }
       has_workspace_role: {
         Args: {
           _roles: Database["public"]["Enums"]["app_role"][]
@@ -1174,6 +1243,10 @@ export type Database = {
           _workspace_id: string
         }
         Returns: boolean
+      }
+      increment_usage: {
+        Args: { _by?: number; _feature: string; _workspace_id: string }
+        Returns: undefined
       }
       is_workspace_member: {
         Args: { _user_id: string; _workspace_id: string }
