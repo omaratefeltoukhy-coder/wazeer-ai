@@ -87,11 +87,12 @@ function DashboardHome() {
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {businesses.map((b) => (
-              <div key={b.id} className="rounded-2xl border bg-card p-5 hover:shadow-elevated transition-shadow">
+              <Link key={b.id} to="/dashboard/storefront/$businessId" params={{ businessId: b.id }} className="rounded-2xl border bg-card p-5 hover:shadow-elevated transition-shadow">
                 <div className="text-xs uppercase tracking-wide text-muted-foreground">{b.type}</div>
                 <div className="mt-1 font-semibold">{b.name}</div>
                 {b.description && <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{b.description}</p>}
-              </div>
+                <div className="mt-3 text-xs text-muted-foreground">Edit storefront →</div>
+              </Link>
             ))}
           </div>
         )}
