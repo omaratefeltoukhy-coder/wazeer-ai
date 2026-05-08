@@ -3,13 +3,13 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { consumeCredits, refundCredits, requireEntitlement } from "@/lib/billing/guard.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { getImageProvider } from "./imageProvider.server";
 import {
   composePrompt,
-  getImageProvider,
   type ImageType,
   type ImageStyle,
   type ImageFormat,
-} from "./imageProvider.server";
+} from "./imagePrompt";
 
 const TYPES: [ImageType, ...ImageType[]] = [
   "product", "lifestyle", "social_post", "ad_creative", "reel_cover", "email_banner", "storefront_hero",

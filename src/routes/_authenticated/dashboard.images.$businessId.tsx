@@ -7,7 +7,7 @@ import {
 import {
   FORMAT_DIMENSIONS, TYPE_LABELS, STYLE_LABELS,
   type ImageFormat, type ImageType, type ImageStyle,
-} from "@/lib/ai/imageProvider.server";
+} from "@/lib/ai/imagePrompt";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
