@@ -20,6 +20,7 @@ import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authe
 import { Route as ApiPublicBillingWebhookRouteImport } from './routes/api/public/billing-webhook'
 import { Route as AuthenticatedDashboardVideosRouteImport } from './routes/_authenticated/dashboard.videos'
 import { Route as AuthenticatedDashboardUgcRouteImport } from './routes/_authenticated/dashboard.ugc'
+import { Route as AuthenticatedDashboardTransactionsRouteImport } from './routes/_authenticated/dashboard.transactions'
 import { Route as AuthenticatedDashboardStorefrontRouteImport } from './routes/_authenticated/dashboard.storefront'
 import { Route as AuthenticatedDashboardSettingsRouteImport } from './routes/_authenticated/dashboard.settings'
 import { Route as AuthenticatedDashboardProductsRouteImport } from './routes/_authenticated/dashboard.products'
@@ -104,6 +105,12 @@ const AuthenticatedDashboardUgcRoute =
   AuthenticatedDashboardUgcRouteImport.update({
     id: '/ugc',
     path: '/ugc',
+    getParentRoute: () => AuthenticatedDashboardRoute,
+  } as any)
+const AuthenticatedDashboardTransactionsRoute =
+  AuthenticatedDashboardTransactionsRouteImport.update({
+    id: '/transactions',
+    path: '/transactions',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
 const AuthenticatedDashboardStorefrontRoute =
@@ -295,6 +302,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/products': typeof AuthenticatedDashboardProductsRouteWithChildren
   '/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
   '/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRouteWithChildren
+  '/dashboard/transactions': typeof AuthenticatedDashboardTransactionsRoute
   '/dashboard/ugc': typeof AuthenticatedDashboardUgcRouteWithChildren
   '/dashboard/videos': typeof AuthenticatedDashboardVideosRouteWithChildren
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
@@ -333,6 +341,7 @@ export interface FileRoutesByTo {
   '/dashboard/posts': typeof AuthenticatedDashboardPostsRouteWithChildren
   '/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
   '/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRouteWithChildren
+  '/dashboard/transactions': typeof AuthenticatedDashboardTransactionsRoute
   '/dashboard/ugc': typeof AuthenticatedDashboardUgcRouteWithChildren
   '/dashboard/videos': typeof AuthenticatedDashboardVideosRouteWithChildren
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
@@ -375,6 +384,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/products': typeof AuthenticatedDashboardProductsRouteWithChildren
   '/_authenticated/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
   '/_authenticated/dashboard/storefront': typeof AuthenticatedDashboardStorefrontRouteWithChildren
+  '/_authenticated/dashboard/transactions': typeof AuthenticatedDashboardTransactionsRoute
   '/_authenticated/dashboard/ugc': typeof AuthenticatedDashboardUgcRouteWithChildren
   '/_authenticated/dashboard/videos': typeof AuthenticatedDashboardVideosRouteWithChildren
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
@@ -417,6 +427,7 @@ export interface FileRouteTypes {
     | '/dashboard/products'
     | '/dashboard/settings'
     | '/dashboard/storefront'
+    | '/dashboard/transactions'
     | '/dashboard/ugc'
     | '/dashboard/videos'
     | '/api/public/billing-webhook'
@@ -455,6 +466,7 @@ export interface FileRouteTypes {
     | '/dashboard/posts'
     | '/dashboard/settings'
     | '/dashboard/storefront'
+    | '/dashboard/transactions'
     | '/dashboard/ugc'
     | '/dashboard/videos'
     | '/api/public/billing-webhook'
@@ -496,6 +508,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/products'
     | '/_authenticated/dashboard/settings'
     | '/_authenticated/dashboard/storefront'
+    | '/_authenticated/dashboard/transactions'
     | '/_authenticated/dashboard/ugc'
     | '/_authenticated/dashboard/videos'
     | '/api/public/billing-webhook'
@@ -605,6 +618,13 @@ declare module '@tanstack/react-router' {
       path: '/ugc'
       fullPath: '/dashboard/ugc'
       preLoaderRoute: typeof AuthenticatedDashboardUgcRouteImport
+      parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/_authenticated/dashboard/transactions': {
+      id: '/_authenticated/dashboard/transactions'
+      path: '/transactions'
+      fullPath: '/dashboard/transactions'
+      preLoaderRoute: typeof AuthenticatedDashboardTransactionsRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
     '/_authenticated/dashboard/storefront': {
@@ -991,6 +1011,7 @@ interface AuthenticatedDashboardRouteChildren {
   AuthenticatedDashboardProductsRoute: typeof AuthenticatedDashboardProductsRouteWithChildren
   AuthenticatedDashboardSettingsRoute: typeof AuthenticatedDashboardSettingsRoute
   AuthenticatedDashboardStorefrontRoute: typeof AuthenticatedDashboardStorefrontRouteWithChildren
+  AuthenticatedDashboardTransactionsRoute: typeof AuthenticatedDashboardTransactionsRoute
   AuthenticatedDashboardUgcRoute: typeof AuthenticatedDashboardUgcRouteWithChildren
   AuthenticatedDashboardVideosRoute: typeof AuthenticatedDashboardVideosRouteWithChildren
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
@@ -1020,6 +1041,8 @@ const AuthenticatedDashboardRouteChildren: AuthenticatedDashboardRouteChildren =
     AuthenticatedDashboardSettingsRoute: AuthenticatedDashboardSettingsRoute,
     AuthenticatedDashboardStorefrontRoute:
       AuthenticatedDashboardStorefrontRouteWithChildren,
+    AuthenticatedDashboardTransactionsRoute:
+      AuthenticatedDashboardTransactionsRoute,
     AuthenticatedDashboardUgcRoute: AuthenticatedDashboardUgcRouteWithChildren,
     AuthenticatedDashboardVideosRoute:
       AuthenticatedDashboardVideosRouteWithChildren,
@@ -1058,3 +1081,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
