@@ -13,32 +13,48 @@ export const Route = createFileRoute("/pay/$code")({
   component: PayPage,
 });
 
+// Mirrors the RETURNS TABLE shape of public.get_public_payment_link.
+// workspace_id, product_id, sales_count and other internals are intentionally
+// not exposed to the anon client.
+type PaymentLinkRow = {
+  unique_code: string;
+  custom_title: string | null;
+  description: string | null;
+  amount: number;
+  currency: string;
+  collect_phone: boolean;
+  pass_fee_to_buyer: boolean;
+  redirect_url: string | null;
+  thank_you_message: string | null;
+  product_title: string | null;
+  product_image_url: string | null;
+  product_description: string | null;
+  seller_name: string | null;
+};
+
 function PayPage() {
   const { code } = useParams({ from: "/pay/$code" });
-  const [link, setLink] = useState<any>(null);
-  const [product, setProduct] = useState<any>(null);
-  const [seller, setSeller] = useState<string>("");
+  const [link, setLink] = useState<PaymentLinkRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [card, setCard] = useState("");
   const [paying, setPaying] = useState(false);
   const [done, setDone] = useState(false);
 
   useEffect(() => {
     (async () => {
-      const { data: rows } = await (supabase as any).rpc("get_public_payment_link", { _code: code });
-      const data = Array.isArray(rows) ? rows[0] : rows;
-      setLink(data);
-      if (data) {
+      const { data, error } = await (supabase as any).rpc("get_public_payment_link", { _code: code });
+      if (error) {
+        console.error("[pay] lookup failed", error);
+        setLoading(false);
+        return;
+      }
+      const row = (Array.isArray(data) ? data[0] : data) as PaymentLinkRow | undefined;
+      if (row) {
+        setLink(row);
+        // Click tracking — fire and forget.
         await supabase.rpc("increment_payment_link_clicks", { _code: code });
-        if (data.product_id) {
-          const { data: p } = await supabase.from("products").select("title,cover_image_url,description").eq("id", data.product_id).maybeSingle();
-          setProduct(p);
-        }
-        const { data: ws } = await supabase.from("workspaces").select("name").eq("id", data.workspace_id).maybeSingle();
-        setSeller(ws?.name ?? "Seller");
       }
       setLoading(false);
     })();
@@ -49,25 +65,28 @@ function PayPage() {
 
   const pay = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!link) return;
     setPaying(true);
     try {
-      // Placeholder Stripe Elements — record transaction
-      await supabase.from("transactions").insert({
-        workspace_id: link.workspace_id,
-        product_id: link.product_id,
-        buyer_name: name,
-        buyer_email: email,
-        amount: total,
-        currency: link.currency,
-        status: "completed",
-      } as any);
-      await (supabase as any).rpc("record_payment_link_sale", { _code: code });
+      // Single SECURITY DEFINER call validates the link, inserts the
+      // transaction, and increments sales_count. Replaces the anon-client
+      // INSERT INTO transactions which silently failed under RLS.
+      const { error } = await (supabase as any).rpc("record_payment_link_purchase", {
+        _code: code,
+        _buyer_name: name,
+        _buyer_email: email,
+        _buyer_phone: phone || null,
+        _amount: total,
+        _currency: link.currency,
+      });
+      if (error) throw error;
       setDone(true);
       if (link.redirect_url) {
-        setTimeout(() => { window.location.href = link.redirect_url; }, 1500);
+        setTimeout(() => { window.location.href = link.redirect_url!; }, 1500);
       }
-    } catch (err: any) {
-      toast.error(err.message ?? "Payment failed");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Payment failed";
+      toast.error(msg);
     } finally {
       setPaying(false);
     }
@@ -100,20 +119,22 @@ function PayPage() {
     );
   }
 
-  const title = product?.title ?? link.custom_title ?? "Payment";
+  const title = link.product_title ?? link.custom_title ?? "Payment";
+  const description = link.product_description ?? link.description;
+  const sellerLabel = link.seller_name ?? "Seller";
 
   return (
     <div className="min-h-screen bg-muted/30 grid place-items-center p-4">
       <Card className="w-full max-w-md overflow-hidden">
-        {product?.cover_image_url && (
-          <img src={product.cover_image_url} alt={title} className="w-full h-48 object-cover" />
+        {link.product_image_url && (
+          <img src={link.product_image_url} alt={title} className="w-full h-48 object-cover" />
         )}
         <div className="p-6 space-y-4">
           <div>
-            <div className="text-xs text-muted-foreground">From {seller}</div>
+            <div className="text-xs text-muted-foreground">From {sellerLabel}</div>
             <h1 className="text-xl font-semibold mt-1">{title}</h1>
-            {(product?.description || link.description) && (
-              <p className="text-sm text-muted-foreground mt-1">{product?.description ?? link.description}</p>
+            {description && (
+              <p className="text-sm text-muted-foreground mt-1">{description}</p>
             )}
           </div>
 
@@ -138,6 +159,7 @@ function PayPage() {
                 <Input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
               </div>
             )}
+
             <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
               Demo checkout — payments are not processed yet. Do not enter real card details. Real payments will go through Paddle's secure hosted checkout.
             </div>
