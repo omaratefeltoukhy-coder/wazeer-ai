@@ -88,8 +88,8 @@ export const getAnalyticsRollup = createServerFn({ method: "POST" })
         click_rate: delivered > 0 ? Math.round((clicks / delivered) * 1000) / 10 : 0,
       },
       meta: {
-        posts_published: (posts.data ?? []).filter((p) => p.status === "published").length,
-        posts_drafts: (posts.data ?? []).filter((p) => p.status !== "published").length,
+        posts_published: (posts.data ?? []).filter((p) => p.status === "posted").length,
+        posts_drafts: (posts.data ?? []).filter((p) => p.status !== "posted").length,
         campaigns_active: (campaigns.data ?? []).filter((c) => c.status === "active").length,
         ad_spend: Math.round(adSpend * 100) / 100,
         impressions: adImps,
@@ -99,7 +99,7 @@ export const getAnalyticsRollup = createServerFn({ method: "POST" })
       ugc: {
         scripts: (scripts.data ?? []).length,
         videos_ready: (videos.data ?? []).filter((v) => v.status === "ready").length,
-        videos_rendering: (videos.data ?? []).filter((v) => v.status === "rendering" || v.status === "queued").length,
+        videos_rendering: (videos.data ?? []).filter((v) => v.status !== "ready" && v.status !== "failed" && v.status !== "draft").length,
       },
       contacts: {
         total: (contacts.data ?? []).filter((c) => c.status !== "suppressed").length,
@@ -130,7 +130,7 @@ export const updateRecommendationStatus = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({
     business_id: z.string().uuid(),
     id: z.string().uuid(),
-    status: z.enum(["open", "in_progress", "applied", "dismissed"]),
+    status: z.enum(["open", "done", "dismissed"]),
   }).parse(input))
   .handler(async ({ data, context }) => {
     await assertAccess(context.supabase, data.business_id);
