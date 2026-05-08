@@ -70,7 +70,7 @@ export async function refundCredits(workspace_id: string, action: keyof typeof C
     source: "refund",
     amount,
     balance: amount,
-    metadata_json: { action, ...metadata },
+    metadata_json: { action, ...metadata } as never,
   });
   await supabaseAdmin.from("credit_transactions").insert({
     workspace_id,
