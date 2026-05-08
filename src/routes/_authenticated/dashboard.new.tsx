@@ -53,6 +53,16 @@ function NewBusinessWizard() {
   const [form, setForm] = useState<Form>(empty);
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [progressIdx, setProgressIdx] = useState(0);
+  const generateFn = useServerFn(generateBusiness);
+
+  const generationSteps = [
+    "Analyzing your business",
+    "Crafting brand voice & positioning",
+    "Designing your opening offer",
+    "Writing your storefront",
+    "Generating Wazeer AI recommendations",
+  ];
 
   useEffect(() => {
     supabase
@@ -63,22 +73,22 @@ function NewBusinessWizard() {
       .then(({ data }) => setWorkspaceId(data?.workspace_id ?? null));
   }, []);
 
+  useEffect(() => {
+    if (!submitting) return;
+    setProgressIdx(0);
+    const t = setInterval(() => setProgressIdx((i) => Math.min(i + 1, generationSteps.length - 1)), 1500);
+    return () => clearInterval(t);
+  }, [submitting]);
+
   const update = (k: keyof Form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   const generate = async () => {
     if (!workspaceId) return toast.error("Workspace not ready");
     setSubmitting(true);
     try {
-      const { data: userRes } = await supabase.auth.getUser();
-      const uid = userRes.user?.id;
-      if (!uid) throw new Error("Not signed in");
-
-      // 1) Insert business (real DB save)
-      const { data: biz, error: bizErr } = await supabase
-        .from("businesses")
-        .insert({
+      await generateFn({
+        data: {
           workspace_id: workspaceId,
-          user_id: uid,
           name: form.name,
           type: form.type,
           description: form.description,
@@ -86,57 +96,20 @@ function NewBusinessWizard() {
           pain_point: form.pain_point,
           desired_result: form.desired_result,
           goal: form.goal,
-          country: form.country || null,
-        })
-        .select("id")
-        .single();
-      if (bizErr) throw bizErr;
-      const businessId = biz.id;
-
-      // 2) Mock AI generation → save brand profile, offer, storefront draft
-      const slug = form.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || `biz-${businessId.slice(0, 6)}`;
-
-      await Promise.all([
-        supabase.from("brand_profiles").insert({
-          business_id: businessId,
-          brand_name: form.name,
-          tone: "Confident, warm, modern",
-          visual_style: "Clean, premium, minimal",
-          positioning: `Helps ${form.target_audience || "customers"} achieve ${form.desired_result || "their goal"}`,
-          benefits_json: [form.desired_result, "Saves time", "Easy to start"].filter(Boolean),
-          pain_points_json: [form.pain_point].filter(Boolean),
-        }),
-        supabase.from("offers").insert({
-          business_id: businessId,
-          name: `${form.name} — Starter Offer`,
-          type: form.type,
-          description: form.description,
-          price: 49,
+          country: form.country,
           currency: "USD",
-          billing_interval: ["subscription", "course", "coaching", "membership"].includes(form.type) ? "month" : null,
-          status: "draft",
-        }),
-        supabase.from("storefronts").insert({
-          business_id: businessId,
-          slug,
-          title: form.name,
-          status: "draft",
-          content_json: {
-            hero: { headline: form.name, sub: form.description },
-            sections: ["hero", "benefits", "offer", "faq"],
-          },
-        }),
-      ]);
-
-      toast.success("Business created");
+          language: "en",
+        },
+      });
+      toast.success("Your business is ready");
       navigate({ to: "/dashboard" });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       toast.error(msg);
-    } finally {
       setSubmitting(false);
     }
   };
+
 
   const steps = [
     {
