@@ -111,7 +111,7 @@ function NavList({
       <div className="mt-auto border-t pt-4 space-y-2">
         {ent && (
           <Link to="/dashboard/billing" onClick={onNavigate} className="flex items-center justify-between rounded-lg border bg-card px-3 py-2 text-xs hover:bg-secondary/60">
-            <span className="inline-flex items-center gap-1.5"><Sparkles className="h-3 w-3" /> {ent.plan_meta.name}</span>
+            <span className="inline-flex items-center gap-1.5"><Sparkles className="h-3 w-3" /> {ent.plan_meta?.name ?? "Plan"}</span>
             <span className="text-muted-foreground">{ent.credits_balance} credits</span>
           </Link>
         )}
