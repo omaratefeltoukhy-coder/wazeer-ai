@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, Upload, Wand2, ShoppingBag, Video, Mail, Megaphone, BarChart3 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import heroGlow from "@/assets/hero-glow.jpg";
 
 const previewChips = [
@@ -14,6 +14,7 @@ const previewChips = [
 
 export function Hero() {
   const [idea, setIdea] = useState("");
+  const uploadInputRef = useRef<HTMLInputElement>(null);
 
   return (
     <section className="relative overflow-hidden">
@@ -57,11 +58,9 @@ export function Hero() {
                 className="mt-2 w-full resize-none rounded-xl border bg-background px-4 py-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
               <div className="mt-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                <input id="hero-media-upload" type="file" accept="image/*,video/*" className="sr-only" />
-                <Button asChild variant="outline" className="sm:w-auto cursor-pointer">
-                  <label htmlFor="hero-media-upload">
-                    <Upload className="h-4 w-4" /> Upload media
-                  </label>
+                <input ref={uploadInputRef} type="file" accept="image/*,video/*" className="sr-only" />
+                <Button type="button" variant="outline" className="sm:w-auto" onClick={() => uploadInputRef.current?.click()}>
+                  <Upload className="h-4 w-4" /> Upload media
                 </Button>
                 <div className="flex-1" />
                 <Button asChild className="bg-brand-gradient text-primary-foreground shadow-glow hover:opacity-95">
