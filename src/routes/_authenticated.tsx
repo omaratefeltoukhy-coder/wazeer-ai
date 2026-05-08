@@ -1,10 +1,11 @@
 import { createFileRoute, Outlet, Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
+import { useEntitlements } from "@/hooks/useEntitlements";
 import { Logo } from "@/components/wazeer/Logo";
 import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard, ShoppingBag, Image as ImageIcon, Video, Mail, Megaphone,
-  BarChart3, Lightbulb, Settings, LogOut, Plus, Loader2, CreditCard,
+  BarChart3, Lightbulb, Settings, LogOut, Plus, Loader2, CreditCard, Sparkles,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -28,6 +29,7 @@ function AuthenticatedLayout() {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { data: ent } = useEntitlements();
 
   if (loading) {
     return (
