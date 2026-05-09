@@ -17,7 +17,7 @@ export const Route = createFileRoute("/api/public/payments/stripe-webhook")({
           return new Response(`Webhook Error: ${err.message}`, { status: 400 });
         }
 
-        const supabase = supabaseAdmin();
+        const supabase = supabaseAdmin as any;
 
         // Idempotency
         const { data: existing } = await supabase

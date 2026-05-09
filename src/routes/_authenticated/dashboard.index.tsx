@@ -14,7 +14,7 @@ import {
   Plus, ShoppingBag, TrendingUp, Users, Sparkles, Pencil, Bell, ExternalLink,
   Megaphone, BarChart3, ChevronDown, ChevronUp, Check, RefreshCw, Eye, Mail, Target,
   CreditCard, Store, Package, BookOpen, Repeat, GraduationCap, Briefcase, Calendar,
-  Box, Loader2,
+  Box, Loader2, Gift,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ReferralBanner } from "@/components/wazeer/ReferralBanner";

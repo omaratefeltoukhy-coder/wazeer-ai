@@ -58,7 +58,7 @@ function SignupPage() {
       toast.error(String((result.error as Error)?.message ?? result.error));
       return;
     }
-    if (!result.redirected) navigate({ to: search.redirect, search: search.idea ? { idea: search.idea } : undefined });
+    if (!result.redirected) navigate({ to: search.redirect, search: (search.idea ? { idea: search.idea } : undefined) as any });
   };
 
   return (

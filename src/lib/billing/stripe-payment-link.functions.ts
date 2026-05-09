@@ -15,7 +15,7 @@ export const createStripePaymentLinkCheckout = createServerFn({ method: "POST" }
       .parse(i)
   )
   .handler(async ({ data }) => {
-    const supabase = supabaseAdmin();
+    const supabase = supabaseAdmin as any;
 
     const { data: link, error } = await supabase
       .from("payment_links")

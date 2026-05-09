@@ -52,6 +52,7 @@ function labelFor(f: Feature) {
     analytics: "Analytics",
     recommendations: "AI Recommendations",
     agency_dashboard: "Agency Dashboard",
+    ai_chat: "AI Chat",
   };
   return map[f] ?? f;
 }
