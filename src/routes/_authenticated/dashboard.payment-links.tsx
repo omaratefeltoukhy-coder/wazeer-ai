@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Plus, Copy, Link2, Check, ChevronLeft, ChevronRight, Loader2, MessageCircle, Mail, Instagram } from "lucide-react";
 import { toast } from "sonner";
+import { getPaddleEnvironment } from "@/lib/paddle";
 
 export const Route = createFileRoute("/_authenticated/dashboard/payment-links")({
   component: PaymentLinksPage,
@@ -66,7 +67,18 @@ function PaymentLinksPage() {
     <div className="p-6 max-w-6xl mx-auto space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Payment Links</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-semibold">Payment Links</h1>
+            {getPaddleEnvironment() === "sandbox" ? (
+              <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                Sandbox
+              </span>
+            ) : (
+              <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800">
+                Live
+              </span>
+            )}
+          </div>
           <p className="text-sm text-muted-foreground">Generate a shareable payment link in seconds.</p>
         </div>
         <Button onClick={() => setOpen(true)}>

@@ -5,6 +5,7 @@ import { HowItWorks } from "@/components/wazeer/HowItWorks";
 import { Features } from "@/components/wazeer/Features";
 import { Pricing } from "@/components/wazeer/Pricing";
 import { FAQ } from "@/components/wazeer/FAQ";
+import { SuccessStories } from "@/components/wazeer/SuccessStories";
 import { CTA } from "@/components/wazeer/CTA";
 import { Footer } from "@/components/wazeer/Footer";
 
@@ -30,6 +31,7 @@ function Index() {
       <Navbar />
       <Hero />
       <HowItWorks />
+      <SuccessStories />
       <Features />
       <Pricing />
       <FAQ />

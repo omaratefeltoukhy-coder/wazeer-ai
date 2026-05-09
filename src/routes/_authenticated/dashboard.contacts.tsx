@@ -145,7 +145,7 @@ function MembersPage() {
       return Date.now() - d * 86400000;
     })();
     const s = search.trim().toLowerCase();
-    let list = members.filter((m) => {
+    const list = members.filter((m) => {
       if (tab !== "all" && m.status !== tab) return false;
       if (since && new Date(m.joined).getTime() < since) return false;
       if (s) {

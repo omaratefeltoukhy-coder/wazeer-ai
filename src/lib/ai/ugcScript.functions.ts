@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { consumeCredits, refundCredits, requireEntitlement, checkUsageCap, incrementUsage } from "@/lib/billing/guard.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { callAI } from "@/lib/ai/gateway";
 
 export const PLATFORMS = [
   "tiktok", "instagram_reels", "facebook_reels", "meta_ad",
@@ -83,27 +84,13 @@ const SAFETY_RAILS = `Hard rules:
 - Use empty-state friendly language; suggest the creator records authentic footage.
 - Keep the brand's voice and product identity exactly as provided.`;
 
-async function callAI(messages: any[], tool: any, toolName: string) {
-  const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
-  if (!LOVABLE_API_KEY) throw new Error("AI gateway not configured");
-  const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
-      messages,
-      tools: [tool],
-      tool_choice: { type: "function", function: { name: toolName } },
-    }),
+async function callUgcAI(messages: any[], tool: any, toolName: string) {
+  const aiRes = await callAI({
+    messages,
+    tools: [tool as any],
+    toolChoice: { type: "function", function: { name: toolName } },
   });
-  if (!aiRes.ok) {
-    const text = await aiRes.text();
-    if (aiRes.status === 429) throw new Error("Rate limit hit. Please wait a moment and try again.");
-    if (aiRes.status === 402) throw new Error("AI credits exhausted. Top up to continue.");
-    throw new Error(`AI generation failed (${aiRes.status}): ${text.slice(0, 200)}`);
-  }
-  const json = await aiRes.json();
-  const args = json?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+  const args = aiRes.toolCalls?.[0]?.function?.arguments;
   if (!args) throw new Error("AI returned no structured output");
   return typeof args === "string" ? JSON.parse(args) : args;
 }
@@ -155,7 +142,7 @@ Platform: ${PLATFORM_LABEL[data.platform]}
 Total length: ${data.length_s}s. Allocate scene durations so they sum to about ${data.length_s}s.
 Extra direction: ${data.brief || "(none)"}`;
 
-      const parsed = await callAI(
+      const parsed = await callUgcAI(
         [{ role: "system", content: sysPrompt }, { role: "user", content: userPrompt }],
         tool,
         "write_ugc_script",
@@ -209,7 +196,7 @@ export const regenerateUgcScene = createServerFn({ method: "POST" })
           parameters: { type: "object", properties: { scene: SceneSchema }, required: ["scene"], additionalProperties: false },
         },
       };
-      const parsed = await callAI(
+      const parsed = await callUgcAI(
         [
           { role: "system", content: `You are Wazeer AI. Rewrite ONE UGC scene only. Keep the same scene_no and similar duration. Reply via tool. ${SAFETY_RAILS}` },
           {

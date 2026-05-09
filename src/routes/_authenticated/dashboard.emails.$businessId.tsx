@@ -44,6 +44,7 @@ function EmailEditor() {
   const [genState, setGenState] = useState({ type: "welcome" as typeof CAMPAIGN_TYPES[number], tone: "warm, helpful", length: 5 as 3 | 5 | 7, audience_note: "" });
   const [genLoading, setGenLoading] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  const [sendResult, setSendResult] = useState<{ recipients: number; sent: number; failed: number } | null>(null);
 
   const listFn = useServerFn(listCampaigns);
   const generateFn = useServerFn(generateEmailCampaign);
@@ -127,8 +128,9 @@ function EmailEditor() {
     const to = await promptDialog({ title: "Send test email", label: "Recipient email", placeholder: "you@example.com" });
     if (!to) return;
     try {
-      await testFn({ data: { message_id: id, to_email: to } });
-      toast.success("Test email queued via Resend (demo mode)");
+      const r: any = await testFn({ data: { message_id: id, to_email: to } });
+      if (r.resend_id) toast.success("Test email sent via Resend");
+      else toast.success("Test email queued (demo mode — add RESEND_API_KEY for real sends)");
     } catch (e: any) { toast.error(e?.message ?? "Failed"); }
   }
   async function schedule(id: string) {
@@ -143,11 +145,17 @@ function EmailEditor() {
   }
   async function approveAndSend() {
     if (!activeId) return;
-    if (!(await confirmDialog({ title: "Send campaign?", description: "Sends to all eligible contacts (demo dispatcher).", confirmText: "Send" }))) return;
+    if (!(await confirmDialog({ title: "Send campaign?", description: "Sends to all eligible contacts via Resend.", confirmText: "Send" }))) return;
     setBusy("send");
+    setSendResult(null);
     try {
       const r: any = await sendFn({ data: { campaign_id: activeId } });
-      toast.success(`Sent to ${r.recipients} contacts (demo)`);
+      setSendResult({ recipients: r.recipients, sent: r.sent, failed: r.failed });
+      if (r.failed > 0) {
+        toast.success(`Sent to ${r.sent} contacts (${r.failed} failed)`);
+      } else {
+        toast.success(`Sent to ${r.sent} contacts`);
+      }
       refreshActive();
       analyticsFn({ data: { campaign_id: activeId } }).then(setAnalytics);
     } catch (e: any) { toast.error(e?.message ?? "Failed"); }
@@ -225,6 +233,26 @@ function EmailEditor() {
                   </Button>
                 </div>
               </div>
+
+              {sendResult && (
+                <div className="rounded-2xl border bg-card p-4 sm:p-5">
+                  <div className="text-sm font-medium mb-2">Send results</div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="rounded-xl border bg-background/50 p-3">
+                      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Recipients</div>
+                      <div className="text-lg font-semibold mt-1">{sendResult.recipients}</div>
+                    </div>
+                    <div className="rounded-xl border bg-background/50 p-3">
+                      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Sent</div>
+                      <div className="text-lg font-semibold mt-1 text-emerald-600">{sendResult.sent}</div>
+                    </div>
+                    <div className="rounded-xl border bg-background/50 p-3">
+                      <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Failed</div>
+                      <div className="text-lg font-semibold mt-1 text-red-600">{sendResult.failed}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <AnalyticsCard analytics={analytics} />
 

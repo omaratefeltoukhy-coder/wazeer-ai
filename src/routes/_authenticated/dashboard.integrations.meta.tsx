@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { Loader2, Link2, Unlink, RefreshCw, ShieldCheck, AlertTriangle } from "lucide-react";
+import { Loader2, Link2, Unlink, RefreshCw, ShieldCheck, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { listMetaConnections, startMetaOAuth, handleMetaOAuthCallback, disconnectMeta, runMockMetaSync } from "@/lib/meta/connections.functions";
 
 export const Route = createFileRoute("/_authenticated/dashboard/integrations/meta")({
@@ -63,10 +63,41 @@ function IntegrationsMetaPage() {
     enabled: !!businessId,
   });
 
-  // Demo callback handler — if returned with ?demo_callback=1, finalize.
+  const isDemoGlobal = useMemo(() => {
+    const connsList = conns.data?.connections ?? [];
+    if (connsList.length === 0) return true; // Default to demo messaging when no connections
+    return connsList.every((c: any) => c.token_status === "demo");
+  }, [conns.data]);
+
+  // OAuth callback handler — supports both demo and real flows
   useEffect(() => {
     const url = new URL(window.location.href);
-    if (url.searchParams.get("demo_callback") === "1" && businessId) {
+    const isDemoCallback = url.searchParams.get("demo_callback") === "1";
+    const code = url.searchParams.get("code");
+    const state = url.searchParams.get("state");
+
+    if (!businessId) return;
+
+    // Real callback: Facebook redirects with ?code=...&state=...
+    if (code && state) {
+      const kind = url.searchParams.get("kind") as any;
+      cb({ data: { business_id: businessId, kind, code } })
+        .then(() => {
+          toast.success("Connected to Meta");
+          qc.invalidateQueries({ queryKey: ["meta_conns", businessId] });
+          // Clean URL
+          url.searchParams.delete("code");
+          url.searchParams.delete("state");
+          url.searchParams.delete("kind");
+          url.searchParams.delete("business_id");
+          window.history.replaceState({}, "", url.toString());
+        })
+        .catch((e) => toast.error(e.message));
+      return;
+    }
+
+    // Demo callback
+    if (isDemoCallback) {
       const kind = url.searchParams.get("kind") as any;
       cb({ data: { business_id: businessId, kind } })
         .then(() => {
@@ -97,7 +128,14 @@ function IntegrationsMetaPage() {
 
   const mockSync = useMutation({
     mutationFn: async () => sync({ data: { business_id: businessId! } }),
-    onSuccess: () => { toast.success("Mock sync complete"); qc.invalidateQueries({ queryKey: ["meta_conns", businessId] }); },
+    onSuccess: (r) => {
+      if (r.failed > 0) {
+        toast.warning(`Sync complete — ${r.synced} succeeded, ${r.failed} failed`);
+      } else {
+        toast.success(`Sync complete — ${r.synced} connected`);
+      }
+      qc.invalidateQueries({ queryKey: ["meta_conns", businessId] });
+    },
     onError: (e: any) => toast.error(e.message),
   });
 
@@ -109,9 +147,15 @@ function IntegrationsMetaPage() {
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
-      <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-sm text-amber-800 flex items-center gap-2">
-        <AlertTriangle className="h-4 w-4" /> Demo mode — no real Meta posts or ad spend will occur.
-      </div>
+      {isDemoGlobal ? (
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-sm text-amber-800 flex items-center gap-2">
+          <AlertTriangle className="h-4 w-4" /> Demo mode — set <code className="px-1 bg-amber-200/50 rounded">META_MODE=live</code> with valid credentials to use real Meta APIs.
+        </div>
+      ) : (
+        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-800 flex items-center gap-2">
+          <CheckCircle2 className="h-4 w-4" /> Live mode — Meta Graph API is active.
+        </div>
+      )}
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -124,7 +168,7 @@ function IntegrationsMetaPage() {
           </select>
           <Button variant="outline" size="sm" onClick={() => mockSync.mutate()} disabled={!businessId || mockSync.isPending}>
             {mockSync.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-            <span className="ml-2">Run mock sync</span>
+            <span className="ml-2">Sync connections</span>
           </Button>
         </div>
       </div>
@@ -149,8 +193,17 @@ function IntegrationsMetaPage() {
                 {c?.metadata_json ? (
                   <pre className="text-[10px] bg-muted/50 rounded px-2 py-1 max-h-20 overflow-auto">{JSON.stringify(c.metadata_json, null, 2)}</pre>
                 ) : null}
+                {c?.page_id && k.kind === "facebook_page" ? (
+                  <div className="text-xs text-muted-foreground">Page ID: {c.page_id}</div>
+                ) : null}
+                {c?.instagram_account_id && k.kind === "instagram" ? (
+                  <div className="text-xs text-muted-foreground">IG Account ID: {c.instagram_account_id}</div>
+                ) : null}
                 {c?.last_synced_at ? (
                   <div className="text-xs text-muted-foreground">Last synced {new Date(c.last_synced_at).toLocaleString()}</div>
+                ) : null}
+                {c?.error_message ? (
+                  <div className="text-xs text-destructive bg-destructive/10 rounded px-2 py-1">{c.error_message}</div>
                 ) : null}
                 <div className="flex gap-2 mt-auto">
                   {!c ? (
@@ -175,9 +228,15 @@ function IntegrationsMetaPage() {
         </div>
       )}
 
-      <Card className="p-4 text-sm text-muted-foreground">
-        Tokens are encrypted at rest with pgcrypto and never sent to the browser.
-        Switch <code className="px-1 bg-muted rounded">META_MODE=live</code> with valid <code className="px-1 bg-muted rounded">META_APP_ID</code> / <code className="px-1 bg-muted rounded">META_REDIRECT_URI</code> to use real Facebook OAuth.
+      <Card className="p-4 text-sm text-muted-foreground space-y-2">
+        <p>Tokens are encrypted at rest with pgcrypto and never sent to the browser.</p>
+        <p>Required environment variables for live mode:</p>
+        <ul className="list-disc list-inside text-xs space-y-0.5">
+          <li><code className="px-1 bg-muted rounded">META_APP_ID</code></li>
+          <li><code className="px-1 bg-muted rounded">META_APP_SECRET</code></li>
+          <li><code className="px-1 bg-muted rounded">META_REDIRECT_URI</code></li>
+          <li><code className="px-1 bg-muted rounded">META_TOKEN_ENCRYPTION_KEY</code> (32+ chars)</li>
+        </ul>
         <div className="mt-2"><Link to="/dashboard/posts" className="underline">Go to Meta Posts →</Link></div>
       </Card>
     </div>

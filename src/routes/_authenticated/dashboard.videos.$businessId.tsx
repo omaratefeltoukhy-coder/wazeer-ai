@@ -45,7 +45,7 @@ function VideoEditor() {
   const regenSceneFn = useServerFn(regenerateStoryboardScene);
   const renderFn = useServerFn(renderUgcVideo);
   const pollFn = useServerFn(pollUgcVideoJob);
-  const useMetaFn = useServerFn(useVideoForMeta);
+  const metaUseForFn = useServerFn(useVideoForMeta);
   const delFn = useServerFn(deleteUgcVideo);
 
   const [bizName, setBizName] = useState("");
@@ -101,7 +101,7 @@ function VideoEditor() {
           toast.error("Render failed");
           await loadActive(active.id);
         }
-      } catch {}
+      } catch { /* ignore */ }
     }, 3000);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [active?.id, active?.status]);
@@ -154,7 +154,7 @@ function VideoEditor() {
   const handleUseFor = async (target: "post" | "ad") => {
     if (!active) return;
     try {
-      await useMetaFn({ data: { video_id: active.id, target } });
+      await metaUseForFn({ data: { video_id: active.id, target } });
       toast.success(target === "ad" ? "Drafted to a Meta ad placeholder" : "Drafted to a Meta post placeholder", {
         description: "Stage 7 (Meta) will pick this up.",
       });

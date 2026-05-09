@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Workflow, Plus } from "lucide-react";
+import { Workflow, Plus, Info } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard/automations")({
   component: AutomationsList,
@@ -17,6 +17,9 @@ function AutomationsList() {
   if (biz === null) return <div className="p-6"><Skeleton className="h-10 w-60 mb-4" /><Skeleton className="h-32 w-full rounded-2xl" /></div>;
   return (
     <div className="p-4 sm:p-6 lg:p-10 max-w-7xl mx-auto space-y-6">
+      <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-800 flex items-center gap-2">
+        <Info className="h-4 w-4" /> Demo mode — automations are saved but not scheduled yet. Connect a scheduler in Integrations to activate triggers.
+      </div>
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">Email Automations</h1>
         <p className="text-sm text-muted-foreground mt-1">Trigger → delay → action flows with conditions.</p>

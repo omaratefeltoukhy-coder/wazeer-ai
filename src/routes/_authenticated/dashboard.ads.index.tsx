@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Target, Sparkles, AlertTriangle } from "lucide-react";
+import { Plus, Target, Sparkles, AlertTriangle, Info } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/ads/")({
@@ -70,6 +70,10 @@ function AdsListPage() {
             <Plus className="h-4 w-4 mr-1" /> New Campaign
           </Button>
         </div>
+      </div>
+
+      <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-800 flex items-center gap-2">
+        <Info className="h-4 w-4" /> Demo mode — campaigns are drafted locally. Real Meta ad spend will only occur after you connect a live Meta ad account and explicitly launch.
       </div>
 
       {!metaConnected && (

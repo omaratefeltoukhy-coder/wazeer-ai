@@ -126,21 +126,65 @@ async function handleSubscriptionCanceled(data: any, env: PaddleEnv) {
     .eq("environment", env);
 
   // billing_events row is recorded centrally by the POST handler for idempotency.
-
 }
 
 async function handleTransactionCompleted(data: any, env: PaddleEnv) {
   const { id, customerId, items, customData, details } = data;
-  const workspaceId = customData?.workspaceId as string | undefined;
-  const userId = customData?.userId as string | undefined;
-  if (!workspaceId) return;
+
+  // Support both camelCase (legacy subscriptions) and snake_case (payment links)
+  const workspaceId = (customData?.workspaceId ?? customData?.workspace_id) as string | undefined;
+  const userId = (customData?.userId ?? customData?.user_id) as string | undefined;
 
   const item = items?.[0];
   const priceExtId = item?.price?.importMeta?.externalId as string | undefined;
   const amount = Number(details?.totals?.total ?? 0) / 100;
+  const currency = item?.price?.unitPrice?.currencyCode || "USD";
 
-  // One-time credit pack purchase
-  if (priceExtId && PACK_TO_CREDITS[priceExtId]) {
+  // ── Payment link purchase ──
+  const paymentLinkCode = customData?.payment_link_code as string | undefined;
+  if (paymentLinkCode) {
+    const linkWorkspaceId = (customData?.workspace_id as string | undefined) || workspaceId;
+    const buyerName = customData?.buyer_name as string | undefined;
+    const buyerPhone = customData?.buyer_phone as string | undefined;
+    const buyerEmail = data.customer?.email || (customData?.buyer_email as string | undefined);
+
+    try {
+      await (supabaseAdmin as any).rpc("record_payment_link_purchase", {
+        _code: paymentLinkCode,
+        _buyer_name: buyerName || null,
+        _buyer_email: buyerEmail || null,
+        _buyer_phone: buyerPhone || null,
+        _amount: amount,
+        _currency: currency,
+        _provider_transaction_id: id,
+        _provider: "paddle",
+      });
+
+      if (linkWorkspaceId) {
+        await supabaseAdmin.from("invoices").insert({
+          workspace_id: linkWorkspaceId,
+          user_id: null,
+          amount_usd: amount,
+          currency,
+          status: "paid",
+          kind: "payment_link",
+          description: `Payment link ${paymentLinkCode}`,
+          metadata_json: {
+            paddle_transaction_id: id,
+            payment_link_code: paymentLinkCode,
+            environment: env,
+          } as never,
+        });
+      }
+    } catch (err) {
+      console.error("[webhook] payment link purchase failed:", err);
+      throw err;
+    }
+    return;
+  }
+
+  // ── One-time credit pack purchase ──
+  if (workspaceId && priceExtId && PACK_TO_CREDITS[priceExtId]) {
     const credits = PACK_TO_CREDITS[priceExtId];
     await supabaseAdmin.from("credit_grants").insert({
       workspace_id: workspaceId,
@@ -159,22 +203,22 @@ async function handleTransactionCompleted(data: any, env: PaddleEnv) {
     });
   }
 
-  await supabaseAdmin.from("invoices").insert({
-    workspace_id: workspaceId,
-    user_id: userId ?? null,
-    amount_usd: amount,
-    status: "paid",
-    kind: priceExtId && PACK_TO_CREDITS[priceExtId] ? "topup" : "subscription",
-    description: priceExtId ?? "Purchase",
-    metadata_json: {
-      paddle_transaction_id: id,
-      paddle_customer_id: customerId,
-      environment: env,
-    } as never,
-  });
-
-  // billing_events row is recorded centrally by the POST handler for idempotency.
-
+  // ── Generic invoice for subscriptions / topups ──
+  if (workspaceId) {
+    await supabaseAdmin.from("invoices").insert({
+      workspace_id: workspaceId,
+      user_id: userId ?? null,
+      amount_usd: amount,
+      status: "paid",
+      kind: priceExtId && PACK_TO_CREDITS[priceExtId] ? "topup" : "subscription",
+      description: priceExtId ?? "Purchase",
+      metadata_json: {
+        paddle_transaction_id: id,
+        paddle_customer_id: customerId,
+        environment: env,
+      } as never,
+    });
+  }
 }
 
 export const Route = createFileRoute("/api/public/payments/webhook")({

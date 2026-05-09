@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { callAI } from "@/lib/ai/gateway";
 
 const FORMAT_DIMS = {
   "1_1": { w: 1024, h: 1024 },
@@ -17,27 +18,6 @@ async function workspaceFor(supabase: any, userId: string): Promise<string> {
     .maybeSingle();
   if (error || !data) throw new Error("Workspace not found");
   return data.workspace_id as string;
-}
-
-async function callLovableAI(messages: any[], opts: { json?: boolean; model?: string } = {}) {
-  const key = process.env.LOVABLE_API_KEY;
-  if (!key) throw new Error("AI gateway not configured");
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: opts.model ?? "google/gemini-2.5-flash",
-      messages,
-      ...(opts.json ? { response_format: { type: "json_object" } } : {}),
-    }),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    if (res.status === 429) throw new Error("Rate limit hit. Please wait and retry.");
-    if (res.status === 402) throw new Error("AI credits exhausted. Top up to continue.");
-    throw new Error(`AI generation failed (${res.status}): ${text.slice(0, 200)}`);
-  }
-  return res.json();
 }
 
 /* ───────── Image ───────── */
@@ -58,17 +38,16 @@ export const generateContentImage = createServerFn({ method: "POST" })
 
     let file_url = "";
     try {
-      const json = await callLovableAI(
-        [
+      const aiRes = await callAI({
+        messages: [
           {
             role: "user",
             content: `Generate an image for this brief. Goal: ${data.goal}. Brief: ${data.prompt}. Aspect: ${data.format.replace("_", ":")}.`,
           },
         ],
-        { model: "google/gemini-2.5-flash-image-preview" },
-      );
-      const msg = json?.choices?.[0]?.message;
-      const imgs = msg?.images;
+        model: "google/gemini-2.5-flash-image-preview",
+      });
+      const imgs = aiRes.images;
       file_url = imgs?.[0]?.image_url?.url || "";
     } catch (e) {
       // fall back to placeholder
@@ -177,11 +156,11 @@ Reply ONLY in JSON with keys: hook (string), body (string), cta (string), spoken
 Avoid invented testimonials, medical/financial claims.`;
     const user = `${productCtx}\nExtra brief: ${data.extra_brief || "(none)"}`;
 
-    const json = await callLovableAI(
-      [{ role: "system", content: sys }, { role: "user", content: user }],
-      { json: true },
-    );
-    const raw = json?.choices?.[0]?.message?.content || "{}";
+    const aiRes = await callAI({
+      messages: [{ role: "system", content: sys }, { role: "user", content: user }],
+      responseFormat: { type: "json_object" },
+    });
+    const raw = aiRes.content || "{}";
     let parsed: { hook: string; body: string; cta: string; spoken_script: string };
     try {
       parsed = JSON.parse(raw);
@@ -253,11 +232,11 @@ export const suggestPrompt = createServerFn({ method: "POST" })
         .from("products").select("title, description").eq("id", data.product_id).maybeSingle();
       if (p) productCtx = `Product: ${p.title} — ${p.description ?? ""}`;
     }
-    const json = await callLovableAI([
+    const aiRes = await callAI([
       { role: "system", content: "You write concise, vivid image generation prompts (one paragraph, max 80 words). Reply with the prompt only — no prefix, no quotes." },
       { role: "user", content: `Goal: ${data.goal}\n${productCtx}\nWrite the prompt now.` },
     ]);
-    const text: string = json?.choices?.[0]?.message?.content?.trim() || "";
+    const text: string = aiRes.content?.trim() || "";
     return { prompt: text };
   });
 
@@ -273,10 +252,10 @@ export const generateVideoScript = createServerFn({ method: "POST" })
         .from("products").select("title, description").eq("id", data.product_id).maybeSingle();
       if (p) productCtx = `Product: ${p.title} — ${p.description ?? ""}`;
     }
-    const json = await callLovableAI([
+    const aiRes = await callAI([
       { role: "system", content: "You write short ~30 second video scripts. Plain text, 3-6 short lines, no headings. Avoid invented claims." },
       { role: "user", content: `Goal: ${data.goal}\n${productCtx}\nWrite the script now.` },
     ]);
-    const text: string = json?.choices?.[0]?.message?.content?.trim() || "";
+    const text: string = aiRes.content?.trim() || "";
     return { script: text };
   });

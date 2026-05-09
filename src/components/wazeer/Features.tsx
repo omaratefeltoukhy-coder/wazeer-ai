@@ -17,8 +17,8 @@ export function Features() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl">
           <p className="text-sm font-medium text-royal">Everything you need</p>
-          <h2 className="mt-2 text-3xl sm:text-4xl font-bold">An entire growth team in one app</h2>
-          <p className="mt-3 text-muted-foreground">Replace 8+ tools with one AI partner that ships work — not just suggestions.</p>
+          <h2 className="mt-2 text-3xl sm:text-4xl font-bold">Everything you need to launch and grow</h2>
+          <p className="mt-3 text-muted-foreground">One workspace for your offer, content, ads, emails, and analytics.</p>
         </div>
         <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {features.map((f) => (

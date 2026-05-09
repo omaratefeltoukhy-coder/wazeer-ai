@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { consumeCredits, refundCredits, requireEntitlement } from "@/lib/billing/guard.server";
+import { callAI } from "@/lib/ai/gateway";
 
 export const AD_GOALS = ["sales", "leads", "website_traffic", "messages", "awareness", "subscriptions"] as const;
 export const AUDIENCE_KINDS = ["ai_recommended", "local", "interest", "retargeting", "lookalike"] as const;
@@ -43,21 +44,13 @@ async function loadCtx(supabase: any, business_id: string) {
   return { biz, brand, offer, sf };
 }
 
-async function callAI(messages: any[], tool: any, toolName: string) {
-  const KEY = process.env.LOVABLE_API_KEY;
-  if (!KEY) throw new Error("AI gateway not configured");
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ model: "google/gemini-2.5-flash", messages, tools: [tool], tool_choice: { type: "function", function: { name: toolName } } }),
+async function callAdsAI(messages: any[], tool: any, toolName: string) {
+  const aiRes = await callAI({
+    messages,
+    tools: [tool as any],
+    toolChoice: { type: "function", function: { name: toolName } },
   });
-  if (!res.ok) {
-    if (res.status === 429) throw new Error("Rate limit hit.");
-    if (res.status === 402) throw new Error("AI credits exhausted.");
-    throw new Error(`AI failed (${res.status})`);
-  }
-  const json = await res.json();
-  const args = json?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+  const args = aiRes.toolCalls?.[0]?.function?.arguments;
   if (!args) throw new Error("AI returned no structured output");
   return typeof args === "string" ? JSON.parse(args) : args;
 }
@@ -90,7 +83,7 @@ Goal: ${data.goal} | Audience kind: ${data.audience_kind}
 Daily budget: $${data.daily_budget} | Duration: ${data.duration_days} days
 Storefront slug: ${sf?.slug ?? "—"}
 Brief: ${data.brief || "(none)"}`;
-      const parsed = await callAI([{ role: "system", content: sys }, { role: "user", content: user }], tool, "write_ad");
+      const parsed = await callAdsAI([{ role: "system", content: sys }, { role: "user", content: user }], tool, "write_ad");
       return { ok: true, copy: parsed };
     } catch (err) {
       await refundCredits(ws_id, "meta_ad", { business_id: data.business_id });
@@ -233,7 +226,7 @@ export const regenerateAdCreative = createServerFn({ method: "POST" })
 Existing: ${JSON.stringify((ad as any).copy_json)}
 Offer: ${offer?.name ?? "—"} — ${offer?.description ?? ""}
 Brief: ${data.brief || "(none)"}`;
-      const parsed = await callAI([{ role: "system", content: sys }, { role: "user", content: user }], tool, "write_ad");
+      const parsed = await callAdsAI([{ role: "system", content: sys }, { role: "user", content: user }], tool, "write_ad");
       const { error } = await context.supabase.from("meta_ads").update({
         headline: parsed.headline, primary_text: parsed.primary_text, cta: parsed.cta,
         copy_json: parsed as any, approval_status: "pending",

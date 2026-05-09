@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { listAutomations, upsertAutomation, AUTOMATION_TYPES } from "@/lib/email/marketing.functions";
+import { listAutomations, upsertAutomation, triggerAutomationWorker, AUTOMATION_TYPES } from "@/lib/email/marketing.functions";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Pencil, Eye, Mail, ShoppingCart, PartyPopper, RefreshCw } from "lucide-react";
+import { Pencil, Eye, Mail, ShoppingCart, PartyPopper, RefreshCw, Play, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/email/automations/")({
@@ -39,6 +39,7 @@ function AutomationsPage() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<string | null>(null);
   const [previewing, setPreviewing] = useState<string | null>(null);
+  const [runningWorker, setRunningWorker] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -60,12 +61,32 @@ function AutomationsPage() {
     } catch (e: any) { toast.error(e?.message || "Failed"); }
   };
 
+  const runWorker = async () => {
+    setRunningWorker(true);
+    try {
+      const r: any = await triggerAutomationWorker();
+      toast.success(`Worker ran: ${r.sent ?? 0} sent, ${r.enrolled ?? 0} enrolled`);
+      load();
+    } catch (e: any) {
+      toast.error(e?.message || "Worker failed");
+    } finally {
+      setRunningWorker(false);
+    }
+  };
+
   if (loading) {
     return <div className="space-y-3">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-32 w-full" />)}</div>;
   }
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div />
+        <Button variant="outline" size="sm" onClick={runWorker} disabled={runningWorker}>
+          {runningWorker ? <Loader2 className="size-4 mr-1 animate-spin" /> : <Play className="size-4 mr-1" />}
+          Run worker now
+        </Button>
+      </div>
       {AUTOMATION_TYPES.map((type) => {
         const meta = META[type];
         const item = items[type];
@@ -90,6 +111,7 @@ function AutomationsPage() {
                     Sent {item.sent_count ?? 0} times
                     {item.sent_count > 0 && ` · ${Math.round(((item.opens_count ?? 0) / item.sent_count) * 100)}% open rate`}
                     {type === "abandoned_checkout" && active && item.sent_count > 0 && ` · ${Math.floor((item.sent_count ?? 0) * 0.15)} people recovered this month`}
+                    {item.last_run_at && ` · Last run ${new Date(item.last_run_at).toLocaleString()}`}
                   </p>
                 )}
               </div>

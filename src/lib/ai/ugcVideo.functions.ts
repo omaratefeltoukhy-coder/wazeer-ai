@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { consumeCredits, refundCredits, requireEntitlement } from "@/lib/billing/guard.server";
 import { getVideoProvider, type VideoFormat } from "./videoProvider.server";
+import { callAI } from "@/lib/ai/gateway";
 
 const FORMATS: [VideoFormat, ...VideoFormat[]] = ["9_16", "1_1", "16_9"];
 
@@ -13,27 +14,13 @@ async function loadWorkspaceId(supabase: any, business_id: string): Promise<stri
   return data.workspace_id as string;
 }
 
-async function callAIJson(messages: any[], tool: any, toolName: string) {
-  const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
-  if (!LOVABLE_API_KEY) throw new Error("AI gateway not configured");
-  const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
-      messages,
-      tools: [tool],
-      tool_choice: { type: "function", function: { name: toolName } },
-    }),
+async function callVideoAI(messages: any[], tool: any, toolName: string) {
+  const aiRes = await callAI({
+    messages,
+    tools: [tool as any],
+    toolChoice: { type: "function", function: { name: toolName } },
   });
-  if (!aiRes.ok) {
-    const text = await aiRes.text();
-    if (aiRes.status === 429) throw new Error("Rate limit hit. Please wait a moment and try again.");
-    if (aiRes.status === 402) throw new Error("AI credits exhausted. Top up to continue.");
-    throw new Error(`AI generation failed (${aiRes.status}): ${text.slice(0, 200)}`);
-  }
-  const json = await aiRes.json();
-  const args = json?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+  const args = aiRes.toolCalls?.[0]?.function?.arguments;
   if (!args) throw new Error("AI returned no structured output");
   return typeof args === "string" ? JSON.parse(args) : args;
 }
@@ -99,7 +86,7 @@ Hook: ${sj.hook_3s}
 Scenes: ${JSON.stringify(sj.scenes ?? [])}
 CTA: ${sj.cta}`;
 
-    const parsed = await callAIJson(
+    const parsed = await callVideoAI(
       [{ role: "system", content: sysPrompt }, { role: "user", content: userPrompt }],
       tool, "build_storyboard",
     );
@@ -171,7 +158,7 @@ export const regenerateStoryboardScene = createServerFn({ method: "POST" })
           parameters: { type: "object", properties: { scene: StoryboardSchema.properties.scene_prompts.items }, required: ["scene"], additionalProperties: false },
         },
       };
-      const parsed = await callAIJson(
+      const parsed = await callVideoAI(
         [
           { role: "system", content: `You are Wazeer AI. Rewrite ONE storyboard scene. Keep scene_no, similar duration. Reply via tool. ${SAFETY}` },
           { role: "user", content: `Existing: ${JSON.stringify(scene)}\nAspect: ${sb.aspect_ratio}\nBrief: ${data.brief || "(none)"}` },

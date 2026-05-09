@@ -11,7 +11,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { confirmDialog } from "@/components/ui/confirm";
-import { Check, ChevronLeft, ChevronRight, Image as ImageIcon, Loader2, X, Rocket } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Image as ImageIcon, Loader2, X, Rocket, Info } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/ads/new")({
@@ -117,6 +117,9 @@ function NewCampaignWizard() {
 
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-6">
+      <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-800 flex items-center gap-2">
+        <Info className="h-4 w-4" /> Demo mode — this campaign will be saved as a draft. Real Meta ad spend will only occur after you connect a live Meta ad account and explicitly launch.
+      </div>
       <div>
         <Link to="/dashboard/ads" className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
           <ChevronLeft className="h-4 w-4" /> Back to campaigns

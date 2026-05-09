@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { consumeCredits, refundCredits, requireEntitlement } from "@/lib/billing/guard.server";
+import { callAI } from "@/lib/ai/gateway";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const SECTIONS = ["hero", "benefits", "how_it_works", "faq", "final_cta"] as const;
@@ -185,27 +186,15 @@ Desired result: ${biz?.desired_result ?? ""}
 Section to rewrite: ${data.section}
 Extra instructions: ${data.brief || "(none)"}`;
 
-      const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
-            { role: "system", content: sysPrompt },
-            { role: "user", content: userPrompt },
-          ],
-          tools: [tool],
-          tool_choice: { type: "function", function: { name: "rewrite_section" } },
-        }),
+      const aiRes = await callAI({
+        messages: [
+          { role: "system", content: sysPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        tools: [tool as any],
+        toolChoice: { type: "function", function: { name: "rewrite_section" } },
       });
-      if (!aiRes.ok) {
-        const text = await aiRes.text();
-        if (aiRes.status === 429) throw new Error("Rate limit hit. Please wait a moment and try again.");
-        if (aiRes.status === 402) throw new Error("AI credits exhausted. Top up to continue.");
-        throw new Error(`AI generation failed (${aiRes.status}): ${text.slice(0, 200)}`);
-      }
-      const json = await aiRes.json();
-      const args = json?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+      const args = aiRes.toolCalls?.[0]?.function?.arguments;
       if (!args) throw new Error("AI returned no structured output");
       const parsed = typeof args === "string" ? JSON.parse(args) : args;
       const content = parsed.content;

@@ -2173,6 +2173,19 @@ export type Database = {
         Args: { _code: string }
         Returns: undefined
       }
+      record_payment_link_purchase: {
+        Args: {
+          _code: string
+          _buyer_name: string
+          _buyer_email: string
+          _buyer_phone: string | null
+          _amount: number
+          _currency: string
+          _provider_transaction_id?: string | null
+          _provider?: string
+        }
+        Returns: string
+      }
       increment_usage: {
         Args: { _by?: number; _feature: string; _workspace_id: string }
         Returns: undefined

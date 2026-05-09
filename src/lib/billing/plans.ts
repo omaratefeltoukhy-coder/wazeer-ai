@@ -11,6 +11,7 @@ export type Feature =
   | "meta_ads"
   | "analytics"
   | "recommendations"
+  | "ai_chat"
   | "agency_dashboard";
 
 export type Plan = {
@@ -30,7 +31,7 @@ export const PLANS: Record<PlanId, Plan> = {
     price_usd: 0,
     credits_per_month: 100,
     badge: "14 days",
-    features: ["storefront", "ai_images", "ugc_scripts", "email_campaigns", "analytics", "recommendations"],
+    features: ["storefront", "ai_images", "ugc_scripts", "email_campaigns", "analytics", "recommendations", "ai_chat"],
     caps: { ai_images: 20, ugc_scripts: 5, email_campaigns: 2 },
   },
   starter: {
@@ -38,7 +39,7 @@ export const PLANS: Record<PlanId, Plan> = {
     name: "Starter",
     price_usd: 19,
     credits_per_month: 800,
-    features: ["storefront", "ai_images", "ugc_scripts", "email_campaigns", "email_automations", "meta_posts", "analytics", "recommendations"],
+    features: ["storefront", "ai_images", "ugc_scripts", "email_campaigns", "email_automations", "meta_posts", "analytics", "recommendations", "ai_chat"],
     caps: { email_campaigns: 8 },
   },
   growth: {
@@ -47,7 +48,7 @@ export const PLANS: Record<PlanId, Plan> = {
     price_usd: 49,
     credits_per_month: 3000,
     badge: "Most popular",
-    features: ["storefront", "ai_images", "ugc_scripts", "ugc_videos", "email_campaigns", "email_automations", "meta_posts", "meta_ads", "analytics", "recommendations"],
+    features: ["storefront", "ai_images", "ugc_scripts", "ugc_videos", "email_campaigns", "email_automations", "meta_posts", "meta_ads", "analytics", "recommendations", "ai_chat"],
     caps: {},
   },
   pro: {
@@ -55,7 +56,7 @@ export const PLANS: Record<PlanId, Plan> = {
     name: "Pro",
     price_usd: 99,
     credits_per_month: 8000,
-    features: ["storefront", "ai_images", "ugc_scripts", "ugc_videos", "email_campaigns", "email_automations", "meta_posts", "meta_ads", "analytics", "recommendations"],
+    features: ["storefront", "ai_images", "ugc_scripts", "ugc_videos", "email_campaigns", "email_automations", "meta_posts", "meta_ads", "analytics", "recommendations", "ai_chat"],
     caps: {},
   },
   agency: {
@@ -89,6 +90,7 @@ export const CREDIT_COST: Record<string, number> = {
   meta_ad: 5,
   meta_ad_creative: 1,
   analytics_refresh: 1,
+  ai_chat: 1,
 };
 
 export function planHas(plan: PlanId, feature: Feature): boolean {

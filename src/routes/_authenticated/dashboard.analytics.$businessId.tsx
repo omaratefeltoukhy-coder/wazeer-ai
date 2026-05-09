@@ -163,7 +163,7 @@ function AnalyticsDetail() {
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2"><Megaphone className="h-4 w-4" /> Meta posts &amp; ads</h2>
           <div className="flex items-center gap-3">
             <Link to="/dashboard/posts/$businessId" params={{ businessId }} className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1">Posts <ExternalLink className="h-3 w-3" /></Link>
-            <Link to="/dashboard/ads/$businessId" params={{ businessId }} className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1">Ads <ExternalLink className="h-3 w-3" /></Link>
+            <Link to="/dashboard/ads" className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1">Ads <ExternalLink className="h-3 w-3" /></Link>
           </div>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

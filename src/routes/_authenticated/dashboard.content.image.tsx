@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Loader2, Sparkles, Download, RefreshCw, Target as TargetIcon } from "lucide-react";
+import { ArrowLeft, Loader2, Sparkles, Download, RefreshCw, Target as TargetIcon, Info } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/content/image")({
@@ -83,7 +83,10 @@ function ImageGeneratorPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6 p-4 sm:p-6">
+      <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-800 flex items-center gap-2">
+        <Info className="h-4 w-4" /> Demo mode — images are generated using a placeholder provider. Connect a real image provider (OpenAI, Fal, Stability) in settings to get production-quality results.
+      </div>
       <Link to="/dashboard/content" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="size-4 mr-1" />Back to Studio
       </Link>

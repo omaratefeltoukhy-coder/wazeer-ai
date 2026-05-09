@@ -4,7 +4,7 @@ import { useEntitlements } from "@/hooks/useEntitlements";
 import { PLANS, type PlanId } from "@/lib/billing/plans";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Check, Loader2, Sparkles, Zap, Receipt, Settings } from "lucide-react";
+import { Check, Loader2, Sparkles, Zap, Receipt, Settings, Gift } from "lucide-react";
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +13,7 @@ import { createPortalSession } from "@/lib/billing/paddle.functions";
 import { CREDIT_PACKS } from "@/lib/billing/packs";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
+import { ReferralBanner } from "@/components/wazeer/ReferralBanner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/billing")({
   component: BillingPage,
@@ -247,6 +248,14 @@ function BillingPage() {
             );
           })}
         </div>
+      </section>
+
+      <section className="rounded-2xl border border-dashed border-emerald-500/30 bg-emerald-500/5 p-6">
+        <h2 className="text-lg font-semibold mb-2 flex items-center gap-2"><Gift className="h-5 w-5 text-emerald-brand" /> Refer & Earn</h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          Give $15, Get $15. Share Wazeer with fellow creators and entrepreneurs. When they subscribe to any paid plan, you both receive $15 in bonus credits.
+        </p>
+        <ReferralBanner />
       </section>
 
       <section>

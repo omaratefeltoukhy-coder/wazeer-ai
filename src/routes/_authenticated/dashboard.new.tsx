@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
@@ -7,61 +7,114 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, ArrowRight, Loader2, Sparkles, Wand2, Check } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Sparkles, Wand2, Check, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/new")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    idea: typeof s.idea === "string" ? s.idea : "",
+  }),
   component: NewBusinessWizard,
 });
 
 const businessTypes = [
-  "physical_product", "digital_product", "service", "subscription", "course", "coaching", "membership", "event", "other",
+  "physical_product", "digital_product", "service", "course", "coaching", "membership", "event", "subscription", "other",
 ] as const;
 
 const goals = [
-  { v: "sales", label: "Get more sales" },
-  { v: "leads", label: "Capture leads" },
-  { v: "subscribers", label: "Grow subscribers" },
-  { v: "awareness", label: "Build brand awareness" },
+  { v: "first_sale", label: "First sale" },
+  { v: "leads", label: "Generate leads" },
+  { v: "subscribers", label: "Sell subscriptions" },
+  { v: "calls", label: "Book calls" },
+  { v: "meta_ads", label: "Launch Meta ads" },
+  { v: "email_list", label: "Grow email list" },
+  { v: "event", label: "Promote event" },
+  { v: "community", label: "Build community" },
+];
+
+const currencies = ["USD", "EUR", "GBP", "AED", "SAR", "BRL", "INR", "CAD", "AUD"];
+
+const languages = [
+  { code: "en", label: "English" },
+  { code: "es", label: "Spanish" },
+  { code: "fr", label: "French" },
+  { code: "de", label: "German" },
+  { code: "ar", label: "Arabic" },
+  { code: "pt", label: "Portuguese" },
+  { code: "hi", label: "Hindi" },
+  { code: "ja", label: "Japanese" },
+  { code: "zh", label: "Chinese" },
+  { code: "other", label: "Other" },
 ];
 
 type Form = {
   name: string;
   type: typeof businessTypes[number];
   description: string;
+  product_url: string;
   target_audience: string;
   pain_point: string;
   desired_result: string;
-  goal: string;
   country: string;
+  language: string;
+  price_one_time: string;
+  price_subscription: string;
+  free_trial: boolean;
+  discount: string;
+  currency: string;
+  goal: string;
 };
 
 const empty: Form = {
   name: "",
   type: "physical_product",
   description: "",
+  product_url: "",
   target_audience: "",
   pain_point: "",
   desired_result: "",
-  goal: "sales",
   country: "",
+  language: "en",
+  price_one_time: "",
+  price_subscription: "",
+  free_trial: false,
+  discount: "",
+  currency: "USD",
+  goal: "first_sale",
 };
 
 function NewBusinessWizard() {
   const navigate = useNavigate();
+  const search = Route.useSearch();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<Form>(empty);
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [progressIdx, setProgressIdx] = useState(0);
+  const [fileName, setFileName] = useState<string | null>(null);
   const generateFn = useServerFn(generateBusiness);
 
+  // Prefill from hero input
+  useEffect(() => {
+    const idea = search.idea || (() => { try { return sessionStorage.getItem("wazeer_hero_idea") || ""; } catch { return ""; } })();
+    const hint = (() => { try { return sessionStorage.getItem("wazeer_hero_file_name") || ""; } catch { return ""; } })();
+    if (idea) {
+      setForm((f) => ({ ...f, description: idea }));
+      try { sessionStorage.removeItem("wazeer_hero_idea"); sessionStorage.removeItem("wazeer_hero_file_name"); } catch { /* ignore */ }
+    }
+    if (hint) setFileName(hint);
+  }, [search.idea]);
+
   const generationSteps = [
-    "Analyzing your business",
-    "Crafting brand voice & positioning",
-    "Designing your opening offer",
-    "Writing your storefront",
-    "Generating Wazeer AI recommendations",
+    "Understanding your business",
+    "Creating your offer",
+    "Building your storefront",
+    "Generating starter creative ideas",
+    "Writing UGC scripts",
+    "Creating UGC video plan",
+    "Writing email sequence",
+    "Preparing Meta post / ad drafts",
+    "Setting up dashboard",
   ];
 
   const loadWorkspace = async (): Promise<string | null> => {
@@ -82,11 +135,11 @@ function NewBusinessWizard() {
   useEffect(() => {
     if (!submitting) return;
     setProgressIdx(0);
-    const t = setInterval(() => setProgressIdx((i) => Math.min(i + 1, generationSteps.length - 1)), 1500);
+    const t = setInterval(() => setProgressIdx((i) => Math.min(i + 1, generationSteps.length - 1)), 1200);
     return () => clearInterval(t);
   }, [submitting]);
 
-  const update = (k: keyof Form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const update = (k: keyof Form) => (v: string | boolean) => setForm((f) => ({ ...f, [k]: v }));
 
   const generate = async () => {
     let wsId = workspaceId;
@@ -103,13 +156,18 @@ function NewBusinessWizard() {
           name: form.name,
           type: form.type,
           description: form.description,
+          product_url: form.product_url || undefined,
           target_audience: form.target_audience,
           pain_point: form.pain_point,
           desired_result: form.desired_result,
           goal: form.goal,
           country: form.country,
-          currency: "USD",
-          language: "en",
+          currency: form.currency,
+          language: form.language,
+          price_one_time: form.price_one_time ? Number(form.price_one_time) : undefined,
+          price_subscription: form.price_subscription ? Number(form.price_subscription) : undefined,
+          free_trial: form.free_trial,
+          discount: form.discount || undefined,
         },
       });
       toast.success("Your business is ready!");
@@ -127,6 +185,17 @@ function NewBusinessWizard() {
     }
   };
 
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (f.size > 25 * 1024 * 1024) {
+      toast.error("File too large", { description: "Max 25MB." });
+      return;
+    }
+    setFileName(f.name);
+  };
+
+  const clearFile = () => setFileName(null);
 
   const steps = [
     {
@@ -134,33 +203,54 @@ function NewBusinessWizard() {
       content: (
         <div className="space-y-4">
           <div>
-            <Label>Business name</Label>
+            <Label>Business name <span className="text-muted-foreground font-normal">(optional)</span></Label>
             <Input value={form.name} onChange={(e) => update("name")(e.target.value)} placeholder="e.g. Aura Candles" />
           </div>
           <div>
-            <Label>Type</Label>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {businessTypes.map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => update("type")(t)}
-                  className={`rounded-full border px-3 py-1.5 text-sm capitalize transition-colors ${
-                    form.type === t ? "bg-foreground text-background" : "hover:bg-secondary"
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
+            <Label>One-sentence description</Label>
+            <Textarea rows={3} value={form.description} onChange={(e) => update("description")(e.target.value)} placeholder="What you sell, in one or two sentences." />
           </div>
           <div>
-            <Label>Short description</Label>
-            <Textarea rows={3} value={form.description} onChange={(e) => update("description")(e.target.value)} placeholder="What you sell, in one or two sentences." />
+            <Label>Product / service URL <span className="text-muted-foreground font-normal">(optional)</span></Label>
+            <Input value={form.product_url} onChange={(e) => update("product_url")(e.target.value)} placeholder="https://…" />
+          </div>
+          <div>
+            <Label>Upload image or video <span className="text-muted-foreground font-normal">(optional)</span></Label>
+            <div className="mt-2 flex items-center gap-2">
+              <Input type="file" accept="image/*,video/*" onChange={handleFile} />
+              {fileName && (
+                <div className="flex items-center gap-2 rounded-lg border bg-background px-3 py-1.5 text-xs text-muted-foreground">
+                  <span className="max-w-[140px] truncate">{fileName}</span>
+                  <button type="button" onClick={clearFile} className="hover:text-foreground"><X className="h-3.5 w-3.5" /></button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       ),
-      valid: form.name.length > 1 && form.description.length > 5,
+      valid: form.description.length > 5,
+    },
+    {
+      title: "What type of offer?",
+      content: (
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            {businessTypes.map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => update("type")(t)}
+                className={`rounded-full border px-3 py-1.5 text-sm capitalize transition-colors ${
+                  form.type === t ? "bg-foreground text-background" : "hover:bg-secondary"
+                }`}
+              >
+                {t.replace("_", " ")}
+              </button>
+            ))}
+          </div>
+        </div>
+      ),
+      valid: true,
     },
     {
       title: "Who is it for?",
@@ -171,56 +261,126 @@ function NewBusinessWizard() {
             <Input value={form.target_audience} onChange={(e) => update("target_audience")(e.target.value)} placeholder="e.g. busy moms in the UAE" />
           </div>
           <div>
-            <Label>Their main pain point</Label>
+            <Label>Main pain point</Label>
             <Textarea rows={2} value={form.pain_point} onChange={(e) => update("pain_point")(e.target.value)} placeholder="What problem do they have?" />
           </div>
           <div>
-            <Label>Result they want</Label>
+            <Label>Desired result</Label>
             <Textarea rows={2} value={form.desired_result} onChange={(e) => update("desired_result")(e.target.value)} placeholder="What outcome do they pay for?" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>Region / country</Label>
+              <Input value={form.country} onChange={(e) => update("country")(e.target.value)} placeholder="e.g. UAE" />
+            </div>
+            <div>
+              <Label>Language</Label>
+              <select
+                value={form.language}
+                onChange={(e) => update("language")(e.target.value)}
+                className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm"
+              >
+                {languages.map((l) => (
+                  <option key={l.code} value={l.code}>{l.label}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
       ),
-      valid: form.target_audience.length > 1,
+      valid: form.target_audience.length > 1 && form.desired_result.length > 1,
     },
     {
-      title: "Goal & country",
+      title: "Pricing",
       content: (
         <div className="space-y-4">
-          <div>
-            <Label>Primary goal</Label>
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              {goals.map((g) => (
-                <button
-                  key={g.v}
-                  type="button"
-                  onClick={() => update("goal")(g.v)}
-                  className={`rounded-xl border px-3 py-3 text-sm text-left transition-colors ${
-                    form.goal === g.v ? "border-foreground bg-secondary" : "hover:bg-secondary/60"
-                  }`}
-                >
-                  {g.label}
-                </button>
-              ))}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label>One-time price <span className="text-muted-foreground font-normal">(optional)</span></Label>
+              <Input type="number" min={0} value={form.price_one_time} onChange={(e) => update("price_one_time")(e.target.value)} placeholder="49" />
+            </div>
+            <div>
+              <Label>Subscription price <span className="text-muted-foreground font-normal">(optional)</span></Label>
+              <Input type="number" min={0} value={form.price_subscription} onChange={(e) => update("price_subscription")(e.target.value)} placeholder="29 / month" />
             </div>
           </div>
+          <div className="flex items-center gap-3">
+            <input id="free_trial" type="checkbox" checked={form.free_trial} onChange={(e) => update("free_trial")(e.target.checked)} className="h-4 w-4" />
+            <Label htmlFor="free_trial" className="font-normal">Include a free trial</Label>
+          </div>
           <div>
-            <Label>Country (optional)</Label>
-            <Input value={form.country} onChange={(e) => update("country")(e.target.value)} placeholder="e.g. UAE" />
+            <Label>Discount / offer <span className="text-muted-foreground font-normal">(optional)</span></Label>
+            <Input value={form.discount} onChange={(e) => update("discount")(e.target.value)} placeholder="e.g. 20% off first month" />
+          </div>
+          <div>
+            <Label>Currency</Label>
+            <select
+              value={form.currency}
+              onChange={(e) => update("currency")(e.target.value)}
+              className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm"
+            >
+              {currencies.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
           </div>
         </div>
       ),
       valid: true,
     },
     {
-      title: "Generate",
+      title: "What's your goal?",
       content: (
-        <div className="rounded-2xl border bg-card p-6 text-center space-y-3">
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-2">
+            {goals.map((g) => (
+              <button
+                key={g.v}
+                type="button"
+                onClick={() => update("goal")(g.v)}
+                className={`rounded-xl border px-3 py-3 text-sm text-left transition-colors ${
+                  form.goal === g.v ? "border-foreground bg-secondary" : "hover:bg-secondary/60"
+                }`}
+              >
+                {g.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ),
+      valid: true,
+    },
+    {
+      title: "Review & generate",
+      content: (
+        <div className="rounded-2xl border bg-card p-6 space-y-4">
           <div className="mx-auto h-12 w-12 rounded-2xl bg-brand-gradient grid place-items-center">
             <Sparkles className="h-5 w-5 text-primary-foreground" />
           </div>
-          <h3 className="text-lg font-semibold">Ready to launch {form.name || "your business"}?</h3>
-          <p className="text-sm text-muted-foreground max-w-md mx-auto">
-            We'll create your brand profile, an opening offer, and a storefront draft. You can edit everything next.
+          <h3 className="text-lg font-semibold text-center">Ready to build {form.name || "your business"}?</h3>
+          <div className="grid sm:grid-cols-2 gap-3 text-sm">
+            <div className="rounded-xl border bg-background p-3">
+              <div className="text-xs text-muted-foreground">Type</div>
+              <div className="font-medium capitalize">{form.type.replace("_", " ")}</div>
+            </div>
+            <div className="rounded-xl border bg-background p-3">
+              <div className="text-xs text-muted-foreground">Goal</div>
+              <div className="font-medium">{goals.find((g) => g.v === form.goal)?.label}</div>
+            </div>
+            <div className="rounded-xl border bg-background p-3">
+              <div className="text-xs text-muted-foreground">Audience</div>
+              <div className="font-medium">{form.target_audience || "—"}</div>
+            </div>
+            <div className="rounded-xl border bg-background p-3">
+              <div className="text-xs text-muted-foreground">Language</div>
+              <div className="font-medium">{languages.find((l) => l.code === form.language)?.label}</div>
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground text-center">
+            We'll create your brand profile, offer, storefront draft, content ideas, UGC scripts, email sequence, and Meta drafts. You can edit everything next.
+          </p>
+          <p className="text-xs text-muted-foreground text-center">
+            This uses <span className="font-medium text-foreground">3 AI credits</span>. Credits are refunded if generation fails.
           </p>
         </div>
       ),
@@ -237,7 +397,7 @@ function NewBusinessWizard() {
           <Sparkles className="h-7 w-7 text-primary-foreground" />
         </div>
         <h2 className="text-2xl font-semibold mb-1">Building {form.name || "your business"}…</h2>
-        <p className="text-sm text-muted-foreground mb-8">Wazeer AI is doing the work. This takes ~20–40 seconds.</p>
+        <p className="text-sm text-muted-foreground mb-8">Wazeer AI is doing the work. This takes ~30–60 seconds.</p>
         <ul className="w-full max-w-sm space-y-3 text-left">
           {generationSteps.map((label, i) => {
             const done = i < progressIdx;

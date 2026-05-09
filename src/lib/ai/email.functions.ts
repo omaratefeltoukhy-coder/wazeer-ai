@@ -3,6 +3,17 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { consumeCredits, refundCredits, requireEntitlement, checkUsageCap, incrementUsage } from "@/lib/billing/guard.server";
+import { callAI } from "@/lib/ai/gateway";
+import {
+  sendEmailViaResend,
+  sendEmailBatchViaResend,
+  mdToHtml,
+  personalizeEmail,
+  getOrCreateUnsubscribeToken,
+  buildUnsubscribeUrl,
+  wrapEmailBody,
+  trackEmailEvent,
+} from "@/lib/email/resend.server";
 
 export const CAMPAIGN_TYPES = [
   "welcome", "abandoned_cart", "launch", "lead_nurture", "offer_announcement",
@@ -69,27 +80,13 @@ const SingleEmailSchema = {
   properties: SequenceSchema.properties.emails.items.properties,
 } as const;
 
-async function callAI(messages: any[], tool: any, toolName: string) {
-  const KEY = process.env.LOVABLE_API_KEY;
-  if (!KEY) throw new Error("AI gateway not configured");
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
-      messages,
-      tools: [tool],
-      tool_choice: { type: "function", function: { name: toolName } },
-    }),
+async function callEmailAI(messages: any[], tool: any, toolName: string) {
+  const aiRes = await callAI({
+    messages,
+    tools: [tool as any],
+    toolChoice: { type: "function", function: { name: toolName } },
   });
-  if (!res.ok) {
-    const t = await res.text();
-    if (res.status === 429) throw new Error("Rate limit hit. Try again shortly.");
-    if (res.status === 402) throw new Error("AI credits exhausted. Top up to continue.");
-    throw new Error(`AI failed (${res.status}): ${t.slice(0, 200)}`);
-  }
-  const json = await res.json();
-  const args = json?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+  const args = aiRes.toolCalls?.[0]?.function?.arguments;
   if (!args) throw new Error("AI returned no structured output");
   return typeof args === "string" ? JSON.parse(args) : args;
 }
@@ -156,7 +153,7 @@ Trial days: ${offer?.free_trial_days ?? 0}
 Campaign type: ${CAMPAIGN_LABEL[data.type]}
 Length: ${data.length} emails`;
 
-      const parsed = await callAI(
+      const parsed = await callEmailAI(
         [{ role: "system", content: sys }, { role: "user", content: user }],
         tool, "write_sequence",
       );
@@ -219,7 +216,7 @@ export const regenerateEmailMessage = createServerFn({ method: "POST" })
 Offer: ${offer?.name ?? "—"} — ${offer?.description ?? ""}
 Existing email: ${JSON.stringify(msg)}
 Brief: ${data.brief || "(none)"}`;
-      const parsed = await callAI([{ role: "system", content: sys }, { role: "user", content: user }], tool, "rewrite_email");
+      const parsed = await callEmailAI([{ role: "system", content: sys }, { role: "user", content: user }], tool, "rewrite_email");
       const { error: upErr } = await context.supabase.from("email_messages").update({
         name: parsed.name, goal: parsed.goal,
         subject_line: parsed.subject_line, preview_text: parsed.preview_text,
@@ -290,7 +287,8 @@ export const sendTestEmail = createServerFn({ method: "POST" })
   }).parse(input))
   .handler(async ({ data, context }) => {
     const { data: msg, error } = await context.supabase.from("email_messages")
-      .select("id, business_id, campaign_id, subject_line").eq("id", data.message_id).maybeSingle();
+      .select("id, business_id, campaign_id, subject_line, body_markdown, preview_text, cta_text, cta_url_placeholder")
+      .eq("id", data.message_id).maybeSingle();
     if (error || !msg) throw new Error("Email not found");
 
     // Suppression check
@@ -298,23 +296,39 @@ export const sendTestEmail = createServerFn({ method: "POST" })
       .select("id").eq("business_id", msg.business_id as string).eq("email", data.to_email).maybeSingle();
     if (sup) throw new Error("This email is on the suppression list and cannot receive sends.");
 
-    // MOCK Resend dispatcher: log sent then delivered
-    await supabaseAdmin.from("email_events").insert({
-      business_id: msg.business_id as string,
-      campaign_id: msg.campaign_id as string,
-      event_type: "sent",
-      metadata_json: { test: true, to: data.to_email, message_id: msg.id, provider: "resend_demo", subject: msg.subject_line } as any,
-    });
-    await new Promise((r) => setTimeout(r, 1000));
-    await supabaseAdmin.from("email_events").insert({
-      business_id: msg.business_id as string, campaign_id: msg.campaign_id as string,
-      event_type: "delivered",
-      metadata_json: { test: true, to: data.to_email, message_id: msg.id, provider: "resend_demo" } as any,
-    });
-    return { ok: true, queued: true };
-  });
+    const bodyMarkdown = (msg.body_markdown as string) || "";
+    const bodyHtml = mdToHtml(bodyMarkdown);
+    const html = wrapEmailBody(bodyHtml, { previewText: (msg.preview_text as string) || undefined });
 
-function rand(seed: number) { return () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }; }
+    const result = await sendEmailViaResend({
+      from: process.env.MARKETING_FROM_EMAIL || "Marketing <onboarding@resend.dev>",
+      to: data.to_email,
+      subject: (msg.subject_line as string) || "Test email",
+      html,
+      tags: [
+        { name: "business_id", value: msg.business_id as string },
+        { name: "campaign_id", value: (msg.campaign_id as string) || "" },
+        { name: "message_id", value: msg.id as string },
+        { name: "type", value: "test" },
+      ],
+    });
+
+    if (!result.ok) {
+      throw new Error(result.error || "Resend send failed");
+    }
+
+    await trackEmailEvent({
+      business_id: msg.business_id as string,
+      campaign_id: msg.campaign_id as string | null,
+      message_id: msg.id as string,
+      event_type: "sent",
+      resend_id: result.resendId,
+      email: data.to_email,
+      metadata: { test: true, subject: msg.subject_line },
+    });
+
+    return { ok: true, queued: true, resend_id: result.resendId };
+  });
 
 export const sendEmailCampaign = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -324,43 +338,89 @@ export const sendEmailCampaign = createServerFn({ method: "POST" })
       .select("id, business_id, name").eq("id", data.campaign_id).maybeSingle();
     if (error || !campaign) throw new Error("Campaign not found");
 
-    // Eligible contacts: not unsubscribed and not suppressed
     const business_id = campaign.business_id as string;
     const { data: contactsRaw } = await context.supabase.from("contacts")
-      .select("id, email, unsubscribed_at").eq("business_id", business_id);
+      .select("id, email, name, unsubscribed_at, status").eq("business_id", business_id);
     const { data: supList } = await context.supabase.from("suppression_list")
       .select("email").eq("business_id", business_id);
     const supSet = new Set((supList ?? []).map((s) => s.email));
-    const contacts = (contactsRaw ?? []).filter((c) => c.email && !c.unsubscribed_at && !supSet.has(c.email));
+    const contacts = (contactsRaw ?? []).filter((c) => c.email && !c.unsubscribed_at && c.status !== "unsubscribed" && !supSet.has(c.email));
 
     const { data: messages } = await context.supabase.from("email_messages")
-      .select("id").eq("campaign_id", campaign.id).neq("status", "archived").order("position");
+      .select("id, subject_line, body_markdown, preview_text, cta_text, cta_url_placeholder")
+      .eq("campaign_id", campaign.id).neq("status", "archived").order("position");
 
-    // MOCK: synthesize email_events to simulate delivery + opens + clicks
-    const r = rand(Number(String(campaign.id).replace(/[^0-9]/g, "").slice(0, 8) || "42"));
-    const events: any[] = [];
-    for (const m of (messages ?? [])) {
+    if (!contacts.length) throw new Error("No eligible contacts found.");
+    if (!messages?.length) throw new Error("No messages to send.");
+
+    const from = process.env.MARKETING_FROM_EMAIL || "Marketing <onboarding@resend.dev>";
+    let totalSent = 0;
+    let totalFailed = 0;
+
+    for (const msg of messages) {
+      const bodyMarkdown = (msg.body_markdown as string) || "";
+      const bodyHtml = mdToHtml(bodyMarkdown);
+
+      const emails: any[] = [];
       for (const c of contacts) {
-        events.push({ business_id, campaign_id: campaign.id, contact_id: c.id, event_type: "sent",
-          metadata_json: { message_id: m.id, provider: "resend_demo" } as any });
-        if (r() < 0.96) events.push({ business_id, campaign_id: campaign.id, contact_id: c.id, event_type: "delivered",
-          metadata_json: { message_id: m.id } as any });
-        if (r() < 0.42) events.push({ business_id, campaign_id: campaign.id, contact_id: c.id, event_type: "opened",
-          metadata_json: { message_id: m.id } as any });
-        if (r() < 0.08) events.push({ business_id, campaign_id: campaign.id, contact_id: c.id, event_type: "clicked",
-          metadata_json: { message_id: m.id } as any });
-        if (r() < 0.01) events.push({ business_id, campaign_id: campaign.id, contact_id: c.id, event_type: "bounced",
-          metadata_json: { message_id: m.id } as any });
-        if (r() < 0.005) events.push({ business_id, campaign_id: campaign.id, contact_id: c.id, event_type: "unsubscribed",
-          metadata_json: { message_id: m.id } as any });
+        const token = await getOrCreateUnsubscribeToken(business_id, c.id, c.email as string);
+        const unsubscribeUrl = buildUnsubscribeUrl(token);
+        const personalized = personalizeEmail(bodyHtml, { name: c.name, email: c.email });
+        const html = wrapEmailBody(personalized, {
+          previewText: (msg.preview_text as string) || undefined,
+          unsubscribeUrl,
+        });
+
+        emails.push({
+          from,
+          to: c.email as string,
+          subject: personalizeEmail((msg.subject_line as string) || "", { name: c.name, email: c.email }),
+          html,
+          tags: [
+            { name: "business_id", value: business_id },
+            { name: "campaign_id", value: campaign.id as string },
+            { name: "message_id", value: msg.id as string },
+            { name: "contact_id", value: c.id as string },
+          ],
+          metadata: { contact_id: c.id, message_id: msg.id, email: c.email },
+        });
+      }
+
+      const batchResult = await sendEmailBatchViaResend(emails);
+      for (let i = 0; i < batchResult.results.length; i++) {
+        const r = batchResult.results[i];
+        const meta = emails[i].metadata;
+        if (r.resendId) {
+          totalSent++;
+          await trackEmailEvent({
+            business_id,
+            campaign_id: campaign.id as string,
+            contact_id: meta.contact_id,
+            message_id: meta.message_id,
+            event_type: "sent",
+            resend_id: r.resendId,
+            email: meta.email,
+          });
+        } else {
+          totalFailed++;
+          await trackEmailEvent({
+            business_id,
+            campaign_id: campaign.id as string,
+            contact_id: meta.contact_id,
+            message_id: meta.message_id,
+            event_type: "failed",
+            email: meta.email,
+            metadata: { error: r.error },
+          });
+        }
       }
     }
-    if (events.length) await supabaseAdmin.from("email_events").insert(events);
+
     await context.supabase.from("email_campaigns").update({ status: "sent" }).eq("id", campaign.id);
     await context.supabase.from("email_messages").update({ status: "sent", sent_at: new Date().toISOString() })
       .eq("campaign_id", campaign.id).neq("status", "archived");
-    await audit(context.supabase, business_id, "send_email_campaign", "email_campaign", campaign.id, { recipients: contacts.length, messages: messages?.length ?? 0 });
-    return { ok: true, recipients: contacts.length, events: events.length };
+    await audit(context.supabase, business_id, "send_email_campaign", "email_campaign", campaign.id, { recipients: contacts.length, messages: messages.length, sent: totalSent, failed: totalFailed });
+    return { ok: true, recipients: contacts.length, sent: totalSent, failed: totalFailed };
   });
 
 export const scheduleEmail = createServerFn({ method: "POST" })

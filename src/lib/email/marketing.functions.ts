@@ -2,6 +2,15 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { callAI } from "@/lib/ai/gateway";
+import {
+  sendEmailViaResend,
+  sendEmailBatchViaResend,
+  getOrCreateUnsubscribeToken,
+  buildUnsubscribeUrl,
+  wrapEmailBody,
+  trackEmailEvent,
+} from "@/lib/email/resend.server";
 
 async function getBusinessId(supabase: any): Promise<string> {
   const { data, error } = await supabase
@@ -10,38 +19,19 @@ async function getBusinessId(supabase: any): Promise<string> {
   return data.id as string;
 }
 
-async function callAI(messages: any[], opts: { json?: boolean } = {}) {
-  const key = process.env.LOVABLE_API_KEY;
-  if (!key) throw new Error("AI gateway not configured");
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
-      messages,
-      ...(opts.json ? { response_format: { type: "json_object" } } : {}),
-    }),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    if (res.status === 429) throw new Error("Rate limit hit. Please retry shortly.");
-    if (res.status === 402) throw new Error("AI credits exhausted. Top up to continue.");
-    throw new Error(`AI failed (${res.status}): ${text.slice(0, 200)}`);
-  }
-  return res.json();
-}
-
 /* ─────────────── AI helpers ─────────────── */
 
 export const generateCampaignSubject = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) => z.object({ goal: z.string().max(500).optional().default("") }).parse(i))
   .handler(async ({ data }) => {
-    const json = await callAI([
-      { role: "system", content: "You write concise, high-open-rate email subject lines under 60 chars. Reply with the subject only — no quotes, no prefix." },
-      { role: "user", content: `Goal/topic: ${data.goal || "general newsletter"}` },
-    ]);
-    return { subject: (json?.choices?.[0]?.message?.content || "").trim() };
+    const aiRes = await callAI({
+      messages: [
+        { role: "system", content: "You write concise, high-open-rate email subject lines under 60 chars. Reply with the subject only — no quotes, no prefix." },
+        { role: "user", content: `Goal/topic: ${data.goal || "general newsletter"}` },
+      ],
+    });
+    return { subject: (aiRes.content || "").trim() };
   });
 
 export const generateCampaignBody = createServerFn({ method: "POST" })
@@ -50,11 +40,13 @@ export const generateCampaignBody = createServerFn({ method: "POST" })
     z.object({ subject: z.string().max(200).optional().default(""), goal: z.string().max(800).optional().default("") }).parse(i),
   )
   .handler(async ({ data }) => {
-    const json = await callAI([
-      { role: "system", content: "You write friendly, persuasive marketing email bodies in clean HTML. Use <h2>, <p>, and <a>. No <html>/<body> tags. 120-220 words. End with a clear CTA. Avoid invented claims." },
-      { role: "user", content: `Subject: ${data.subject}\nGoal: ${data.goal || "engage subscribers"}` },
-    ]);
-    return { body_html: (json?.choices?.[0]?.message?.content || "").trim() };
+    const aiRes = await callAI({
+      messages: [
+        { role: "system", content: "You write friendly, persuasive marketing email bodies in clean HTML. Use <h2>, <p>, and <a>. No <html>/<body> tags. 120-220 words. End with a clear CTA. Avoid invented claims." },
+        { role: "user", content: `Subject: ${data.subject}\nGoal: ${data.goal || "engage subscribers"}` },
+      ],
+    });
+    return { body_html: (aiRes.content || "").trim() };
   });
 
 /* ─────────────── Audience resolution ─────────────── */
@@ -79,19 +71,16 @@ async function resolveAudience(business_id: string, audience_type: string, manua
 
 /* ─────────────── Resend send ─────────────── */
 
-async function sendOneViaResend(opts: { from: string; to: string; subject: string; html: string }) {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) {
-    return { ok: false as const, mock: true, error: "RESEND_API_KEY not configured" };
-  }
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: opts.from, to: [opts.to], subject: opts.subject, html: opts.html }),
+async function sendOneViaResend(opts: { from: string; to: string; subject: string; html: string; tags?: { name: string; value: string }[] }) {
+  const result = await sendEmailViaResend({
+    from: opts.from,
+    to: opts.to,
+    subject: opts.subject,
+    html: opts.html,
+    tags: opts.tags,
   });
-  if (!res.ok) {
-    const text = await res.text();
-    return { ok: false as const, mock: false, error: `Resend ${res.status}: ${text.slice(0, 200)}` };
+  if (!result.ok) {
+    return { ok: false as const, mock: !process.env.RESEND_API_KEY, error: result.error };
   }
   return { ok: true as const, mock: false };
 }
@@ -167,20 +156,55 @@ export const sendCampaign = createServerFn({ method: "POST" })
     if (!recipients.length) throw new Error("No recipients matched the audience.");
 
     const from = process.env.MARKETING_FROM_EMAIL || "Marketing <onboarding@resend.dev>";
+    let mocked = !process.env.RESEND_API_KEY;
+
+    const emails: any[] = [];
+    for (const r of recipients.slice(0, 500)) {
+      const token = await getOrCreateUnsubscribeToken(c.business_id as string, r.id ?? undefined, r.email);
+      const unsubscribeUrl = buildUnsubscribeUrl(token);
+      const html = wrapEmailBody(c.body_html as string, { unsubscribeUrl });
+      emails.push({
+        from,
+        to: r.email,
+        subject: c.subject as string,
+        html,
+        tags: [
+          { name: "business_id", value: c.business_id as string },
+          { name: "campaign_id", value: c.id as string },
+          { name: "contact_id", value: r.id ?? "" },
+        ],
+        metadata: { contact_id: r.id, email: r.email },
+      });
+    }
+
+    const batchResult = await sendEmailBatchViaResend(emails);
     let sent = 0;
     let failed = 0;
-    let mocked = false;
-    for (const r of recipients.slice(0, 500)) {
-      const result = await sendOneViaResend({ from, to: r.email, subject: c.subject as string, html: c.body_html as string });
-      if (result.ok) sent++; else failed++;
-      if (result.mock) mocked = true;
-      await supabaseAdmin.from("email_events").insert({
-        business_id: c.business_id as string,
-        campaign_id: c.id as string,
-        contact_id: r.id ?? null,
-        event_type: result.ok ? "sent" : "failed",
-        metadata_json: { email: r.email, error: result.ok ? null : (result as any).error, mock: result.mock } as any,
-      });
+
+    for (let i = 0; i < batchResult.results.length; i++) {
+      const r = batchResult.results[i];
+      const meta = emails[i].metadata;
+      if (r.resendId) {
+        sent++;
+        await trackEmailEvent({
+          business_id: c.business_id as string,
+          campaign_id: c.id as string,
+          contact_id: meta.contact_id,
+          event_type: "sent",
+          resend_id: r.resendId,
+          email: meta.email,
+        });
+      } else {
+        failed++;
+        await trackEmailEvent({
+          business_id: c.business_id as string,
+          campaign_id: c.id as string,
+          contact_id: meta.contact_id,
+          event_type: "failed",
+          email: meta.email,
+          metadata: { error: r.error },
+        });
+      }
     }
 
     await context.supabase.from("email_campaigns").update({
@@ -216,6 +240,29 @@ export const getCampaignStats = createServerFn({ method: "POST" })
 
 export const AUTOMATION_TYPES = ["welcome", "abandoned_checkout", "post_purchase", "re_engagement"] as const;
 export type AutomationType = typeof AUTOMATION_TYPES[number];
+
+export const triggerAutomationWorker = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async () => {
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!supabaseUrl || !serviceKey) throw new Error("Missing Supabase configuration");
+
+    const res = await fetch(`${supabaseUrl}/functions/v1/email-automations-process`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${serviceKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({}),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Automation worker failed: ${res.status} ${text.slice(0, 200)}`);
+    }
+    return res.json();
+  });
 
 export const listAutomations = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

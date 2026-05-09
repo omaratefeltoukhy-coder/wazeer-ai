@@ -11,15 +11,21 @@ import { AuthShell, Divider } from "./login";
 
 export const Route = createFileRoute("/signup")({
   component: SignupPage,
-  beforeLoad: async () => {
+  validateSearch: (s: Record<string, unknown>) => {
+    const r = typeof s.redirect === "string" ? s.redirect : "/dashboard";
+    const safe = r.startsWith("/") && !r.startsWith("/login") && !r.startsWith("/signup") ? r : "/dashboard";
+    return { redirect: safe, idea: typeof s.idea === "string" ? s.idea : "" };
+  },
+  beforeLoad: async ({ search }) => {
     if (typeof window === "undefined") return;
     const { data: { session } } = await supabase.auth.getSession();
-    if (session) throw redirect({ to: "/dashboard" });
+    if (session) throw redirect({ to: search.redirect });
   },
 });
 
 function SignupPage() {
   const navigate = useNavigate();
+  const search = Route.useSearch();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -39,7 +45,7 @@ function SignupPage() {
     setLoading(false);
     if (error) return toast.error(error.message);
     toast.success("Check your email to confirm your account.");
-    navigate({ to: "/login" });
+    navigate({ to: "/login", search: search.idea ? { redirect: search.redirect, idea: search.idea } : undefined });
   };
 
   const handleGoogle = async () => {
@@ -52,7 +58,7 @@ function SignupPage() {
       toast.error(String((result.error as Error)?.message ?? result.error));
       return;
     }
-    if (!result.redirected) navigate({ to: "/dashboard" });
+    if (!result.redirected) navigate({ to: search.redirect, search: search.idea ? { idea: search.idea } : undefined });
   };
 
   return (

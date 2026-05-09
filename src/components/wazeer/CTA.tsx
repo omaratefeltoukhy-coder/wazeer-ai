@@ -9,10 +9,10 @@ export function CTA() {
         <div className="relative overflow-hidden rounded-3xl border bg-card p-10 sm:p-16 text-center shadow-elevated">
           <div className="absolute inset-0 -z-10 bg-hero-glow opacity-70" />
           <h2 className="text-3xl sm:text-5xl font-bold tracking-tight">
-            Your business, <span className="text-gradient">built by tonight.</span>
+            Your selling system, <span className="text-gradient">built faster.</span>
           </h2>
           <p className="mt-4 text-muted-foreground max-w-xl mx-auto">
-            Join thousands of solopreneurs, creators, and small businesses launching faster with Wazeer AI.
+            Launch your offer, storefront, content, and ads with AI — then grow with clear recommendations.
           </p>
           <div className="mt-8 flex items-center justify-center gap-3">
             <Button asChild size="lg" className="bg-brand-gradient text-primary-foreground shadow-glow">

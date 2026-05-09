@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { consumeCredits, refundCredits, requireEntitlement } from "@/lib/billing/guard.server";
+import { callAI } from "@/lib/ai/gateway";
 
 const InputSchema = z.object({
   workspace_id: z.string().uuid(),
@@ -15,6 +16,11 @@ const InputSchema = z.object({
   country: z.string().max(80).optional().default(""),
   currency: z.string().max(8).optional().default("USD"),
   language: z.string().max(8).optional().default("en"),
+  product_url: z.string().max(500).optional().default(""),
+  price_one_time: z.number().optional(),
+  price_subscription: z.number().optional(),
+  free_trial: z.boolean().optional().default(false),
+  discount: z.string().max(200).optional().default(""),
 });
 
 // (credit cost is centralised in src/lib/billing/plans.ts)
@@ -181,7 +187,7 @@ export const generateBusiness = createServerFn({ method: "POST" })
     // If LOVABLE_API_KEY is missing, fall back to a deterministic mock kit so
     // the wizard still produces a complete, persistable result for demos.
     const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
-    let provider: "lovable_ai" | "mock" = LOVABLE_API_KEY ? "lovable_ai" : "mock";
+    const provider: "lovable_ai" | "mock" = LOVABLE_API_KEY ? "lovable_ai" : "mock";
 
     const sysPrompt = `You are Wazeer AI, a senior brand & growth strategist. Given a business brief, you produce a complete go-to-market kit: brand profile, opening offer, storefront sections, and 3 high-impact recommendations. Be specific, premium, conversion-focused. Always reply via the provided tool.`;
 
@@ -308,34 +314,16 @@ Language: ${data.language}`;
       kit = buildMockKit(data);
     } else {
       try {
-        const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${LOVABLE_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
-            messages: [
-              { role: "system", content: sysPrompt },
-              { role: "user", content: userPrompt },
-            ],
-            tools: [tool],
-            tool_choice: { type: "function", function: { name: "build_business_kit" } },
-          }),
+        const aiRes = await callAI({
+          messages: [
+            { role: "system", content: sysPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          tools: [tool as any],
+          toolChoice: { type: "function", function: { name: "build_business_kit" } },
         });
 
-        if (!aiRes.ok) {
-          const text = await aiRes.text();
-          await refundCredits(data.workspace_id, "business_generation", { business_id: businessId });
-          await supabase.from("businesses").update({ status: "failed", generation_log_json: { error: text, status: aiRes.status, provider } }).eq("id", businessId);
-          if (aiRes.status === 429) throw new Error("Rate limit hit. Please wait a moment and try again.");
-          if (aiRes.status === 402) throw new Error("AI credits exhausted. Add credits in Settings → Workspace → Usage.");
-          throw new Error(`AI generation failed (${aiRes.status})`);
-        }
-
-        const json = await aiRes.json();
-        const args = json?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+        const args = aiRes.toolCalls?.[0]?.function?.arguments;
         if (!args) throw new Error("AI returned no structured output");
         kit = typeof args === "string" ? JSON.parse(args) : args;
       } catch (err) {

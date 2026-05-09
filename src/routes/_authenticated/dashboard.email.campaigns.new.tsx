@@ -36,6 +36,7 @@ function NewCampaignPage() {
   const [aiBodyLoading, setAiBodyLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [sendProgress, setSendProgress] = useState<{ sent: number; total: number } | null>(null);
 
   const onAiSubject = async () => {
     setAiSubLoading(true);
@@ -70,7 +71,9 @@ function NewCampaignPage() {
         scheduled_at: scheduleLater ? new Date(scheduledAt).toISOString() : null,
       } });
       if (sendNow) {
+        setSendProgress({ sent: 0, total: 0 });
         const s = await send({ data: { id: r.id } });
+        setSendProgress({ sent: s.sent, total: s.total });
         if (s.mock) toast.warning(`Saved + simulated send to ${s.total} recipient(s). Add RESEND_API_KEY to send for real.`);
         else toast.success(`Sent to ${s.sent} recipient(s)${s.failed ? ` (${s.failed} failed)` : ""}`);
       } else if (scheduleLater) {
@@ -78,7 +81,7 @@ function NewCampaignPage() {
       } else {
         toast.success("Draft saved");
       }
-      navigate({ to: "/dashboard/email/campaigns" });
+      if (!sendNow) navigate({ to: "/dashboard/email/campaigns" });
     } catch (e: any) {
       toast.error(e?.message || "Could not save campaign");
     } finally {
@@ -166,6 +169,16 @@ function NewCampaignPage() {
             </Button>
           )}
         </div>
+
+        {sendProgress && (
+          <div className="rounded-lg border bg-muted/50 p-4">
+            <div className="text-sm font-medium">Delivery results</div>
+            <div className="mt-1 text-sm text-muted-foreground">
+              Sent to <strong>{sendProgress.sent}</strong> of <strong>{sendProgress.total}</strong> recipients
+              {sendProgress.sent < sendProgress.total ? ` (${sendProgress.total - sendProgress.sent} failed)` : ""}
+            </div>
+          </div>
+        )}
       </Card>
 
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>

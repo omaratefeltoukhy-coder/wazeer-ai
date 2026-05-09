@@ -1,15 +1,16 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles, Upload, Wand2, ShoppingBag, Video, Mail, Megaphone, BarChart3, X } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { ArrowRight, Sparkles, Upload, Camera, Wand2, ShoppingBag, Video, Mail, Megaphone, BarChart3, X } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 import heroGlow from "@/assets/hero-glow.jpg";
 
 const previewChips = [
   { icon: ShoppingBag, label: "Storefront created", tone: "emerald" },
   { icon: Video, label: "UGC video generated", tone: "royal" },
   { icon: Mail, label: "Email sequence ready", tone: "emerald" },
-  { icon: Megaphone, label: "Meta ad launched", tone: "royal" },
+  { icon: Megaphone, label: "Meta ad drafted", tone: "royal" },
   { icon: BarChart3, label: "Sales dashboard live", tone: "emerald" },
 ];
 
@@ -17,6 +18,8 @@ export function Hero() {
   const [idea, setIdea] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const MAX_BYTES = 25 * 1024 * 1024; // 25MB
 
@@ -35,6 +38,25 @@ export function Hero() {
   const clearFile = () => {
     setFile(null);
     if (uploadInputRef.current) uploadInputRef.current.value = "";
+  };
+
+  const handleGenerate = () => {
+    const trimmed = idea.trim();
+    if (trimmed.length < 3) {
+      toast.error("Please describe what you sell first.");
+      return;
+    }
+    // Persist so the wizard can pick it up even across auth
+    try {
+      sessionStorage.setItem("wazeer_hero_idea", trimmed);
+      if (file) sessionStorage.setItem("wazeer_hero_file_name", file.name);
+    } catch { /* ignore */ }
+
+    if (user) {
+      navigate({ to: "/dashboard/new", search: { idea: trimmed } });
+    } else {
+      navigate({ to: "/signup", search: { redirect: "/dashboard/new", idea: trimmed } });
+    }
   };
 
   return (
@@ -57,10 +79,10 @@ export function Hero() {
             Your AI growth partner for selling online
           </div>
           <h1 className="mt-6 text-4xl sm:text-6xl font-bold tracking-tight">
-            Turn one idea into a <span className="text-gradient">selling machine.</span>
+            Turn one idea into a <span className="text-gradient">selling system.</span>
           </h1>
           <p className="mt-5 text-lg text-muted-foreground">
-            Wazeer AI creates your offer, store, images, videos, emails, Meta posts, ads, and growth dashboard — from one simple input.
+            Wazeer AI drafts your offer, storefront, images, videos, emails, Meta posts, ads, and growth dashboard — from one simple input.
           </p>
         </div>
 
@@ -86,9 +108,22 @@ export function Hero() {
                   className="sr-only"
                   onChange={handleFileChange}
                 />
-                <Button type="button" variant="outline" className="sm:w-auto" onClick={() => uploadInputRef.current?.click()}>
-                  <Upload className="h-4 w-4" /> {file ? "Replace media" : "Upload media"}
-                </Button>
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  className="sr-only"
+                  id="camera-input"
+                  onChange={handleFileChange}
+                />
+                <div className="flex items-center gap-2">
+                  <Button type="button" variant="outline" className="sm:w-auto" onClick={() => uploadInputRef.current?.click()}>
+                    <Upload className="h-4 w-4" /> Upload
+                  </Button>
+                  <Button type="button" variant="outline" className="sm:w-auto md:hidden" onClick={() => document.getElementById("camera-input")?.click()}>
+                    <Camera className="h-4 w-4" /> Take photo
+                  </Button>
+                </div>
                 {file && (
                   <div className="flex items-center gap-2 rounded-lg border bg-background px-3 py-1.5 text-xs text-muted-foreground">
                     <span className="max-w-[180px] truncate">{file.name}</span>
@@ -103,10 +138,8 @@ export function Hero() {
                   </div>
                 )}
                 <div className="flex-1" />
-                <Button asChild className="bg-brand-gradient text-primary-foreground shadow-glow hover:opacity-95">
-                  <Link to="/dashboard/new">
-                    <Wand2 className="h-4 w-4" /> Generate my business
-                  </Link>
+                <Button className="bg-brand-gradient text-primary-foreground shadow-glow hover:opacity-95" onClick={handleGenerate}>
+                  <Wand2 className="h-4 w-4" /> Generate my business
                 </Button>
               </div>
             </div>

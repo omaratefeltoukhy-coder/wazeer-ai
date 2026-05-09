@@ -17,6 +17,8 @@ import {
   Box, Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ReferralBanner } from "@/components/wazeer/ReferralBanner";
+import { IntegrationSetupBanner } from "@/components/wazeer/IntegrationSetupBanner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/")({
   component: DashboardHome,
@@ -236,7 +238,7 @@ function DashboardHome() {
       title: "Launch your first ad",
       desc: "Drive traffic to your storefront.",
       done: !!counts?.hasMetaAd,
-      cta: () => business && navigate({ to: "/dashboard/ads/$businessId", params: { businessId: business.id } }),
+      cta: () => navigate({ to: "/dashboard/ads/new" }),
     },
   ];
   const doneCount = checklistItems.filter((s) => s.done).length;
@@ -347,6 +349,9 @@ function DashboardHome() {
         ))}
       </div>
 
+      {/* Integration setup banner */}
+      <IntegrationSetupBanner />
+
       {/* Quick actions */}
       <div className="grid gap-3 sm:grid-cols-3">
         <Button
@@ -379,6 +384,15 @@ function DashboardHome() {
           </Button>
         </Link>
       </div>
+
+      {/* Referral */}
+      <section className="rounded-2xl border border-dashed border-emerald-500/30 bg-emerald-500/5 p-5">
+        <div className="flex items-center gap-2 mb-2">
+          <Gift className="h-4 w-4 text-emerald-brand" />
+          <span className="text-sm font-semibold">Give $15, Get $15</span>
+        </div>
+        <ReferralBanner />
+      </section>
 
       {/* Action center checklist */}
       {!allDone && (

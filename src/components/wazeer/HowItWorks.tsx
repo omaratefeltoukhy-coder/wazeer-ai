@@ -13,8 +13,8 @@ export function HowItWorks() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl">
           <p className="text-sm font-medium text-emerald-brand">How it works</p>
-          <h2 className="mt-2 text-3xl sm:text-4xl font-bold">From idea to income in minutes</h2>
-          <p className="mt-3 text-muted-foreground">No marketing skills required. Wazeer AI handles copy, design, ads, and analytics for you.</p>
+          <h2 className="mt-2 text-3xl sm:text-4xl font-bold">From idea to live assets in minutes</h2>
+          <p className="mt-3 text-muted-foreground">Wazeer AI drafts copy, design, ads, and analytics. You review, edit, and approve.</p>
         </div>
         <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {steps.map((s, i) => (
