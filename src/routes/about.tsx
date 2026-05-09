@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { Navbar } from "@/components/wazeer/Navbar";
 import { Footer } from "@/components/wazeer/Footer";
 import { Button } from "@/components/ui/button";
@@ -8,8 +8,8 @@ import { ArrowRight, Target, Shield, Zap } from "lucide-react";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About — Wazeer AI" },
-      { name: "description", content: "Wazeer AI is an all-in-one AI business platform that helps creators and founders turn ideas into selling systems." },
+      { title: "About â€” Wazeer" },
+      { name: "description", content: "Wazeer is an all-in-one AI business platform that helps creators and founders turn ideas into selling systems." },
     ],
   }),
   component: AboutPage,
@@ -25,7 +25,7 @@ function AboutPage() {
             Built for <span className="text-gradient">makers and sellers.</span>
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
-            Wazeer AI was created to solve a simple problem: launching and growing a business online takes too many tools, too much time, and too much money.
+            Wazeer was created to solve a simple problem: launching and growing a business online takes too many tools, too much time, and too much money.
           </p>
         </div>
       </section>
@@ -38,7 +38,7 @@ function AboutPage() {
             </div>
             <h3 className="text-lg font-semibold">Speed</h3>
             <p className="mt-2 text-sm text-muted-foreground">
-              Go from idea to live storefront, ads, and emails in hours — not weeks.
+              Go from idea to live storefront, ads, and emails in hours â€” not weeks.
             </p>
           </div>
           <div className="rounded-2xl border bg-card p-6 shadow-soft text-center">

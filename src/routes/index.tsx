@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { Navbar } from "@/components/wazeer/Navbar";
 import { Hero } from "@/components/wazeer/Hero";
 import { HowItWorks } from "@/components/wazeer/HowItWorks";
@@ -12,14 +12,14 @@ import { Footer } from "@/components/wazeer/Footer";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Wazeer AI — Your AI growth partner for selling online" },
+      { title: "Wazeer â€” Your AI growth partner for selling online" },
       {
         name: "description",
         content:
-          "Wazeer AI builds your offer, storefront, images, UGC videos, emails, Meta posts, and ads from one simple input.",
+          "Wazeer builds your offer, storefront, images, UGC videos, emails, Meta posts, and ads from one simple input.",
       },
-      { property: "og:title", content: "Wazeer AI — Turn one idea into a selling machine" },
-      { property: "og:description", content: "From product idea to live store, ads, emails, and dashboard — built by AI." },
+      { property: "og:title", content: "Wazeer â€” Turn one idea into a selling machine" },
+      { property: "og:description", content: "From product idea to live store, ads, emails, and dashboard â€” built by AI." },
     ],
   }),
   component: Index,

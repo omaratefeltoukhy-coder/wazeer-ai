@@ -1,4 +1,4 @@
-import { createServerFn } from "@tanstack/react-start";
+﻿import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
@@ -72,12 +72,12 @@ export const generateMetaPost = createServerFn({ method: "POST" })
     try {
       const { biz, brand, offer } = await loadCtx(context.supabase, data.business_id);
       const tool = { type: "function" as const, function: { name: "write_post", description: "Write one social post.", parameters: PostSchema as any } };
-      const sys = `You are Wazeer AI. Write ONE ${data.platform} ${data.post_type} post. Reply via tool. ${SAFETY}`;
+      const sys = `You are Wazeer. Write ONE ${data.platform} ${data.post_type} post. Reply via tool. ${SAFETY}`;
       const user = `Brand: ${brand?.brand_name ?? biz?.name} | Tone: ${brand?.tone ?? "warm"}
 Positioning: ${brand?.positioning ?? ""}
-Business: ${biz?.name} (${biz?.type}) — ${biz?.description ?? ""}
+Business: ${biz?.name} (${biz?.type}) â€” ${biz?.description ?? ""}
 Audience: ${biz?.target_audience ?? ""}
-Offer: ${offer?.name ?? "—"} — ${offer?.description ?? ""}
+Offer: ${offer?.name ?? "â€”"} â€” ${offer?.description ?? ""}
 Brief: ${data.brief || "(none)"}`;
       const parsed = await callPostsAI([{ role: "system", content: sys }, { role: "user", content: user }], tool, "write_post");
 
@@ -167,7 +167,7 @@ export const scheduleMetaPost = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-// ─── Meta Graph API helpers ───
+// â”€â”€â”€ Meta Graph API helpers â”€â”€â”€
 
 async function getDecryptedToken(encryptedToken: string | null | undefined): Promise<string | null> {
   if (!encryptedToken) return null;

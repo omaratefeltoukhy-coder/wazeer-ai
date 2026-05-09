@@ -1,8 +1,8 @@
-import { Lightbulb, Wand2, Rocket, TrendingUp } from "lucide-react";
+﻿import { Lightbulb, Wand2, Rocket, TrendingUp } from "lucide-react";
 
 const steps = [
   { icon: Lightbulb, title: "Share your idea", desc: "Upload a photo, paste a link, or write one sentence about what you sell." },
-  { icon: Wand2, title: "AI builds your business", desc: "Offer, storefront, images, UGC videos, emails, posts, and ads — drafted for you." },
+  { icon: Wand2, title: "AI builds your business", desc: "Offer, storefront, images, UGC videos, emails, posts, and ads â€” drafted for you." },
   { icon: Rocket, title: "Approve & launch", desc: "Review everything, connect Meta and email, then launch with one click." },
   { icon: TrendingUp, title: "Grow on autopilot", desc: "Live dashboards and AI recommendations tell you exactly what to do next." },
 ];
@@ -14,7 +14,7 @@ export function HowItWorks() {
         <div className="max-w-2xl">
           <p className="text-sm font-medium text-emerald-brand">How it works</p>
           <h2 className="mt-2 text-3xl sm:text-4xl font-bold">From idea to live assets in minutes</h2>
-          <p className="mt-3 text-muted-foreground">Wazeer AI drafts copy, design, ads, and analytics. You review, edit, and approve.</p>
+          <p className="mt-3 text-muted-foreground">Wazeer drafts copy, design, ads, and analytics. You review, edit, and approve.</p>
         </div>
         <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {steps.map((s, i) => (

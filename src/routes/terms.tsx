@@ -1,14 +1,14 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { Navbar } from "@/components/wazeer/Navbar";
 import { Footer } from "@/components/wazeer/Footer";
 
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "Terms & Conditions — Wazeer AI" },
-      { name: "description", content: "The terms governing your use of Wazeer AI." },
-      { property: "og:title", content: "Terms & Conditions — Wazeer AI" },
-      { property: "og:description", content: "The terms governing your use of Wazeer AI." },
+      { title: "Terms & Conditions â€” Wazeer" },
+      { name: "description", content: "The terms governing your use of Wazeer." },
+      { property: "og:title", content: "Terms & Conditions â€” Wazeer" },
+      { property: "og:description", content: "The terms governing your use of Wazeer." },
     ],
   }),
   component: TermsPage,
@@ -26,14 +26,14 @@ function TermsPage() {
           <h2>1. Who you are contracting with</h2>
           <p>
             These Terms &amp; Conditions ("Terms") are a binding agreement between you and{" "}
-            <strong>Wazeer AI</strong> ("Wazeer AI", "we", "us", or "our"). By creating an account, accessing,
+            <strong>Wazeer</strong> ("Wazeer", "we", "us", or "our"). By creating an account, accessing,
             or using our website and services (the "Service"), you agree to these Terms. If you do not agree,
             do not use the Service.
           </p>
 
           <h2>2. The Service</h2>
           <p>
-            Wazeer AI is an AI-powered platform that helps users create storefronts, marketing content,
+            Wazeer is an AI-powered platform that helps users create storefronts, marketing content,
             advertisements, emails, images, and video for selling products online. Specific features may
             change as we improve the Service.
           </p>
@@ -63,7 +63,7 @@ function TermsPage() {
             AI outputs may be inaccurate, biased, or unsuitable for regulated decisions and should not be
             relied on as professional, legal, financial, or medical advice without independent review. We
             may filter, restrict, refuse, or remove outputs that violate these Terms or our policies. As
-            between you and Wazeer AI, you retain rights to your inputs and, subject to these Terms, to
+            between you and Wazeer, you retain rights to your inputs and, subject to these Terms, to
             outputs you generate; we may use de-identified usage data to improve the Service. Rights-holders
             may submit takedown requests to <a href="mailto:legal@wazeer.ai">legal@wazeer.ai</a>; repeat or
             serious infringers will be terminated.
@@ -130,7 +130,7 @@ function TermsPage() {
 
           <h2>13. Governing law and disputes</h2>
           <p>
-            These Terms are governed by the laws of the jurisdiction where Wazeer AI is established, without
+            These Terms are governed by the laws of the jurisdiction where Wazeer is established, without
             regard to conflict-of-laws rules. Disputes will be brought in the competent courts of that
             jurisdiction, unless mandatory consumer law provides otherwise.
           </p>

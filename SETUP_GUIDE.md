@@ -1,9 +1,9 @@
-# Wazeer AI — API Key Setup Guide
+﻿# Wazeer â€” API Key Setup Guide
 ## Get your 5 critical keys in under 30 minutes
 
 ---
 
-## 🔑 THE 5 KEYS YOU NEED
+## ðŸ”‘ THE 5 KEYS YOU NEED
 
 | # | Key | Unlocks | Time |
 |---|-----|---------|------|
@@ -15,7 +15,7 @@
 
 ---
 
-## 1️⃣ SUPABASE (You likely already have this)
+## 1ï¸âƒ£ SUPABASE (You likely already have this)
 
 **What it does:** Database, authentication, file storage
 
@@ -27,27 +27,27 @@
 5. Copy these two values:
 
 ```
-Project URL → SUPABASE_URL=https://your-project.supabase.co
-Project API keys → anon public → SUPABASE_PUBLISHABLE_KEY=eyJ...
+Project URL â†’ SUPABASE_URL=https://your-project.supabase.co
+Project API keys â†’ anon public â†’ SUPABASE_PUBLISHABLE_KEY=eyJ...
 ```
 
 6. Also get the service role key (for webhooks):
 ```
-Project API keys → service_role secret → SUPABASE_SERVICE_ROLE_KEY=eyJ...
+Project API keys â†’ service_role secret â†’ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 ```
 
 ---
 
-## 2️⃣ LOVABLE API KEY (AI Generation)
+## 2ï¸âƒ£ LOVABLE API KEY (AI Generation)
 
-**What it does:** Powers ALL AI generation — business creation, images, videos, posts, ads, emails
+**What it does:** Powers ALL AI generation â€” business creation, images, videos, posts, ads, emails
 
 **Where to get:**
 1. Go to https://cloud.lovable.dev/
 2. Sign up / Log in
-3. Click your profile (top right) → **API Keys**
+3. Click your profile (top right) â†’ **API Keys**
 4. Click **Create new key**
-5. Name it "Wazeer AI Production"
+5. Name it "Wazeer Production"
 6. Copy the key:
 
 ```env
@@ -58,7 +58,7 @@ LOVABLE_API_KEY=lovable_your_key_here
 
 ---
 
-## 3️⃣ RESEND API KEY (Email Delivery)
+## 3ï¸âƒ£ RESEND API KEY (Email Delivery)
 
 **What it does:** Sends real emails to real inboxes. Tracks opens, clicks, bounces.
 
@@ -92,16 +92,16 @@ MARKETING_FROM_EMAIL="Your Name <hello@yourdomain.com>"
 
 ---
 
-## 4️⃣ PADDLE (Payments)
+## 4ï¸âƒ£ PADDLE (Payments)
 
 **What it does:** Collects real money from customers. Handles subscriptions, one-time payments, tax.
 
-### Start with SANDBOX (test mode) — recommended first
+### Start with SANDBOX (test mode) â€” recommended first
 
 **Step A: Get Client Token (frontend)**
 1. Go to https://sandbox-vendors.paddle.com/signup
 2. Create a sandbox account (free, for testing)
-3. Once logged in, go to **Developer Tools** → **Authentication**
+3. Once logged in, go to **Developer Tools** â†’ **Authentication**
 4. Copy **Client-side Token**:
 
 ```env
@@ -116,7 +116,7 @@ PADDLE_SANDBOX_API_KEY=...long_key...
 ```
 
 **Step C: Get Webhook Secret**
-1. Go to **Developer Tools** → **Notifications**
+1. Go to **Developer Tools** â†’ **Notifications**
 2. Click **New destination**
 3. URL: `https://yourdomain.com/api/public/payments/webhook?env=sandbox`
 4. Select ALL events
@@ -140,7 +140,7 @@ PAYMENTS_LIVE_WEBHOOK_SECRET=pdl_ntfset_...
 
 ---
 
-## 5️⃣ META / FACEBOOK (Social Publishing)
+## 5ï¸âƒ£ META / FACEBOOK (Social Publishing)
 
 **What it does:** Publishes posts to Facebook Pages and Instagram Business accounts
 
@@ -148,13 +148,13 @@ PAYMENTS_LIVE_WEBHOOK_SECRET=pdl_ntfset_...
 1. Go to https://developers.facebook.com/apps/
 2. Click **Create App**
 3. Select **Business** app type
-4. App name: "Wazeer AI Publisher"
+4. App name: "Wazeer Publisher"
 5. App contact email: your email
 6. Click **Create App**
 7. You may need to verify your Facebook Business account
 
 **Get the keys:**
-1. In your app dashboard, go to **Settings** → **Basic**
+1. In your app dashboard, go to **Settings** â†’ **Basic**
 2. Copy:
 
 ```env
@@ -184,7 +184,7 @@ META_REDIRECT_URI=https://yourdomain.com/dashboard/integrations/meta
 
 ---
 
-## 📝 CREATE YOUR .ENV FILE
+## ðŸ“ CREATE YOUR .ENV FILE
 
 1. Copy the example file:
 ```bash
@@ -202,7 +202,7 @@ echo ".env" >> .gitignore
 
 ---
 
-## 🚀 START YOUR APP
+## ðŸš€ START YOUR APP
 
 ```bash
 npm install
@@ -213,7 +213,7 @@ Then go to http://localhost:3000/dashboard/integrations/status to verify everyth
 
 ---
 
-## 💡 OPTIONAL KEYS (For Real Images/Videos)
+## ðŸ’¡ OPTIONAL KEYS (For Real Images/Videos)
 
 ### OpenAI (DALL-E) for images
 1. Go to https://platform.openai.com/api-keys
@@ -225,7 +225,7 @@ OPENAI_API_KEY=sk-...
 ```
 
 ### Runway for videos
-1. Go to https://runwayml.com/ → API
+1. Go to https://runwayml.com/ â†’ API
 2. Get API key
 3. Set in `.env`:
 ```env
@@ -235,7 +235,7 @@ RUNWAY_API_KEY=...
 
 ---
 
-## 🆘 TROUBLESHOOTING
+## ðŸ†˜ TROUBLESHOOTING
 
 | Problem | Solution |
 |---------|----------|
@@ -247,7 +247,7 @@ RUNWAY_API_KEY=...
 
 ---
 
-## 📊 EXPECTED COSTS (Monthly)
+## ðŸ“Š EXPECTED COSTS (Monthly)
 
 | Service | Free Tier | Estimated Cost at Scale |
 |---------|-----------|------------------------|
@@ -256,7 +256,7 @@ RUNWAY_API_KEY=...
 | Resend | 3,000 emails/day | $20/mo (50K emails) |
 | Paddle | Free (they take 5% + $0.50) | 5% of revenue |
 | Meta Graph API | Free | Free |
-| **Total fixed** | — | **~$65-95/mo** |
+| **Total fixed** | â€” | **~$65-95/mo** |
 
 ---
 

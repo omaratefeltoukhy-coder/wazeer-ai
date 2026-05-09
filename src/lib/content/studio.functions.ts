@@ -1,4 +1,4 @@
-import { createServerFn } from "@tanstack/react-start";
+﻿import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { callAI } from "@/lib/ai/gateway";
@@ -20,7 +20,7 @@ async function workspaceFor(supabase: any, userId: string): Promise<string> {
   return data.workspace_id as string;
 }
 
-/* ───────── Image ───────── */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€ Image â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 export const generateContentImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -76,7 +76,7 @@ export const generateContentImage = createServerFn({ method: "POST" })
     return { id: row.id, result_url: row.result_url };
   });
 
-/* ───────── Video (placeholder) ───────── */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€ Video (placeholder) â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 export const generateContentVideo = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -118,7 +118,7 @@ export const generateContentVideo = createServerFn({ method: "POST" })
     return { id: row.id, result_url: row.result_url };
   });
 
-/* ───────── UGC Script ───────── */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€ UGC Script â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 export const generateContentScript = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -140,18 +140,18 @@ export const generateContentScript = createServerFn({ method: "POST" })
         .select("title, description, price, currency")
         .eq("id", data.product_id)
         .maybeSingle();
-      if (p) productCtx = `Product: ${p.title} — ${p.description ?? ""} (${p.currency} ${p.price})`;
+      if (p) productCtx = `Product: ${p.title} â€” ${p.description ?? ""} (${p.currency} ${p.price})`;
     }
 
     const typeLabel = {
       hook_story_cta: "Hook + Story + CTA",
-      problem_solution: "Problem → Solution",
+      problem_solution: "Problem â†’ Solution",
       testimonial: "Testimonial style",
       tutorial: "Tutorial style",
     }[data.script_type];
     const platformLabel = { tiktok: "TikTok", instagram_reels: "Instagram Reels", youtube_shorts: "YouTube Shorts" }[data.platform];
 
-    const sys = `You are Wazeer AI, a UGC creative director. Write a short (~30s) UGC script for ${platformLabel} in the "${typeLabel}" structure.
+    const sys = `You are Wazeer, a UGC creative director. Write a short (~30s) UGC script for ${platformLabel} in the "${typeLabel}" structure.
 Reply ONLY in JSON with keys: hook (string), body (string), cta (string), spoken_script (string). No prose, no markdown.
 Avoid invented testimonials, medical/financial claims.`;
     const user = `${productCtx}\nExtra brief: ${data.extra_brief || "(none)"}`;
@@ -189,7 +189,7 @@ Avoid invented testimonials, medical/financial claims.`;
     return { id: row.id, script_text: row.script_text, parts: parsed };
   });
 
-/* ───────── List / Delete ───────── */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€ List / Delete â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 export const listContent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -230,10 +230,10 @@ export const suggestPrompt = createServerFn({ method: "POST" })
     if (data.product_id) {
       const { data: p } = await context.supabase
         .from("products").select("title, description").eq("id", data.product_id).maybeSingle();
-      if (p) productCtx = `Product: ${p.title} — ${p.description ?? ""}`;
+      if (p) productCtx = `Product: ${p.title} â€” ${p.description ?? ""}`;
     }
     const aiRes = await callAI([
-      { role: "system", content: "You write concise, vivid image generation prompts (one paragraph, max 80 words). Reply with the prompt only — no prefix, no quotes." },
+      { role: "system", content: "You write concise, vivid image generation prompts (one paragraph, max 80 words). Reply with the prompt only â€” no prefix, no quotes." },
       { role: "user", content: `Goal: ${data.goal}\n${productCtx}\nWrite the prompt now.` },
     ]);
     const text: string = aiRes.content?.trim() || "";
@@ -250,7 +250,7 @@ export const generateVideoScript = createServerFn({ method: "POST" })
     if (data.product_id) {
       const { data: p } = await context.supabase
         .from("products").select("title, description").eq("id", data.product_id).maybeSingle();
-      if (p) productCtx = `Product: ${p.title} — ${p.description ?? ""}`;
+      if (p) productCtx = `Product: ${p.title} â€” ${p.description ?? ""}`;
     }
     const aiRes = await callAI([
       { role: "system", content: "You write short ~30 second video scripts. Plain text, 3-6 short lines, no headings. Avoid invented claims." },

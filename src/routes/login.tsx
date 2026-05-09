@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
+﻿import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
@@ -54,7 +54,7 @@ function LoginPage() {
   };
 
   return (
-    <AuthShell title="Sign in to Wazeer AI" subtitle="Continue building your business.">
+    <AuthShell title="Sign in to Wazeer" subtitle="Continue building your business.">
       <Button variant="outline" className="w-full" onClick={handleGoogle} disabled={loading}>
         Continue with Google
       </Button>

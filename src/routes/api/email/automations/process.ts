@@ -73,7 +73,7 @@ async function processAutomations() {
     return { ...stats, error: dueErr.message };
   }
 
-  const fromEmail = process.env.MARKETING_FROM_EMAIL || "Marketing <onboarding@resend.dev>";
+  const fromEmail = process.env.MARKETING_FROM_EMAIL || "Marketing <onboarding@wazeer.io>";
 
   for (const enrollment of (dueEnrollments ?? []) as any[]) {
     const automation = enrollment.email_automations;

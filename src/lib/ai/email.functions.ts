@@ -1,4 +1,4 @@
-import { createServerFn } from "@tanstack/react-start";
+﻿import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
@@ -136,7 +136,7 @@ export const generateEmailCampaign = createServerFn({ method: "POST" })
         type: "function" as const,
         function: { name: "write_sequence", description: "Write an email sequence.", parameters: SequenceSchema as any },
       };
-      const sys = `You are Wazeer AI, an expert lifecycle marketer.
+      const sys = `You are Wazeer, an expert lifecycle marketer.
 Write a ${data.length}-email ${CAMPAIGN_LABEL[data.type]} sequence in a ${data.tone} tone.
 Use realistic send_delay values like "immediate", "1d", "3d", "5d", "7d".
 Reply ONLY through the provided tool.
@@ -144,11 +144,11 @@ ${SAFETY_RAILS}`;
       const user = `Brand: ${brand?.brand_name ?? biz?.name}
 Tone: ${brand?.tone ?? data.tone}
 Positioning: ${brand?.positioning ?? ""}
-Business: ${biz?.name} (${biz?.type}) — ${biz?.description ?? ""}
+Business: ${biz?.name} (${biz?.type}) â€” ${biz?.description ?? ""}
 Audience: ${biz?.target_audience ?? ""} ${data.audience_note ? `| Note: ${data.audience_note}` : ""}
 Pain point: ${biz?.pain_point ?? ""}
 Desired result: ${biz?.desired_result ?? ""}
-Offer: ${offer?.name ?? "—"} — ${offer?.description ?? ""} (${offer?.price ?? ""} ${offer?.currency ?? ""})
+Offer: ${offer?.name ?? "â€”"} â€” ${offer?.description ?? ""} (${offer?.price ?? ""} ${offer?.currency ?? ""})
 Trial days: ${offer?.free_trial_days ?? 0}
 Campaign type: ${CAMPAIGN_LABEL[data.type]}
 Length: ${data.length} emails`;
@@ -211,9 +211,9 @@ export const regenerateEmailMessage = createServerFn({ method: "POST" })
     try {
       const { biz, brand, offer } = await loadContext(context.supabase, msg.business_id as string);
       const tool = { type: "function" as const, function: { name: "rewrite_email", description: "Rewrite a single email.", parameters: SingleEmailSchema as any } };
-      const sys = `You are Wazeer AI. Rewrite ONE email keeping its goal & send_delay. Reply via tool. ${SAFETY_RAILS}`;
+      const sys = `You are Wazeer. Rewrite ONE email keeping its goal & send_delay. Reply via tool. ${SAFETY_RAILS}`;
       const user = `Brand: ${brand?.brand_name ?? biz?.name} | Tone: ${brand?.tone ?? "warm"}
-Offer: ${offer?.name ?? "—"} — ${offer?.description ?? ""}
+Offer: ${offer?.name ?? "â€”"} â€” ${offer?.description ?? ""}
 Existing email: ${JSON.stringify(msg)}
 Brief: ${data.brief || "(none)"}`;
       const parsed = await callEmailAI([{ role: "system", content: sys }, { role: "user", content: user }], tool, "rewrite_email");
@@ -301,7 +301,7 @@ export const sendTestEmail = createServerFn({ method: "POST" })
     const html = wrapEmailBody(bodyHtml, { previewText: (msg.preview_text as string) || undefined });
 
     const result = await sendEmailViaResend({
-      from: process.env.MARKETING_FROM_EMAIL || "Marketing <onboarding@resend.dev>",
+      from: process.env.MARKETING_FROM_EMAIL || "Marketing <onboarding@wazeer.io>",
       to: data.to_email,
       subject: (msg.subject_line as string) || "Test email",
       html,
@@ -353,7 +353,7 @@ export const sendEmailCampaign = createServerFn({ method: "POST" })
     if (!contacts.length) throw new Error("No eligible contacts found.");
     if (!messages?.length) throw new Error("No messages to send.");
 
-    const from = process.env.MARKETING_FROM_EMAIL || "Marketing <onboarding@resend.dev>";
+    const from = process.env.MARKETING_FROM_EMAIL || "Marketing <onboarding@wazeer.io>";
     let totalSent = 0;
     let totalFailed = 0;
 
@@ -482,12 +482,12 @@ export const getCampaignAnalytics = createServerFn({ method: "GET" })
       bounce_rate: counts.bounced / denom,
       conversion_rate: counts.clicked ? (counts.clicked * 0.04) / denom : 0,
     };
-    let bestSubject = "—", bestCta = "—", bestOpens = -1, bestClicks = -1;
+    let bestSubject = "â€”", bestCta = "â€”", bestOpens = -1, bestClicks = -1;
     for (const m of messages ?? []) {
       const o = perMsgOpens.get(m.id) ?? 0;
       if (o > bestOpens) { bestOpens = o; bestSubject = m.subject_line; }
       const c = perMsgClicks.get(m.id) ?? 0;
-      if (c > bestClicks) { bestClicks = c; bestCta = m.cta_text ?? "—"; }
+      if (c > bestClicks) { bestClicks = c; bestCta = m.cta_text ?? "â€”"; }
     }
     return { counts, rates, best_subject_line: bestSubject, best_cta: bestCta, revenue_attributed: 0 };
   });

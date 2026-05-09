@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+﻿import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -64,20 +64,20 @@ function NewCampaignWizard() {
   const generateAICopy = (i: number) => {
     const product = products.find((p) => p.id === productId);
     const headline = product ? `Discover ${product.title} today` : "Transform your business today";
-    const caption = "Join thousands who've already made the switch. Limited-time offer inside. ✨";
+    const caption = "Join thousands who've already made the switch. Limited-time offer inside. âœ¨";
     updateVariant(i, { headline, caption });
     toast.success("AI copy generated");
   };
 
   const launch = async () => {
-    // Risky action — explicit approval required. Show the user the actual
+    // Risky action â€” explicit approval required. Show the user the actual
     // spend they're committing to before anything is written.
     const productLabel = productId === "brand"
       ? "brand awareness"
       : products.find((p) => p.id === productId)?.title ?? "your product";
     const ok = await confirmDialog({
       title: "Save campaign as draft?",
-      description: `"${name}" will run for ${days} days at $${budgetDaily.toFixed(2)}/day — total budget $${total.toFixed(2)}. The campaign saves as a DRAFT and will not spend money until you connect Meta and explicitly publish it. Promoting: ${productLabel}. Locations: ${locations.join(", ")}.`,
+      description: `"${name}" will run for ${days} days at $${budgetDaily.toFixed(2)}/day â€” total budget $${total.toFixed(2)}. The campaign saves as a DRAFT and will not spend money until you connect Meta and explicitly publish it. Promoting: ${productLabel}. Locations: ${locations.join(", ")}.`,
       confirmText: "Save as draft",
     });
     if (!ok) return;
@@ -118,7 +118,7 @@ function NewCampaignWizard() {
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-6">
       <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-800 flex items-center gap-2">
-        <Info className="h-4 w-4" /> Demo mode — this campaign will be saved as a draft. Real Meta ad spend will only occur after you connect a live Meta ad account and explicitly launch.
+        <Info className="h-4 w-4" /> Demo mode â€” this campaign will be saved as a draft. Real Meta ad spend will only occur after you connect a live Meta ad account and explicitly launch.
       </div>
       <div>
         <Link to="/dashboard/ads" className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
@@ -261,7 +261,7 @@ function NewCampaignWizard() {
                   <Input placeholder="Headline" value={v.headline} onChange={(e) => updateVariant(i, { headline: e.target.value })} />
                   <Textarea placeholder="Caption" rows={2} value={v.caption} onChange={(e) => updateVariant(i, { caption: e.target.value })} />
                   <Button size="sm" variant="ghost" className="w-full" onClick={() => generateAICopy(i)}>
-                    ✨ AI generate copy
+                    âœ¨ AI generate copy
                   </Button>
                 </Card>
               ))}
@@ -277,16 +277,16 @@ function NewCampaignWizard() {
             <h3 className="font-semibold">Review your campaign</h3>
             <div className="space-y-2 text-sm">
               <Row label="Name" value={name} />
-              <Row label="Promoting" value={productId === "brand" ? "Brand awareness" : products.find((p) => p.id === productId)?.title ?? "—"} />
+              <Row label="Promoting" value={productId === "brand" ? "Brand awareness" : products.find((p) => p.id === productId)?.title ?? "â€”"} />
               <Row label="Audience" value={audience.replace("_", " ")} />
               <Row label="Locations" value={locations.join(", ")} />
-              <Row label="Schedule" value={`${startDate} → ${endDate} (${days} days)`} />
+              <Row label="Schedule" value={`${startDate} â†’ ${endDate} (${days} days)`} />
               <Row label="Daily budget" value={`$${budgetDaily}`} />
               <Row label="Total budget" value={`$${total.toFixed(2)}`} />
               <Row label="Ad variants" value={String(variants.length)} />
             </div>
             <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-800">
-              Saves as a draft. Wazeer AI will never charge your ad account until you connect Meta and explicitly approve the launch.
+              Saves as a draft. Wazeer will never charge your ad account until you connect Meta and explicitly approve the launch.
             </div>
             <div className="flex gap-2 pt-3 border-t">
               <Button variant="outline" onClick={() => setShowMetaModal(true)}>Connect Meta Account</Button>

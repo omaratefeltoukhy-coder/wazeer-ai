@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { Navbar } from "@/components/wazeer/Navbar";
 import { Pricing } from "@/components/wazeer/Pricing";
 import { Footer } from "@/components/wazeer/Footer";
@@ -9,7 +9,7 @@ import { ArrowRight, HelpCircle } from "lucide-react";
 export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
-      { title: "Pricing — Wazeer AI" },
+      { title: "Pricing â€” Wazeer" },
       { name: "description", content: "Start free for 7 days. Simple, transparent pricing for creators, solopreneurs, and agencies." },
     ],
   }),

@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+﻿import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -48,7 +48,7 @@ function StorefrontIndex() {
             <ShoppingBag className="h-5 w-5 text-primary-foreground" />
           </div>
           <h3 className="font-medium">No storefront yet</h3>
-          <p className="text-sm text-muted-foreground mt-1 mb-4">Create your first business and Wazeer AI will generate a storefront.</p>
+          <p className="text-sm text-muted-foreground mt-1 mb-4">Create your first business and Wazeer will generate a storefront.</p>
           <Link to="/dashboard/new"><Button className="bg-brand-gradient text-primary-foreground"><Plus className="h-4 w-4" /> Create business</Button></Link>
         </div>
       ) : (
@@ -57,7 +57,7 @@ function StorefrontIndex() {
             <Link key={b.id} to="/dashboard/storefront/$businessId" params={{ businessId: b.id }} className="rounded-2xl border bg-card p-5 hover:shadow-elevated transition-shadow">
               <div className="text-xs uppercase tracking-wide text-muted-foreground">{b.type}</div>
               <div className="mt-1 font-semibold">{b.name}</div>
-              <div className="mt-3 text-sm text-muted-foreground">Edit storefront →</div>
+              <div className="mt-3 text-sm text-muted-foreground">Edit storefront â†’</div>
             </Link>
           ))}
         </div>

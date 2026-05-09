@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+﻿import { Link } from "@tanstack/react-router";
 import { Logo } from "./Logo";
 
 export function Footer() {
@@ -9,7 +9,7 @@ export function Footer() {
           <div className="col-span-2 sm:col-span-1">
             <Logo />
             <p className="mt-3 text-xs text-muted-foreground max-w-xs">
-              Your AI growth partner for selling online. Create, launch, and grow — all in one place.
+              Your AI growth partner for selling online. Create, launch, and grow â€” all in one place.
             </p>
           </div>
           <div>
@@ -38,7 +38,7 @@ export function Footer() {
           </div>
         </div>
         <div className="pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-          <p>© {new Date().getFullYear()} Wazeer AI. All rights reserved.</p>
+          <p>Â© {new Date().getFullYear()} Wazeer. All rights reserved.</p>
           <div className="flex items-center gap-5">
             <a href="mailto:sales@wazeer.ai?subject=Wazeer%20AI%20inquiry" className="hover:text-foreground">sales@wazeer.ai</a>
           </div>

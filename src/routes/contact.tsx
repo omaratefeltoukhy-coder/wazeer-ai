@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { Navbar } from "@/components/wazeer/Navbar";
 import { Footer } from "@/components/wazeer/Footer";
 import { Button } from "@/components/ui/button";
@@ -12,8 +12,8 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact — Wazeer AI" },
-      { name: "description", content: "Get in touch with the Wazeer AI team for sales, support, or partnership inquiries." },
+      { title: "Contact â€” Wazeer" },
+      { name: "description", content: "Get in touch with the Wazeer team for sales, support, or partnership inquiries." },
     ],
   }),
   component: ContactPage,
@@ -96,7 +96,7 @@ function ContactPage() {
                 <Textarea id="message" rows={5} required value={message} onChange={(e) => setMessage(e.target.value)} />
               </div>
               <Button type="submit" className="w-full bg-brand-gradient text-primary-foreground" disabled={loading}>
-                {loading ? "Sending…" : "Send message"}
+                {loading ? "Sendingâ€¦" : "Send message"}
               </Button>
             </form>
           </div>

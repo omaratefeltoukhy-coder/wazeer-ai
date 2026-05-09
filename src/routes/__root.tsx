@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+﻿import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
   Link,
@@ -75,16 +75,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Wazeer AI — Your AI growth partner for selling online" },
-      { name: "description", content: "Wazeer AI builds your offer, storefront, images, UGC videos, emails, Meta posts and ads from one simple input. Start selling with AI." },
-      { name: "author", content: "Wazeer AI" },
-      { property: "og:site_name", content: "Wazeer AI" },
-      { property: "og:title", content: "Wazeer AI — Your AI growth partner for selling online" },
-      { property: "og:description", content: "Wazeer AI builds your offer, storefront, images, UGC videos, emails, Meta posts and ads from one simple input. Start selling with AI." },
+      { title: "Wazeer â€” Your AI growth partner for selling online" },
+      { name: "description", content: "Wazeer builds your offer, storefront, images, UGC videos, emails, Meta posts and ads from one simple input. Start selling with AI." },
+      { name: "author", content: "Wazeer" },
+      { property: "og:site_name", content: "Wazeer" },
+      { property: "og:title", content: "Wazeer â€” Your AI growth partner for selling online" },
+      { property: "og:description", content: "Wazeer builds your offer, storefront, images, UGC videos, emails, Meta posts and ads from one simple input. Start selling with AI." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Wazeer AI — Your AI growth partner for selling online" },
-      { name: "twitter:description", content: "Wazeer AI builds your offer, storefront, images, UGC videos, emails, Meta posts and ads from one simple input. Start selling with AI." },
+      { name: "twitter:title", content: "Wazeer â€” Your AI growth partner for selling online" },
+      { name: "twitter:description", content: "Wazeer builds your offer, storefront, images, UGC videos, emails, Meta posts and ads from one simple input. Start selling with AI." },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/U8MLoM6DEsVziuW3Q1Buhh4yPji1/social-images/social-1778282458188-ChatGPT_Image_May_9,_2026,_02_38_23_AM.webp" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/U8MLoM6DEsVziuW3Q1Buhh4yPji1/social-images/social-1778282458188-ChatGPT_Image_May_9,_2026,_02_38_23_AM.webp" },
     ],

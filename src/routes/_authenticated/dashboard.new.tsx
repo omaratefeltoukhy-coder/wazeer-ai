@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
+﻿import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
@@ -212,7 +212,7 @@ function NewBusinessWizard() {
           </div>
           <div>
             <Label>Product / service URL <span className="text-muted-foreground font-normal">(optional)</span></Label>
-            <Input value={form.product_url} onChange={(e) => update("product_url")(e.target.value)} placeholder="https://…" />
+            <Input value={form.product_url} onChange={(e) => update("product_url")(e.target.value)} placeholder="https://â€¦" />
           </div>
           <div>
             <Label>Upload image or video <span className="text-muted-foreground font-normal">(optional)</span></Label>
@@ -369,7 +369,7 @@ function NewBusinessWizard() {
             </div>
             <div className="rounded-xl border bg-background p-3">
               <div className="text-xs text-muted-foreground">Audience</div>
-              <div className="font-medium">{form.target_audience || "—"}</div>
+              <div className="font-medium">{form.target_audience || "â€”"}</div>
             </div>
             <div className="rounded-xl border bg-background p-3">
               <div className="text-xs text-muted-foreground">Language</div>
@@ -396,8 +396,8 @@ function NewBusinessWizard() {
         <div className="h-16 w-16 rounded-2xl bg-brand-gradient grid place-items-center shadow-glow mb-6 animate-pulse">
           <Sparkles className="h-7 w-7 text-primary-foreground" />
         </div>
-        <h2 className="text-2xl font-semibold mb-1">Building {form.name || "your business"}…</h2>
-        <p className="text-sm text-muted-foreground mb-8">Wazeer AI is doing the work. This takes ~30–60 seconds.</p>
+        <h2 className="text-2xl font-semibold mb-1">Building {form.name || "your business"}â€¦</h2>
+        <p className="text-sm text-muted-foreground mb-8">Wazeer is doing the work. This takes ~30â€“60 seconds.</p>
         <ul className="w-full max-w-sm space-y-3 text-left">
           {generationSteps.map((label, i) => {
             const done = i < progressIdx;

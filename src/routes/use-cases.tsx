@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { Navbar } from "@/components/wazeer/Navbar";
 import { Footer } from "@/components/wazeer/Footer";
 import { Button } from "@/components/ui/button";
@@ -8,8 +8,8 @@ import { ArrowRight, ShoppingBag, GraduationCap, Calendar, Users, Gem, Briefcase
 export const Route = createFileRoute("/use-cases")({
   head: () => ({
     meta: [
-      { title: "Use Cases — Wazeer AI" },
-      { name: "description", content: "See how creators, coaches, product sellers, and agencies use Wazeer AI to launch faster." },
+      { title: "Use Cases â€” Wazeer" },
+      { name: "description", content: "See how creators, coaches, product sellers, and agencies use Wazeer to launch faster." },
     ],
   }),
   component: UseCasesPage,
@@ -19,7 +19,7 @@ const cases = [
   {
     icon: ShoppingBag,
     title: "Product sellers",
-    desc: "Turn a product photo into a complete storefront, ad creatives, and email launch sequence — in one afternoon.",
+    desc: "Turn a product photo into a complete storefront, ad creatives, and email launch sequence â€” in one afternoon.",
     results: ["Storefront + checkout", "AI product images", "Meta ad drafts", "Launch emails"],
   },
   {
@@ -65,10 +65,10 @@ function UseCasesPage() {
             Built for every business type
           </div>
           <h1 className="mt-6 text-4xl sm:text-5xl font-bold tracking-tight">
-            How people use <span className="text-gradient">Wazeer AI</span>
+            How people use <span className="text-gradient">Wazeer</span>
           </h1>
           <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-            From first product to scaling agency — see how Wazeer AI helps you sell more with less effort.
+            From first product to scaling agency â€” see how Wazeer helps you sell more with less effort.
           </p>
         </div>
       </section>
