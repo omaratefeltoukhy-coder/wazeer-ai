@@ -1,4 +1,4 @@
-﻿import { createServerFn } from "@tanstack/react-start";
+import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
@@ -76,9 +76,9 @@ export const generateMetaPost = createServerFn({ method: "POST" })
       const sys = `You are Wazeer. Write ONE ${data.platform} ${data.post_type} post. Reply via tool. ${SAFETY}`;
       const user = `Brand: ${brand?.brand_name ?? biz?.name} | Tone: ${brand?.tone ?? "warm"}
 Positioning: ${brand?.positioning ?? ""}
-Business: ${biz?.name} (${biz?.type}) â€” ${biz?.description ?? ""}
+Business: ${biz?.name} (${biz?.type}) — ${biz?.description ?? ""}
 Audience: ${biz?.target_audience ?? ""}
-Offer: ${offer?.name ?? "â€”"} â€” ${offer?.description ?? ""}
+Offer: ${offer?.name ?? "—"} — ${offer?.description ?? ""}
 Brief: ${data.brief || "(none)"}`;
       const parsed = await callPostsAI([{ role: "system", content: sys }, { role: "user", content: user }], tool, "write_post");
 

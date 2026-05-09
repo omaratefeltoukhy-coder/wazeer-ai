@@ -1,4 +1,4 @@
-﻿import { createServerFn } from "@tanstack/react-start";
+import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { consumeCredits, refundCredits, requireEntitlement } from "@/lib/billing/guard.server";
@@ -79,7 +79,7 @@ export const generateStoryboard = createServerFn({ method: "POST" })
       function: { name: "build_storyboard", description: "Build a text-to-video storyboard.", parameters: StoryboardSchema as any },
     };
     const sysPrompt = `You are Wazeer, a creative producer. Convert a UGC script into a text-to-video storyboard. Each scene_prompt is a self-contained text prompt for a video model. Reply ONLY through the tool. ${SAFETY}`;
-    const userPrompt = `Brand: ${brand?.brand_name ?? "â€”"} | Tone: ${brand?.tone ?? "â€”"} | Visual style: ${brand?.visual_style ?? "â€”"}
+    const userPrompt = `Brand: ${brand?.brand_name ?? "—"} | Tone: ${brand?.tone ?? "—"} | Visual style: ${brand?.visual_style ?? "—"}
 Aspect ratio: ${data.aspect_ratio}
 Title: ${sj.title}
 Hook: ${sj.hook_3s}

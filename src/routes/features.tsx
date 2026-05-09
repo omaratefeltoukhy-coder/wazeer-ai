@@ -1,4 +1,4 @@
-﻿import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Navbar } from "@/components/wazeer/Navbar";
 import { Features } from "@/components/wazeer/Features";
 import { Footer } from "@/components/wazeer/Footer";
@@ -9,7 +9,7 @@ import { ArrowRight, Sparkles } from "lucide-react";
 export const Route = createFileRoute("/features")({
   head: () => ({
     meta: [
-      { title: "Features â€” Wazeer" },
+      { title: "Features — Wazeer" },
       { name: "description", content: "Discover everything Wazeer can build for your business: storefronts, AI images, UGC videos, email campaigns, Meta ads, and live dashboards." },
     ],
   }),
@@ -30,7 +30,7 @@ function FeaturesPage() {
             Everything you need to <span className="text-gradient">launch and grow.</span>
           </h1>
           <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-            Wazeer replaces a stack of tools with one simple workspace. Build your offer, create content, run ads, and track results â€” without hiring a team.
+            Wazeer replaces a stack of tools with one simple workspace. Build your offer, create content, run ads, and track results — without hiring a team.
           </p>
           <div className="mt-8 flex items-center justify-center gap-3">
             <Button asChild size="lg" className="bg-foreground text-background hover:opacity-90">

@@ -1,4 +1,4 @@
-﻿import { createServerFn } from "@tanstack/react-start";
+import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
@@ -76,12 +76,12 @@ export const generateMetaAdCopy = createServerFn({ method: "POST" })
       const tool = { type: "function" as const, function: { name: "write_ad", description: "Write Meta ad copy.", parameters: AdCopySchema as any } };
       const sys = `You are Wazeer, a senior Meta media buyer. Write compliant ad copy. Reply via tool. ${SAFETY}`;
       const user = `Brand: ${brand?.brand_name ?? biz?.name} | Tone: ${brand?.tone ?? "warm"}
-Business: ${biz?.name} (${biz?.type}) â€” ${biz?.description ?? ""}
+Business: ${biz?.name} (${biz?.type}) — ${biz?.description ?? ""}
 Audience: ${biz?.target_audience ?? ""} | Country: ${biz?.country ?? ""}
-Offer: ${offer?.name ?? "â€”"} â€” ${offer?.description ?? ""} (${offer?.price ?? ""} ${offer?.currency ?? ""})
+Offer: ${offer?.name ?? "—"} — ${offer?.description ?? ""} (${offer?.price ?? ""} ${offer?.currency ?? ""})
 Goal: ${data.goal} | Audience kind: ${data.audience_kind}
 Daily budget: $${data.daily_budget} | Duration: ${data.duration_days} days
-Storefront slug: ${sf?.slug ?? "â€”"}
+Storefront slug: ${sf?.slug ?? "—"}
 Brief: ${data.brief || "(none)"}`;
       const parsed = await callAdsAI([{ role: "system", content: sys }, { role: "user", content: user }], tool, "write_ad");
       return { ok: true, copy: parsed };
@@ -224,7 +224,7 @@ export const regenerateAdCreative = createServerFn({ method: "POST" })
       const sys = `You are Wazeer. Rewrite Meta ad copy. Reply via tool. ${SAFETY}`;
       const user = `Brand: ${brand?.brand_name ?? biz?.name} | Tone: ${brand?.tone ?? "warm"}
 Existing: ${JSON.stringify((ad as any).copy_json)}
-Offer: ${offer?.name ?? "â€”"} â€” ${offer?.description ?? ""}
+Offer: ${offer?.name ?? "—"} — ${offer?.description ?? ""}
 Brief: ${data.brief || "(none)"}`;
       const parsed = await callAdsAI([{ role: "system", content: sys }, { role: "user", content: user }], tool, "write_ad");
       const { error } = await context.supabase.from("meta_ads").update({

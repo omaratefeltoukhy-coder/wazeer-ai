@@ -1,4 +1,4 @@
-﻿import { createServerFn } from "@tanstack/react-start";
+import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
@@ -144,11 +144,11 @@ ${SAFETY_RAILS}`;
       const user = `Brand: ${brand?.brand_name ?? biz?.name}
 Tone: ${brand?.tone ?? data.tone}
 Positioning: ${brand?.positioning ?? ""}
-Business: ${biz?.name} (${biz?.type}) â€” ${biz?.description ?? ""}
+Business: ${biz?.name} (${biz?.type}) — ${biz?.description ?? ""}
 Audience: ${biz?.target_audience ?? ""} ${data.audience_note ? `| Note: ${data.audience_note}` : ""}
 Pain point: ${biz?.pain_point ?? ""}
 Desired result: ${biz?.desired_result ?? ""}
-Offer: ${offer?.name ?? "â€”"} â€” ${offer?.description ?? ""} (${offer?.price ?? ""} ${offer?.currency ?? ""})
+Offer: ${offer?.name ?? "—"} — ${offer?.description ?? ""} (${offer?.price ?? ""} ${offer?.currency ?? ""})
 Trial days: ${offer?.free_trial_days ?? 0}
 Campaign type: ${CAMPAIGN_LABEL[data.type]}
 Length: ${data.length} emails`;
@@ -213,7 +213,7 @@ export const regenerateEmailMessage = createServerFn({ method: "POST" })
       const tool = { type: "function" as const, function: { name: "rewrite_email", description: "Rewrite a single email.", parameters: SingleEmailSchema as any } };
       const sys = `You are Wazeer. Rewrite ONE email keeping its goal & send_delay. Reply via tool. ${SAFETY_RAILS}`;
       const user = `Brand: ${brand?.brand_name ?? biz?.name} | Tone: ${brand?.tone ?? "warm"}
-Offer: ${offer?.name ?? "â€”"} â€” ${offer?.description ?? ""}
+Offer: ${offer?.name ?? "—"} — ${offer?.description ?? ""}
 Existing email: ${JSON.stringify(msg)}
 Brief: ${data.brief || "(none)"}`;
       const parsed = await callEmailAI([{ role: "system", content: sys }, { role: "user", content: user }], tool, "rewrite_email");
@@ -482,12 +482,12 @@ export const getCampaignAnalytics = createServerFn({ method: "GET" })
       bounce_rate: counts.bounced / denom,
       conversion_rate: counts.clicked ? (counts.clicked * 0.04) / denom : 0,
     };
-    let bestSubject = "â€”", bestCta = "â€”", bestOpens = -1, bestClicks = -1;
+    let bestSubject = "—", bestCta = "—", bestOpens = -1, bestClicks = -1;
     for (const m of messages ?? []) {
       const o = perMsgOpens.get(m.id) ?? 0;
       if (o > bestOpens) { bestOpens = o; bestSubject = m.subject_line; }
       const c = perMsgClicks.get(m.id) ?? 0;
-      if (c > bestClicks) { bestClicks = c; bestCta = m.cta_text ?? "â€”"; }
+      if (c > bestClicks) { bestClicks = c; bestCta = m.cta_text ?? "—"; }
     }
     return { counts, rates, best_subject_line: bestSubject, best_cta: bestCta, revenue_attributed: 0 };
   });

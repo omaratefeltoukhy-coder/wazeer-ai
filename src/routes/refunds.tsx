@@ -1,13 +1,13 @@
-﻿import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Navbar } from "@/components/wazeer/Navbar";
 import { Footer } from "@/components/wazeer/Footer";
 
 export const Route = createFileRoute("/refunds")({
   head: () => ({
     meta: [
-      { title: "Refund Policy â€” Wazeer" },
+      { title: "Refund Policy — Wazeer" },
       { name: "description", content: "Wazeer's 30-day money-back guarantee and how to request a refund." },
-      { property: "og:title", content: "Refund Policy â€” Wazeer" },
+      { property: "og:title", content: "Refund Policy — Wazeer" },
       { property: "og:description", content: "Wazeer's 30-day money-back guarantee and how to request a refund." },
     ],
   }),
@@ -52,7 +52,7 @@ function RefundsPage() {
           <h2>Processing time</h2>
           <p>
             Once approved, refunds are returned to the original payment method. Depending on your bank or
-            card issuer, it can take 5â€“10 business days for the funds to appear.
+            card issuer, it can take 5–10 business days for the funds to appear.
           </p>
 
           <h2>Subscription cancellations</h2>

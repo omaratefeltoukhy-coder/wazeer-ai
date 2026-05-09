@@ -1,10 +1,10 @@
-﻿import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const faqs = [
   { q: "Do I need marketing or design skills?", a: "No. Wazeer writes the copy, designs the images, edits the videos, and recommends what to do next. You just approve." },
-  { q: "Will it auto-publish my ads and emails?", a: "Never without your approval. Everything launches in approval mode by default â€” you stay in control." },
+  { q: "Will it auto-publish my ads and emails?", a: "Never without your approval. Everything launches in approval mode by default — you stay in control." },
   { q: "Which platforms are supported?", a: "Facebook, Instagram, Meta Ads, and email out of the box. More integrations are added every month." },
-  { q: "Can I use my own product photos?", a: "Yes â€” upload a photo or video and Wazeer will preserve product identity and generate matching creative around it." },
+  { q: "Can I use my own product photos?", a: "Yes — upload a photo or video and Wazeer will preserve product identity and generate matching creative around it." },
   { q: "Can I cancel anytime?", a: "Yes. Cancel from the billing portal in one click. Your trial is free for 7 days." },
 ];
 

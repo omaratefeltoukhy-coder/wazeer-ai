@@ -1,4 +1,4 @@
-﻿import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { confirmDialog } from "@/components/ui/confirm";
 import { getPublicStorefront } from "@/lib/storefront/public.functions";
 import { Button } from "@/components/ui/button";
@@ -69,7 +69,7 @@ function PublicStorefront() {
     }
     const ok = await confirmDialog({
       title: "Complete your purchase?",
-      description: `${offer.name} â€” ${fmtPrice(offer.price, offer.currency, offer.billing_interval)}. You will be redirected to secure checkout.`,
+      description: `${offer.name} — ${fmtPrice(offer.price, offer.currency, offer.billing_interval)}. You will be redirected to secure checkout.`,
       confirmText: "Proceed to checkout",
     });
     if (!ok) return;
@@ -107,7 +107,7 @@ function PublicStorefront() {
           {offer && (
             <div className="text-sm text-muted-foreground">
               {fmtPrice(offer.price, offer.currency, offer.billing_interval)}
-              {offer.free_trial_days ? <span className="ml-2 text-emerald-600 font-medium">Â· {offer.free_trial_days}-day free trial</span> : null}
+              {offer.free_trial_days ? <span className="ml-2 text-emerald-600 font-medium">· {offer.free_trial_days}-day free trial</span> : null}
             </div>
           )}
         </div>
@@ -182,7 +182,7 @@ function PublicStorefront() {
             {sf.testimonials.map((t: any, i: number) => (
               <div key={i} className="rounded-2xl border bg-card p-6 shadow-soft">
                 <p className="text-sm italic text-muted-foreground">"{t.quote}"</p>
-                <p className="text-xs font-medium mt-3">â€” {t.author}</p>
+                <p className="text-xs font-medium mt-3">— {t.author}</p>
               </div>
             ))}
           </div>
@@ -200,7 +200,7 @@ function PublicStorefront() {
             <h2 className="text-xl font-semibold">{offer.name}</h2>
             <div className="text-3xl font-bold">{fmtPrice(offer.price, offer.currency, offer.billing_interval)}</div>
             {offer.free_trial_days ? (
-              <div className="text-sm text-emerald-600 font-medium">{offer.free_trial_days}-day free trial Â· Cancel anytime</div>
+              <div className="text-sm text-emerald-600 font-medium">{offer.free_trial_days}-day free trial · Cancel anytime</div>
             ) : null}
             {offer.discount && <div className="text-sm text-muted-foreground">{offer.discount}</div>}
             <Button size="lg" className="w-full bg-brand-gradient text-primary-foreground shadow-glow" onClick={checkout}>
@@ -281,14 +281,14 @@ function PublicStorefront() {
       <footer className="px-4 sm:px-6 py-10 border-t">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="text-xs text-muted-foreground">
-            Â© {new Date().getFullYear()} {brand?.brand_name || sf.brand?.brand_name || "This business"}
+            © {new Date().getFullYear()} {brand?.brand_name || sf.brand?.brand_name || "This business"}
           </div>
           <Link
             to="/"
             className="inline-flex items-center gap-1.5 rounded-full border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors"
           >
             <Sparkles className="h-3 w-3 text-emerald-brand" />
-            Made with Wazeer â€” Launch yours free
+            Made with Wazeer — Launch yours free
           </Link>
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
             <Link to="/privacy" className="hover:text-foreground">Privacy</Link>

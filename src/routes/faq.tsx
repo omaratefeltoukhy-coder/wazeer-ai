@@ -1,4 +1,4 @@
-﻿import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Navbar } from "@/components/wazeer/Navbar";
 import { FAQ } from "@/components/wazeer/FAQ";
 import { Footer } from "@/components/wazeer/Footer";
@@ -9,7 +9,7 @@ import { ArrowRight } from "lucide-react";
 export const Route = createFileRoute("/faq")({
   head: () => ({
     meta: [
-      { title: "FAQ â€” Wazeer" },
+      { title: "FAQ — Wazeer" },
       { name: "description", content: "Answers to common questions about Wazeer, pricing, trials, and how it works." },
     ],
   }),
