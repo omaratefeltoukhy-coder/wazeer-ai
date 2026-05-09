@@ -320,7 +320,56 @@ export const publishMetaPost = createServerFn({ method: "POST" })
     const ws_id = await loadWs(context.supabase, (post as any).business_id);
     const platform = (post as any).platform as "facebook" | "instagram";
 
-    // Look for a valid connection for this platform
+    const caption = (post as any).caption ?? "";
+    const hashtags = (post as any).hashtags ?? "";
+    const cta = (post as any).cta_text ?? "";
+    const message = [caption, hashtags, cta].filter(Boolean).join("\n\n");
+    const mediaUrl = await fetchMediaUrl(context.supabase, (post as any).media_asset_id);
+
+    // Option 1: Webhook bridge (Zapier/Make) — no Meta business verification needed
+    const webhookUrl = process.env.META_WEBHOOK_URL;
+    if (webhookUrl) {
+      const webhookRes = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          platform,
+          message,
+          caption,
+          hashtags,
+          cta,
+          media_url: mediaUrl,
+          post_id: data.post_id,
+          business_id: (post as any).business_id,
+        }),
+      });
+      const webhookJson = await webhookRes.json().catch(() => ({}));
+      const ext_id = webhookJson?.id || webhookJson?.post_id || `webhook_${Math.random().toString(36).slice(2, 10)}`;
+
+      if (!webhookRes.ok) {
+        const errMsg = webhookJson?.error || `Webhook failed (${webhookRes.status})`;
+        await context.supabase.from("meta_posts").update({
+          status: "failed", error_message: errMsg,
+        } as any).eq("id", data.post_id);
+        throw new Error(errMsg);
+      }
+
+      await context.supabase.from("meta_posts").update({
+        status: "published",
+        external_post_id: ext_id,
+        published_at: new Date().toISOString(),
+        error_message: null,
+      } as any).eq("id", data.post_id);
+
+      await supabaseAdmin.from("audit_logs").insert({
+        workspace_id: ws_id, business_id: (post as any).business_id, user_id: context.userId,
+        action: "publish_meta_post", entity: "meta_post", entity_id: data.post_id,
+        metadata_json: { platform, mode: "webhook", external_post_id: ext_id } as never,
+      });
+      return { ok: true, mode: "webhook" as const, external_post_id: ext_id };
+    }
+
+    // Option 2: Direct Meta Graph API (requires business verification)
     const connectionKind = platform === "facebook" ? "facebook_page" : "instagram";
     const { data: conn } = await context.supabase
       .from("meta_connections")
@@ -358,15 +407,6 @@ export const publishMetaPost = createServerFn({ method: "POST" })
       await updateConnectionError((conn as any).id, "Unable to decrypt access token");
       throw new Error("Failed to decrypt Meta access token. Please reconnect your account in Integrations.");
     }
-
-    // Build message
-    const caption = (post as any).caption ?? "";
-    const hashtags = (post as any).hashtags ?? "";
-    const cta = (post as any).cta_text ?? "";
-    const message = [caption, hashtags, cta].filter(Boolean).join("\n\n");
-
-    // Fetch media URL if attached
-    const mediaUrl = await fetchMediaUrl(context.supabase, (post as any).media_asset_id);
 
     // Instagram requires media (image or video) for live publishing
     if (platform === "instagram" && !mediaUrl) {

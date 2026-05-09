@@ -229,15 +229,16 @@ function IntegrationsMetaPage() {
       )}
 
       <Card className="p-4 text-sm text-muted-foreground space-y-2">
-        <p>Tokens are encrypted at rest with pgcrypto and never sent to the browser.</p>
-        <p>Required environment variables for live mode:</p>
+        <p className="font-medium text-foreground">Webhook Bridge (Recommended — no business verification)</p>
+        <p>Set <code className="px-1 bg-muted rounded">META_WEBHOOK_URL</code> to a Zapier or Make.com webhook. Wazeer will POST post data there, and Zapier publishes to Facebook/Instagram using their verified Meta app.</p>
+        <p className="font-medium text-foreground mt-2">Direct Meta API (Requires business verification)</p>
         <ul className="list-disc list-inside text-xs space-y-0.5">
           <li><code className="px-1 bg-muted rounded">META_APP_ID</code></li>
           <li><code className="px-1 bg-muted rounded">META_APP_SECRET</code></li>
           <li><code className="px-1 bg-muted rounded">META_REDIRECT_URI</code></li>
           <li><code className="px-1 bg-muted rounded">META_TOKEN_ENCRYPTION_KEY</code> (32+ chars)</li>
         </ul>
-        <div className="mt-2"><Link to="/dashboard/posts" className="underline">Go to Meta Posts →</Link></div>
+        <div className="mt-2"><Link to="/dashboard/posts" search={{ idea: "" }} className="underline">Go to Meta Posts →</Link></div>
       </Card>
     </div>
   );
