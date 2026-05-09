@@ -20,7 +20,9 @@ import { Route as UnsubscribeTokenRouteImport } from './routes/unsubscribe.$toke
 import { Route as SSlugRouteImport } from './routes/s.$slug'
 import { Route as PayCodeRouteImport } from './routes/pay.$code'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as PayCodeIndexRouteImport } from './routes/pay.$code.index'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
+import { Route as PayCodeThanksRouteImport } from './routes/pay.$code.thanks'
 import { Route as ApiPublicBillingWebhookRouteImport } from './routes/api/public/billing-webhook'
 import { Route as AuthenticatedDashboardVideosRouteImport } from './routes/_authenticated/dashboard.videos'
 import { Route as AuthenticatedDashboardUgcRouteImport } from './routes/_authenticated/dashboard.ugc'
@@ -127,12 +129,22 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const PayCodeIndexRoute = PayCodeIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PayCodeRoute,
+} as any)
 const AuthenticatedDashboardIndexRoute =
   AuthenticatedDashboardIndexRouteImport.update({
     id: '/',
     path: '/',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const PayCodeThanksRoute = PayCodeThanksRouteImport.update({
+  id: '/thanks',
+  path: '/thanks',
+  getParentRoute: () => PayCodeRoute,
+} as any)
 const ApiPublicBillingWebhookRoute = ApiPublicBillingWebhookRouteImport.update({
   id: '/api/public/billing-webhook',
   path: '/api/public/billing-webhook',
@@ -447,7 +459,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
-  '/pay/$code': typeof PayCodeRoute
+  '/pay/$code': typeof PayCodeRouteWithChildren
   '/s/$slug': typeof SSlugRoute
   '/unsubscribe/$token': typeof UnsubscribeTokenRoute
   '/dashboard/ads': typeof AuthenticatedDashboardAdsRouteWithChildren
@@ -471,7 +483,9 @@ export interface FileRoutesByFullPath {
   '/dashboard/ugc': typeof AuthenticatedDashboardUgcRouteWithChildren
   '/dashboard/videos': typeof AuthenticatedDashboardVideosRouteWithChildren
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
+  '/pay/$code/thanks': typeof PayCodeThanksRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/pay/$code/': typeof PayCodeIndexRoute
   '/dashboard/ads/$id': typeof AuthenticatedDashboardAdsIdRoute
   '/dashboard/ads/new': typeof AuthenticatedDashboardAdsNewRoute
   '/dashboard/analytics/$businessId': typeof AuthenticatedDashboardAnalyticsBusinessIdRoute
@@ -510,7 +524,6 @@ export interface FileRoutesByTo {
   '/refunds': typeof RefundsRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
-  '/pay/$code': typeof PayCodeRoute
   '/s/$slug': typeof SSlugRoute
   '/unsubscribe/$token': typeof UnsubscribeTokenRoute
   '/dashboard/analytics': typeof AuthenticatedDashboardAnalyticsRouteWithChildren
@@ -530,7 +543,9 @@ export interface FileRoutesByTo {
   '/dashboard/ugc': typeof AuthenticatedDashboardUgcRouteWithChildren
   '/dashboard/videos': typeof AuthenticatedDashboardVideosRouteWithChildren
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
+  '/pay/$code/thanks': typeof PayCodeThanksRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
+  '/pay/$code': typeof PayCodeIndexRoute
   '/dashboard/ads/$id': typeof AuthenticatedDashboardAdsIdRoute
   '/dashboard/ads/new': typeof AuthenticatedDashboardAdsNewRoute
   '/dashboard/analytics/$businessId': typeof AuthenticatedDashboardAnalyticsBusinessIdRoute
@@ -570,7 +585,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
-  '/pay/$code': typeof PayCodeRoute
+  '/pay/$code': typeof PayCodeRouteWithChildren
   '/s/$slug': typeof SSlugRoute
   '/unsubscribe/$token': typeof UnsubscribeTokenRoute
   '/_authenticated/dashboard/ads': typeof AuthenticatedDashboardAdsRouteWithChildren
@@ -594,7 +609,9 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/ugc': typeof AuthenticatedDashboardUgcRouteWithChildren
   '/_authenticated/dashboard/videos': typeof AuthenticatedDashboardVideosRouteWithChildren
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
+  '/pay/$code/thanks': typeof PayCodeThanksRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/pay/$code/': typeof PayCodeIndexRoute
   '/_authenticated/dashboard/ads/$id': typeof AuthenticatedDashboardAdsIdRoute
   '/_authenticated/dashboard/ads/new': typeof AuthenticatedDashboardAdsNewRoute
   '/_authenticated/dashboard/analytics/$businessId': typeof AuthenticatedDashboardAnalyticsBusinessIdRoute
@@ -660,7 +677,9 @@ export interface FileRouteTypes {
     | '/dashboard/ugc'
     | '/dashboard/videos'
     | '/api/public/billing-webhook'
+    | '/pay/$code/thanks'
     | '/dashboard/'
+    | '/pay/$code/'
     | '/dashboard/ads/$id'
     | '/dashboard/ads/new'
     | '/dashboard/analytics/$businessId'
@@ -699,7 +718,6 @@ export interface FileRouteTypes {
     | '/refunds'
     | '/signup'
     | '/terms'
-    | '/pay/$code'
     | '/s/$slug'
     | '/unsubscribe/$token'
     | '/dashboard/analytics'
@@ -719,7 +737,9 @@ export interface FileRouteTypes {
     | '/dashboard/ugc'
     | '/dashboard/videos'
     | '/api/public/billing-webhook'
+    | '/pay/$code/thanks'
     | '/dashboard'
+    | '/pay/$code'
     | '/dashboard/ads/$id'
     | '/dashboard/ads/new'
     | '/dashboard/analytics/$businessId'
@@ -782,7 +802,9 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/ugc'
     | '/_authenticated/dashboard/videos'
     | '/api/public/billing-webhook'
+    | '/pay/$code/thanks'
     | '/_authenticated/dashboard/'
+    | '/pay/$code/'
     | '/_authenticated/dashboard/ads/$id'
     | '/_authenticated/dashboard/ads/new'
     | '/_authenticated/dashboard/analytics/$businessId'
@@ -823,7 +845,7 @@ export interface RootRouteChildren {
   RefundsRoute: typeof RefundsRoute
   SignupRoute: typeof SignupRoute
   TermsRoute: typeof TermsRoute
-  PayCodeRoute: typeof PayCodeRoute
+  PayCodeRoute: typeof PayCodeRouteWithChildren
   SSlugRoute: typeof SSlugRoute
   UnsubscribeTokenRoute: typeof UnsubscribeTokenRoute
   ApiPublicBillingWebhookRoute: typeof ApiPublicBillingWebhookRoute
@@ -910,12 +932,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/pay/$code/': {
+      id: '/pay/$code/'
+      path: '/'
+      fullPath: '/pay/$code/'
+      preLoaderRoute: typeof PayCodeIndexRouteImport
+      parentRoute: typeof PayCodeRoute
+    }
     '/_authenticated/dashboard/': {
       id: '/_authenticated/dashboard/'
       path: '/'
       fullPath: '/dashboard/'
       preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/pay/$code/thanks': {
+      id: '/pay/$code/thanks'
+      path: '/thanks'
+      fullPath: '/pay/$code/thanks'
+      preLoaderRoute: typeof PayCodeThanksRouteImport
+      parentRoute: typeof PayCodeRoute
     }
     '/api/public/billing-webhook': {
       id: '/api/public/billing-webhook'
@@ -1617,6 +1653,19 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface PayCodeRouteChildren {
+  PayCodeThanksRoute: typeof PayCodeThanksRoute
+  PayCodeIndexRoute: typeof PayCodeIndexRoute
+}
+
+const PayCodeRouteChildren: PayCodeRouteChildren = {
+  PayCodeThanksRoute: PayCodeThanksRoute,
+  PayCodeIndexRoute: PayCodeIndexRoute,
+}
+
+const PayCodeRouteWithChildren =
+  PayCodeRoute._addFileChildren(PayCodeRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
@@ -1625,7 +1674,7 @@ const rootRouteChildren: RootRouteChildren = {
   RefundsRoute: RefundsRoute,
   SignupRoute: SignupRoute,
   TermsRoute: TermsRoute,
-  PayCodeRoute: PayCodeRoute,
+  PayCodeRoute: PayCodeRouteWithChildren,
   SSlugRoute: SSlugRoute,
   UnsubscribeTokenRoute: UnsubscribeTokenRoute,
   ApiPublicBillingWebhookRoute: ApiPublicBillingWebhookRoute,

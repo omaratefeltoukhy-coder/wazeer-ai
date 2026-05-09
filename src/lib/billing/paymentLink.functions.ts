@@ -19,6 +19,7 @@ export const createPaymentLinkCheckout = createServerFn({ method: "POST" })
       buyer_email: z.string().email().optional(),
       buyer_name: z.string().max(200).optional(),
       buyer_phone: z.string().max(40).optional(),
+      return_url: z.string().url().optional(),
     }).parse(i)
   )
   .handler(async ({ data }) => {
@@ -72,7 +73,9 @@ export const createPaymentLinkCheckout = createServerFn({ method: "POST" })
         buyerName: data.buyer_name ?? null,
         buyerPhone: data.buyer_phone ?? null,
       },
-      checkout: { url: null }, // let Paddle build the default hosted URL
+      // Paddle redirects buyer to this URL after successful payment with
+      // `?_ptxn=txn_...` appended. Required so the thanks page can confirm.
+      checkout: data.return_url ? { url: data.return_url } : { url: null },
       ...(data.buyer_email ? { customer: { email: data.buyer_email } } : {}),
     };
 
