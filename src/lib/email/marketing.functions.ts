@@ -11,7 +11,7 @@ import {
   wrapEmailBody,
   trackEmailEvent,
 } from "@/lib/email/resend.server";
-import { consumeCredits, requireEntitlement, incrementUsage } from "@/lib/billing/guard.server";
+import { withWorkspaceBillingGuard } from "@/lib/server/billing";
 
 async function getBusinessId(supabase: any): Promise<string> {
   const { data, error } = await supabase
@@ -37,10 +37,8 @@ export const generateCampaignSubject = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) => z.object({ goal: z.string().max(500).optional().default("") }).parse(i))
   .handler(async ({ data, context }) => {
-    try {
-      const workspace_id = await workspaceFor(context.supabase, context.userId);
-      await requireEntitlement(workspace_id, "email_campaigns");
-      await consumeCredits(workspace_id, "email_regenerate", { user_id: context.userId });
+    const workspace_id = await workspaceFor(context.supabase, context.userId);
+    return withWorkspaceBillingGuard(workspace_id, { feature: "email_campaigns", creditAction: "email_regenerate", metadata: { user_id: context.userId } }, async () => {
       const aiRes = await callAI({
         messages: [
           { role: "system", content: "You write concise, high-open-rate email subject lines under 60 chars. Reply with the subject only — no quotes, no prefix." },
@@ -48,10 +46,7 @@ export const generateCampaignSubject = createServerFn({ method: "POST" })
         ],
       });
       return { subject: (aiRes.content || "").trim() };
-    } catch (err: any) {
-      console.error("[marketing] Error:", err);
-      throw err;
-    }
+    });
   });
 
 export const generateCampaignBody = createServerFn({ method: "POST" })
@@ -60,10 +55,8 @@ export const generateCampaignBody = createServerFn({ method: "POST" })
     z.object({ subject: z.string().max(200).optional().default(""), goal: z.string().max(800).optional().default("") }).parse(i),
   )
   .handler(async ({ data, context }) => {
-    try {
-      const workspace_id = await workspaceFor(context.supabase, context.userId);
-      await requireEntitlement(workspace_id, "email_campaigns");
-      await consumeCredits(workspace_id, "email_regenerate", { user_id: context.userId });
+    const workspace_id = await workspaceFor(context.supabase, context.userId);
+    return withWorkspaceBillingGuard(workspace_id, { feature: "email_campaigns", creditAction: "email_regenerate", metadata: { user_id: context.userId } }, async () => {
       const aiRes = await callAI({
         messages: [
           { role: "system", content: "You write friendly, persuasive marketing email bodies in clean HTML. Use <h2>, <p>, and <a>. No <html>/<body> tags. 120-220 words. End with a clear CTA. Avoid invented claims." },
@@ -71,10 +64,7 @@ export const generateCampaignBody = createServerFn({ method: "POST" })
         ],
       });
       return { body_html: (aiRes.content || "").trim() };
-    } catch (err: any) {
-      console.error("[marketing] Error:", err);
-      throw err;
-    }
+    });
   });
 
 /* ─────────────── Audience resolution ─────────────── */
@@ -190,12 +180,8 @@ export const sendCampaign = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
-    try {
-      const workspace_id = await workspaceFor(context.supabase, context.userId);
-      await requireEntitlement(workspace_id, "email_campaigns");
-      await consumeCredits(workspace_id, "email_campaign", { user_id: context.userId });
-      await incrementUsage(workspace_id, "email_campaigns");
-
+    const workspace_id = await workspaceFor(context.supabase, context.userId);
+    return withWorkspaceBillingGuard(workspace_id, { feature: "email_campaigns", creditAction: "email_campaign", metadata: { user_id: context.userId } }, async () => {
       const { data: c, error } = await context.supabase
         .from("email_campaigns").select("*").eq("id", data.id).maybeSingle();
       if (error || !c) throw new Error("Campaign not found");
@@ -263,10 +249,7 @@ export const sendCampaign = createServerFn({ method: "POST" })
       }).eq("id", c.id);
 
       return { ok: true, sent, failed, mock: mocked, total: recipients.length };
-    } catch (err: any) {
-      console.error("[marketing] Error:", err);
-      return { ok: false, error: err.message };
-    }
+    });
   });
 
 export const deleteCampaign = createServerFn({ method: "POST" })

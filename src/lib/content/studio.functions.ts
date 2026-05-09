@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { callAI } from "@/lib/ai/gateway";
-import { consumeCredits, requireEntitlement, incrementUsage } from "@/lib/billing/guard.server";
+import { withWorkspaceBillingGuard } from "@/lib/server/billing";
 
 const FORMAT_DIMS = {
   "1_1": { w: 1024, h: 1024 },
@@ -35,49 +35,48 @@ export const generateContentImage = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const workspace_id = await workspaceFor(context.supabase, context.userId);
-    await requireEntitlement(workspace_id, "ai_images");
-    await consumeCredits(workspace_id, "ai_image", { user_id: context.userId });
-    await incrementUsage(workspace_id, "ai_images");
-    const dims = FORMAT_DIMS[data.format];
+    return withWorkspaceBillingGuard(workspace_id, { feature: "ai_images", creditAction: "ai_image", metadata: { user_id: context.userId } }, async () => {
+      const dims = FORMAT_DIMS[data.format];
 
-    let file_url = "";
-    try {
-      const aiRes = await callAI({
-        messages: [
-          {
-            role: "user",
-            content: `Generate an image for this brief. Goal: ${data.goal}. Brief: ${data.prompt}. Aspect: ${data.format.replace("_", ":")}.`,
-          },
-        ],
-        model: "google/gemini-2.5-flash-image-preview",
-      });
-      const imgs = aiRes.images;
-      file_url = imgs?.[0]?.image_url?.url || "";
-    } catch (e) {
-      // fall back to placeholder
-      file_url = "";
-    }
-    if (!file_url) {
-      file_url = `https://picsum.photos/seed/${encodeURIComponent(data.prompt.slice(0, 32))}-${Date.now()}/${dims.w}/${dims.h}`;
-    }
+      let file_url = "";
+      try {
+        const aiRes = await callAI({
+          messages: [
+            {
+              role: "user",
+              content: `Generate an image for this brief. Goal: ${data.goal}. Brief: ${data.prompt}. Aspect: ${data.format.replace("_", ":")}.`,
+            },
+          ],
+          model: "google/gemini-2.5-flash-image-preview",
+        });
+        const imgs = aiRes.images;
+        file_url = imgs?.[0]?.image_url?.url || "";
+      } catch (e) {
+        // fall back to placeholder
+        file_url = "";
+      }
+      if (!file_url) {
+        file_url = `https://picsum.photos/seed/${encodeURIComponent(data.prompt.slice(0, 32))}-${Date.now()}/${dims.w}/${dims.h}`;
+      }
 
-    const { data: row, error } = await context.supabase
-      .from("ai_content")
-      .insert({
-        workspace_id,
-        user_id: context.userId,
-        product_id: data.product_id ?? null,
-        content_type: "image",
-        goal: data.goal,
-        format: data.format,
-        prompt: data.prompt,
-        result_url: file_url,
-        status: "ready",
-      })
-      .select("id, result_url")
-      .single();
-    if (error || !row) throw new Error(error?.message || "Failed to save");
-    return { id: row.id, result_url: row.result_url };
+      const { data: row, error } = await context.supabase
+        .from("ai_content")
+        .insert({
+          workspace_id,
+          user_id: context.userId,
+          product_id: data.product_id ?? null,
+          content_type: "image",
+          goal: data.goal,
+          format: data.format,
+          prompt: data.prompt,
+          result_url: file_url,
+          status: "ready",
+        })
+        .select("id, result_url")
+        .single();
+      if (error || !row) throw new Error(error?.message || "Failed to save");
+      return { id: row.id, result_url: row.result_url };
+    });
   });
 
 /* ───────── Video (placeholder) ───────── */
@@ -93,11 +92,8 @@ export const generateContentVideo = createServerFn({ method: "POST" })
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    try {
-      const workspace_id = await workspaceFor(context.supabase, context.userId);
-      await requireEntitlement(workspace_id, "ugc_videos");
-      await consumeCredits(workspace_id, "ugc_video", { user_id: context.userId });
-      await incrementUsage(workspace_id, "ugc_videos");
+    const workspace_id = await workspaceFor(context.supabase, context.userId);
+    return withWorkspaceBillingGuard(workspace_id, { feature: "ugc_videos", creditAction: "ugc_video", metadata: { user_id: context.userId } }, async () => {
       // Mock: return a sample video URL. Real provider can be wired later.
       const sampleVideos = [
         "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
@@ -124,10 +120,7 @@ export const generateContentVideo = createServerFn({ method: "POST" })
         .single();
       if (error || !row) throw new Error(error?.message || "Failed to save");
       return { id: row.id, result_url: row.result_url };
-    } catch (err: any) {
-      console.error("[studio] Error:", err);
-      throw err;
-    }
+    });
   });
 
 /* ───────── UGC Script ───────── */
@@ -143,12 +136,8 @@ export const generateContentScript = createServerFn({ method: "POST" })
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    try {
-      const workspace_id = await workspaceFor(context.supabase, context.userId);
-      await requireEntitlement(workspace_id, "ugc_scripts");
-      await consumeCredits(workspace_id, "ugc_script", { user_id: context.userId });
-      await incrementUsage(workspace_id, "ugc_scripts");
-
+    const workspace_id = await workspaceFor(context.supabase, context.userId);
+    return withWorkspaceBillingGuard(workspace_id, { feature: "ugc_scripts", creditAction: "ugc_script", metadata: { user_id: context.userId } }, async () => {
       let productCtx = "";
       if (data.product_id) {
         const { data: p } = await context.supabase
@@ -203,10 +192,7 @@ export const generateContentScript = createServerFn({ method: "POST" })
         .single();
       if (error || !row) throw new Error(error?.message || "Failed to save");
       return { id: row.id, script_text: row.script_text, parts: parsed };
-    } catch (err: any) {
-      console.error("[studio] Error:", err);
-      throw err;
-    }
+    });
   });
 
 /* ───────── List / Delete ───────── */

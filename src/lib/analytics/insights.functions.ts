@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { consumeCredits, requireEntitlement } from "@/lib/billing/guard.server";
+import { withWorkspaceBillingGuard } from "@/lib/server/billing";
 import { callAI } from "@/lib/ai/gateway";
 
 async function assertAccess(supabase: any, businessId: string) {
@@ -197,10 +197,7 @@ export const generateRecommendations = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ business_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const biz = await assertAccess(context.supabase, data.business_id);
-    await requireEntitlement(biz.workspace_id, "recommendations");
-    await consumeCredits(biz.workspace_id, "analytics_refresh", { business_id: biz.id });
-
-    try {
+    return withWorkspaceBillingGuard(biz.workspace_id, { feature: "recommendations", creditAction: "analytics_refresh", metadata: { business_id: biz.id } }, async () => {
       // Build rollup inline to avoid double auth
       const rollup = await getAnalyticsRollup({ data: { business_id: biz.id, days: 30 } });
       const sys = `You are a senior growth strategist. Given KPI rollups for a small business, suggest 3-6 highly specific, actionable next steps. Never invent metrics. Avoid generic advice. Each action must map to one of these app routes: /dashboard/storefront/${biz.id}, /dashboard/emails/${biz.id}, /dashboard/posts/${biz.id}, /dashboard/ads/${biz.id}, /dashboard/ugc/${biz.id}, /dashboard/images/${biz.id}, /dashboard/billing.`;
@@ -244,10 +241,5 @@ export const generateRecommendations = createServerFn({ method: "POST" })
       });
 
       return { count: recs.length };
-    } catch (e) {
-      // refund the credit on failure
-      const { refundCredits } = await import("@/lib/billing/guard.server");
-      await refundCredits(biz.workspace_id, "analytics_refresh", { reason: "generation_failed" });
-      throw e;
-    }
+    });
   });

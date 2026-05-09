@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { handleResendWebhook, type ResendWebhookEvent } from "@/lib/email/resend.server";
+import { verifyResendSignature, parseResendPayload } from "@/lib/email/webhook.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import crypto from "crypto";
 
 export const Route = createFileRoute("/api/public/email-webhook")({
   server: {
@@ -36,25 +36,16 @@ export const Route = createFileRoute("/api/public/email-webhook")({
         }
 
         const rawBody = await request.text();
-        const expected = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
-
-        const sigBuf = Buffer.from(signature, "utf8");
-        const expBuf = Buffer.from(expected, "utf8");
-        if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
+        if (!verifyResendSignature(secret, rawBody, signature)) {
           console.warn("[email-webhook] Signature mismatch");
           return new Response("Invalid signature", { status: 401 });
         }
 
-        let payload: ResendWebhookEvent | null = null;
-        try {
-          payload = JSON.parse(rawBody);
-        } catch {
-          return new Response("Invalid JSON", { status: 400 });
+        const parsed = parseResendPayload(rawBody);
+        if (!parsed.ok) {
+          return new Response(parsed.error, { status: 400 });
         }
-
-        if (!payload?.type || !payload?.data?.id) {
-          return new Response("Invalid payload", { status: 400 });
-        }
+        const payload = parsed.payload as ResendWebhookEvent;
 
         // Reserve idempotency key before processing
         if (eventId) {

@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { consumeCredits, refundCredits, requireEntitlement } from "@/lib/billing/guard.server";
+import { withBillingGuard } from "@/lib/server/billing";
 import { callAITool } from "@/lib/ai/gateway";
 import { loadWorkspaceId, loadBrandContext } from "@/lib/server/context";
 
@@ -42,10 +42,7 @@ export const generateMetaAdCopy = createServerFn({ method: "POST" })
     brief: z.string().max(500).optional().default(""),
   }).parse(i))
   .handler(async ({ data, context }) => {
-    const ws_id = await loadWorkspaceId(context.supabase, data.business_id);
-    await requireEntitlement(ws_id, "meta_ads");
-    await consumeCredits(ws_id, "meta_ad", { business_id: data.business_id, goal: data.goal });
-    try {
+    return withBillingGuard(context.supabase, data.business_id, { feature: "meta_ads", creditAction: "meta_ad", metadata: { business_id: data.business_id, goal: data.goal } }, async () => {
       const { biz, brand, offer, storefront } = await loadBrandContext(context.supabase, data.business_id);
       const tool = { type: "function" as const, function: { name: "write_ad", description: "Write Meta ad copy.", parameters: AdCopySchema as any } };
       const sys = `You are Wazeer, a senior Meta media buyer. Write compliant ad copy. Reply via tool. ${SAFETY}`;
@@ -59,10 +56,7 @@ Storefront slug: ${storefront?.slug ?? "—"}
 Brief: ${data.brief || "(none)"}`;
       const parsed = await callAITool([{ role: "system", content: sys }, { role: "user", content: user }], tool, "write_ad");
       return { ok: true, copy: parsed };
-    } catch (err) {
-      await refundCredits(ws_id, "meta_ad", { business_id: data.business_id });
-      throw err;
-    }
+    });
   });
 
 export const createMetaCampaign = createServerFn({ method: "POST" })
@@ -209,10 +203,7 @@ export const regenerateAdCreative = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: ad } = await context.supabase.from("meta_ads").select("id, business_id, copy_json, campaign_id").eq("id", data.ad_id).maybeSingle();
     if (!ad) throw new Error("Ad not found");
-    const ws_id = await loadWorkspaceId(context.supabase, (ad as any).business_id);
-    await requireEntitlement(ws_id, "meta_ads");
-    await consumeCredits(ws_id, "meta_ad_creative", { ad_id: data.ad_id });
-    try {
+    return withBillingGuard(context.supabase, (ad as any).business_id, { feature: "meta_ads", creditAction: "meta_ad_creative", metadata: { ad_id: data.ad_id } }, async () => {
       const { biz, brand, offer } = await loadBrandContext(context.supabase, (ad as any).business_id);
       const tool = { type: "function" as const, function: { name: "write_ad", description: "Rewrite Meta ad copy.", parameters: AdCopySchema as any } };
       const sys = `You are Wazeer. Rewrite Meta ad copy. Reply via tool. ${SAFETY}`;
@@ -227,10 +218,7 @@ Brief: ${data.brief || "(none)"}`;
       } as any).eq("id", data.ad_id);
       if (error) throw new Error(error.message);
       return { ok: true, copy: parsed };
-    } catch (err) {
-      await refundCredits(ws_id, "meta_ad_creative", { ad_id: data.ad_id });
-      throw err;
-    }
+    });
   });
 
 export const fetchMetaInsights = createServerFn({ method: "POST" })

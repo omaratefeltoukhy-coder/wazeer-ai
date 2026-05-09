@@ -1,7 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { consumeCredits, refundCredits, requireEntitlement } from "@/lib/billing/guard.server";
+import { requireEntitlement } from "@/lib/billing/guard.server";
+import { withBillingGuard } from "@/lib/server/billing";
 import { getVideoProvider, type VideoFormat } from "./videoProvider.server";
 import { callAI } from "@/lib/ai/gateway";
 
@@ -152,38 +153,37 @@ export const regenerateStoryboardScene = createServerFn({ method: "POST" })
     const { data: vid, error } = await context.supabase.from("ugc_videos")
       .select("id, business_id, storyboard_json").eq("id", data.video_id).maybeSingle();
     if (error || !vid) throw new Error("Video not found");
-    const workspace_id = await loadWorkspaceId(context.supabase, vid.business_id as string);
-    await requireEntitlement(workspace_id, "ugc_videos");
-    await consumeCredits(workspace_id, "ugc_video_scene", { video_id: data.video_id });
 
-    try {
-      const sb = (vid.storyboard_json ?? {}) as any;
-      const scene = (sb.scene_prompts ?? []).find((s: any) => s.scene_no === data.scene_no);
-      if (!scene) throw new Error("Scene not found");
-      const tool = {
-        type: "function" as const,
-        function: {
-          name: "rewrite_video_scene",
-          description: "Rewrite a single text-to-video scene prompt.",
-          parameters: { type: "object", properties: { scene: StoryboardSchema.properties.scene_prompts.items }, required: ["scene"], additionalProperties: false },
-        },
-      };
-      const parsed = await callVideoAI(
-        [
-          { role: "system", content: `You are Wazeer. Rewrite ONE storyboard scene. Keep scene_no, similar duration. Reply via tool. ${SAFETY}` },
-          { role: "user", content: `Existing: ${JSON.stringify(scene)}\nAspect: ${sb.aspect_ratio}\nBrief: ${data.brief || "(none)"}` },
-        ],
-        tool, "rewrite_video_scene",
-      );
-      const newScene = { ...parsed.scene, scene_no: data.scene_no };
-      const next = { ...sb, scene_prompts: (sb.scene_prompts ?? []).map((s: any) => s.scene_no === data.scene_no ? newScene : s) };
-      const { error: upErr } = await context.supabase.from("ugc_videos").update({ storyboard_json: next as any }).eq("id", vid.id);
-      if (upErr) throw new Error(upErr.message);
-      return { ok: true, scene: newScene };
-    } catch (err) {
-      await refundCredits(workspace_id, "ugc_video_scene", { video_id: data.video_id });
-      throw err;
-    }
+    return withBillingGuard(
+      context.supabase,
+      vid.business_id as string,
+      { feature: "ugc_videos", creditAction: "ugc_video_scene", metadata: { video_id: data.video_id } },
+      async () => {
+        const sb = (vid.storyboard_json ?? {}) as any;
+        const scene = (sb.scene_prompts ?? []).find((s: any) => s.scene_no === data.scene_no);
+        if (!scene) throw new Error("Scene not found");
+        const tool = {
+          type: "function" as const,
+          function: {
+            name: "rewrite_video_scene",
+            description: "Rewrite a single text-to-video scene prompt.",
+            parameters: { type: "object", properties: { scene: StoryboardSchema.properties.scene_prompts.items }, required: ["scene"], additionalProperties: false },
+          },
+        };
+        const parsed = await callVideoAI(
+          [
+            { role: "system", content: `You are Wazeer. Rewrite ONE storyboard scene. Keep scene_no, similar duration. Reply via tool. ${SAFETY}` },
+            { role: "user", content: `Existing: ${JSON.stringify(scene)}\nAspect: ${sb.aspect_ratio}\nBrief: ${data.brief || "(none)"}` },
+          ],
+          tool, "rewrite_video_scene",
+        );
+        const newScene = { ...parsed.scene, scene_no: data.scene_no };
+        const next = { ...sb, scene_prompts: (sb.scene_prompts ?? []).map((s: any) => s.scene_no === data.scene_no ? newScene : s) };
+        const { error: upErr } = await context.supabase.from("ugc_videos").update({ storyboard_json: next as any }).eq("id", vid.id);
+        if (upErr) throw new Error(upErr.message);
+        return { ok: true, scene: newScene };
+      },
+    );
   });
 
 export const renderUgcVideo = createServerFn({ method: "POST" })
@@ -194,33 +194,31 @@ export const renderUgcVideo = createServerFn({ method: "POST" })
       .select("id, business_id, storyboard_json, status").eq("id", data.video_id).maybeSingle();
     if (error || !vid) throw new Error("Video not found");
     if (vid.status === "rendering") throw new Error("Already rendering");
-    const workspace_id = await loadWorkspaceId(context.supabase, vid.business_id as string);
-    await requireEntitlement(workspace_id, "ugc_videos");
-    await consumeCredits(workspace_id, "ugc_video", { video_id: vid.id });
 
-    try {
-      const sb = (vid.storyboard_json ?? {}) as any;
-      const provider = getVideoProvider();
-      const job = await provider.start({
-        scene_prompts: (sb.scene_prompts ?? []).map((s: any) => ({ scene_no: s.scene_no, prompt: s.prompt, duration_s: s.duration_s })),
-        format: (sb.aspect_ratio ?? "9_16") as VideoFormat,
-        voiceover: sb.voiceover ?? null,
-        seed: vid.id,
-      });
-      const nextSb = { ...sb, provider: job.provider, started_at: Date.now(), finishes_at: job.finishes_at ?? null };
-      const { error: upErr } = await context.supabase.from("ugc_videos").update({
-        status: "rendering",
-        provider_job_id: job.job_id,
-        storyboard_json: nextSb as any,
-        error_message: null,
-      }).eq("id", vid.id);
-      if (upErr) throw new Error(upErr.message);
-      return { ok: true, job_id: job.job_id, status: "rendering" };
-    } catch (err) {
-      await refundCredits(workspace_id, "ugc_video", { video_id: vid.id });
-      await context.supabase.from("ugc_videos").update({ status: "failed", error_message: err instanceof Error ? err.message : String(err) }).eq("id", vid.id);
-      throw err;
-    }
+    return withBillingGuard(
+      context.supabase,
+      vid.business_id as string,
+      { feature: "ugc_videos", creditAction: "ugc_video", metadata: { video_id: vid.id } },
+      async () => {
+        const sb = (vid.storyboard_json ?? {}) as any;
+        const provider = getVideoProvider();
+        const job = await provider.start({
+          scene_prompts: (sb.scene_prompts ?? []).map((s: any) => ({ scene_no: s.scene_no, prompt: s.prompt, duration_s: s.duration_s })),
+          format: (sb.aspect_ratio ?? "9_16") as VideoFormat,
+          voiceover: sb.voiceover ?? null,
+          seed: vid.id,
+        });
+        const nextSb = { ...sb, provider: job.provider, started_at: Date.now(), finishes_at: job.finishes_at ?? null };
+        const { error: upErr } = await context.supabase.from("ugc_videos").update({
+          status: "rendering",
+          provider_job_id: job.job_id,
+          storyboard_json: nextSb as any,
+          error_message: null,
+        }).eq("id", vid.id);
+        if (upErr) throw new Error(upErr.message);
+        return { ok: true, job_id: job.job_id, status: "rendering" };
+      },
+    );
   });
 
 export const pollUgcVideoJob = createServerFn({ method: "POST" })

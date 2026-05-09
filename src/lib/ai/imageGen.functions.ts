@@ -1,9 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { consumeCredits, refundCredits, requireEntitlement } from "@/lib/billing/guard.server";
+import { withBillingGuard } from "@/lib/server/billing";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { loadWorkspaceId, loadBrandContext } from "@/lib/server/context";
+import { loadBrandContext } from "@/lib/server/context";
 import { getImageProvider } from "./imageProvider.server";
 import {
   composePrompt,
@@ -34,89 +34,82 @@ export const generateImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => GenSchema.parse(input))
   .handler(async ({ data, context }) => {
-    const workspace_id = await loadWorkspaceId(context.supabase, data.business_id);
-    await requireEntitlement(workspace_id, "ai_images");
-    await consumeCredits(workspace_id, "ai_image", { business_id: data.business_id, type: data.type });
-
-    const ctx = await loadBrandContext(context.supabase, data.business_id);
-    const audienceJson = (ctx.brand?.audience_json ?? {}) as Record<string, string>;
-    const audience = [audienceJson.persona, audienceJson.demographics].filter(Boolean).join(" — ") || ctx.biz?.target_audience || null;
-    const brand: ImageBrandContext = {
-      brand_name: ctx.brand?.brand_name ?? ctx.biz?.name ?? null,
-      tone: ctx.brand?.tone ?? null,
-      visual_style: ctx.brand?.visual_style ?? null,
-      positioning: ctx.brand?.positioning ?? null,
-      audience,
-      product_name: ctx.offer?.name ?? null,
-      product_description: ctx.offer?.description ?? ctx.biz?.description ?? null,
-    };
-    const prompt = composePrompt({
-      type: data.type,
-      style: data.style,
-      format: data.format,
-      brand,
-      user_brief: data.brief,
-      reference_url: data.reference_url ?? null,
-    });
-
-    // Insert as `generating` so the gallery can show pending state.
-    const { data: row, error: insErr } = await context.supabase
-      .from("media_assets")
-      .insert({
-        business_id: data.business_id,
-        type: "image",
-        source: "ai_generated",
-        prompt,
-        status: "generating",
-        metadata_json: {
+    return withBillingGuard(
+      context.supabase,
+      data.business_id,
+      { feature: "ai_images", creditAction: "ai_image", metadata: { business_id: data.business_id, type: data.type } },
+      async () => {
+        const ctx = await loadBrandContext(context.supabase, data.business_id);
+        const audienceJson = (ctx.brand?.audience_json ?? {}) as Record<string, string>;
+        const audience = [audienceJson.persona, audienceJson.demographics].filter(Boolean).join(" — ") || ctx.biz?.target_audience || null;
+        const brand: ImageBrandContext = {
+          brand_name: ctx.brand?.brand_name ?? ctx.biz?.name ?? null,
+          tone: ctx.brand?.tone ?? null,
+          visual_style: ctx.brand?.visual_style ?? null,
+          positioning: ctx.brand?.positioning ?? null,
+          audience,
+          product_name: ctx.offer?.name ?? null,
+          product_description: ctx.offer?.description ?? ctx.biz?.description ?? null,
+        };
+        const prompt = composePrompt({
           type: data.type,
           style: data.style,
           format: data.format,
+          brand,
+          user_brief: data.brief,
           reference_url: data.reference_url ?? null,
-          brief: data.brief ?? "",
-        } as never,
-      })
-      .select("id")
-      .single();
-    if (insErr || !row) {
-      await refundCredits(workspace_id, "ai_image", { business_id: data.business_id });
-      throw new Error(insErr?.message || "Failed to queue image");
-    }
+        });
 
-    try {
-      const provider = getImageProvider();
-      const result = await provider.generate({
-        prompt,
-        format: data.format,
-        reference_url: data.reference_url ?? null,
-        seed: row.id,
-      });
+        // Insert as `generating` so the gallery can show pending state.
+        const { data: row, error: insErr } = await context.supabase
+          .from("media_assets")
+          .insert({
+            business_id: data.business_id,
+            type: "image",
+            source: "ai_generated",
+            prompt,
+            status: "generating",
+            metadata_json: {
+              type: data.type,
+              style: data.style,
+              format: data.format,
+              reference_url: data.reference_url ?? null,
+              brief: data.brief ?? "",
+            } as never,
+          })
+          .select("id")
+          .single();
+        if (insErr || !row) {
+          throw new Error(insErr?.message || "Failed to queue image");
+        }
 
-      await context.supabase
-        .from("media_assets")
-        .update({
-          file_url: result.file_url,
-          status: result.status,
-          metadata_json: {
-            type: data.type,
-            style: data.style,
-            format: data.format,
-            reference_url: data.reference_url ?? null,
-            brief: data.brief ?? "",
-            provider: result.provider,
-          } as never,
-        })
-        .eq("id", row.id);
+        const provider = getImageProvider();
+        const result = await provider.generate({
+          prompt,
+          format: data.format,
+          reference_url: data.reference_url ?? null,
+          seed: row.id,
+        });
 
-      return { id: row.id, file_url: result.file_url, status: result.status, prompt };
-    } catch (err) {
-      await refundCredits(workspace_id, "ai_image", { business_id: data.business_id });
-      await supabaseAdmin
-        .from("media_assets")
-        .update({ status: "failed", metadata_json: { error: err instanceof Error ? err.message : String(err) } as never })
-        .eq("id", row.id);
-      throw err;
-    }
+        await context.supabase
+          .from("media_assets")
+          .update({
+            file_url: result.file_url,
+            status: result.status,
+            metadata_json: {
+              type: data.type,
+              style: data.style,
+              format: data.format,
+              reference_url: data.reference_url ?? null,
+              brief: data.brief ?? "",
+              provider: result.provider,
+            } as never,
+          })
+          .eq("id", row.id);
+
+        return { id: row.id, file_url: result.file_url, status: result.status, prompt };
+      },
+    );
   });
 
 export const regenerateImage = createServerFn({ method: "POST" })
@@ -136,26 +129,24 @@ export const regenerateImage = createServerFn({ method: "POST" })
     if (error || !img) throw new Error("Image not found");
     const meta = (img.metadata_json ?? {}) as any;
     const format = (meta.format ?? "1_1") as ImageFormat;
-    const workspace_id = await loadWorkspaceId(context.supabase, img.business_id as string);
-    await requireEntitlement(workspace_id, "ai_images");
-    await consumeCredits(workspace_id, "ai_image", { image_id: img.id, regenerate: true });
 
-    const prompt = data.prompt_override || (img.prompt as string);
-    await context.supabase.from("media_assets").update({ status: "generating", prompt }).eq("id", img.id);
+    return withBillingGuard(
+      context.supabase,
+      img.business_id as string,
+      { feature: "ai_images", creditAction: "ai_image", metadata: { image_id: img.id, regenerate: true } },
+      async () => {
+        const prompt = data.prompt_override || (img.prompt as string);
+        await context.supabase.from("media_assets").update({ status: "generating", prompt }).eq("id", img.id);
 
-    try {
-      const provider = getImageProvider();
-      const result = await provider.generate({ prompt, format, seed: `${img.id}-${Date.now()}` });
-      await context.supabase
-        .from("media_assets")
-        .update({ file_url: result.file_url, status: result.status })
-        .eq("id", img.id);
-      return { id: img.id, file_url: result.file_url, status: result.status };
-    } catch (err) {
-      await refundCredits(workspace_id, "ai_image", { image_id: img.id });
-      await context.supabase.from("media_assets").update({ status: "failed" }).eq("id", img.id);
-      throw err;
-    }
+        const provider = getImageProvider();
+        const result = await provider.generate({ prompt, format, seed: `${img.id}-${Date.now()}` });
+        await context.supabase
+          .from("media_assets")
+          .update({ file_url: result.file_url, status: result.status })
+          .eq("id", img.id);
+        return { id: img.id, file_url: result.file_url, status: result.status };
+      },
+    );
   });
 
 export const listImages = createServerFn({ method: "POST" })

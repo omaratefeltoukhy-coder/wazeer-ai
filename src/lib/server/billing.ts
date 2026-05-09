@@ -22,12 +22,24 @@ export async function withBillingGuard<T>(
   fn: () => Promise<T>
 ): Promise<T> {
   const workspace_id = await loadWorkspaceId(supabase, business_id);
+  return withWorkspaceBillingGuard(workspace_id, {
+    ...options,
+    metadata: { business_id, ...options.metadata },
+  }, fn);
+}
+
+export async function withWorkspaceBillingGuard<T>(
+  workspace_id: string,
+  options: {
+    feature: Feature;
+    creditAction: keyof typeof CREDIT_COST;
+    metadata?: Record<string, unknown>;
+  },
+  fn: () => Promise<T>
+): Promise<T> {
   await requireEntitlement(workspace_id, options.feature);
   await checkUsageCap(workspace_id, options.feature);
-  await consumeCredits(workspace_id, options.creditAction, {
-    business_id,
-    ...options.metadata,
-  });
+  await consumeCredits(workspace_id, options.creditAction, options.metadata ?? {});
 
   try {
     const result = await fn();
@@ -35,7 +47,6 @@ export async function withBillingGuard<T>(
     return result;
   } catch (err) {
     await refundCredits(workspace_id, options.creditAction, {
-      business_id,
       reason: "handler_error",
       ...options.metadata,
     });

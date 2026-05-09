@@ -1,10 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { consumeCredits, refundCredits, requireEntitlement, checkUsageCap, incrementUsage } from "@/lib/billing/guard.server";
+import { withBillingGuard } from "@/lib/server/billing";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { callAITool } from "@/lib/ai/gateway";
-import { loadWorkspaceId, loadBrandContext } from "@/lib/server/context";
+import { loadBrandContext } from "@/lib/server/context";
 
 export const PLATFORMS = [
   "tiktok", "instagram_reels", "facebook_reels", "meta_ad",
@@ -78,31 +78,30 @@ export const generateUgcScript = createServerFn({ method: "POST" })
     brief: z.string().max(800).optional().default(""),
   }).parse(input))
   .handler(async ({ data, context }) => {
-    const workspace_id = await loadWorkspaceId(context.supabase, data.business_id);
-    await requireEntitlement(workspace_id, "ugc_scripts");
-    await checkUsageCap(workspace_id, "ugc_scripts");
-    await consumeCredits(workspace_id, "ugc_script", { business_id: data.business_id, platform: data.platform });
+    return withBillingGuard(
+      context.supabase,
+      data.business_id,
+      { feature: "ugc_scripts", creditAction: "ugc_script", metadata: { business_id: data.business_id, platform: data.platform } },
+      async () => {
+        const { biz, brand, offer } = await loadBrandContext(context.supabase, data.business_id);
+        const benefits = (brand?.benefits_json ?? []) as any[];
+        const pains = (brand?.pain_points_json ?? []) as any[];
 
-    try {
-      const { biz, brand, offer } = await loadBrandContext(context.supabase, data.business_id);
-      const benefits = (brand?.benefits_json ?? []) as any[];
-      const pains = (brand?.pain_points_json ?? []) as any[];
+        const tool = {
+          type: "function" as const,
+          function: {
+            name: "write_ugc_script",
+            description: "Write a structured UGC video script.",
+            parameters: ScriptSchema as any,
+          },
+        };
 
-      const tool = {
-        type: "function" as const,
-        function: {
-          name: "write_ugc_script",
-          description: "Write a structured UGC video script.",
-          parameters: ScriptSchema as any,
-        },
-      };
-
-      const sysPrompt = `You are Wazeer, a senior UGC creative director.
+        const sysPrompt = `You are Wazeer, a senior UGC creative director.
 Write a ${data.length_s}-second UGC script for ${PLATFORM_LABEL[data.platform]}.
 Reply ONLY through the provided tool.
 ${SAFETY_RAILS}`;
 
-      const userPrompt = `Brand: ${brand?.brand_name ?? biz?.name}
+        const userPrompt = `Brand: ${brand?.brand_name ?? biz?.name}
 Tone: ${brand?.tone ?? "confident, friendly"}
 Positioning: ${brand?.positioning ?? ""}
 Business: ${biz?.name} (${biz?.type}) — ${biz?.description ?? ""}
@@ -116,28 +115,25 @@ Platform: ${PLATFORM_LABEL[data.platform]}
 Total length: ${data.length_s}s. Allocate scene durations so they sum to about ${data.length_s}s.
 Extra direction: ${data.brief || "(none)"}`;
 
-      const parsed = await callAITool(
-        [{ role: "system", content: sysPrompt }, { role: "user", content: userPrompt }],
-        tool,
-        "write_ugc_script",
-      );
+        const parsed = await callAITool(
+          [{ role: "system", content: sysPrompt }, { role: "user", content: userPrompt }],
+          tool,
+          "write_ugc_script",
+        );
 
-      const { data: row, error: insErr } = await context.supabase.from("ugc_scripts").insert({
-        business_id: data.business_id,
-        title: parsed.title,
-        platform: data.platform,
-        performance_score: parsed.performance_score,
-        status: "draft",
-        script_json: { ...parsed, length_s: data.length_s } as any,
-      }).select("id").single();
-      if (insErr || !row) throw new Error(insErr?.message || "Failed to save script");
+        const { data: row, error: insErr } = await context.supabase.from("ugc_scripts").insert({
+          business_id: data.business_id,
+          title: parsed.title,
+          platform: data.platform,
+          performance_score: parsed.performance_score,
+          status: "draft",
+          script_json: { ...parsed, length_s: data.length_s } as any,
+        }).select("id").single();
+        if (insErr || !row) throw new Error(insErr?.message || "Failed to save script");
 
-      await incrementUsage(workspace_id, "ugc_scripts", 1);
-      return { id: row.id, script: parsed };
-    } catch (err) {
-      await refundCredits(workspace_id, "ugc_script", { business_id: data.business_id });
-      throw err;
-    }
+        return { id: row.id, script: parsed };
+      },
+    );
   });
 
 export const regenerateUgcScene = createServerFn({ method: "POST" })
@@ -151,51 +147,50 @@ export const regenerateUgcScene = createServerFn({ method: "POST" })
     const { data: script, error } = await context.supabase.from("ugc_scripts")
       .select("id, business_id, platform, script_json").eq("id", data.script_id).maybeSingle();
     if (error || !script) throw new Error("Script not found");
-    const workspace_id = await loadWorkspaceId(context.supabase, script.business_id as string);
-    await requireEntitlement(workspace_id, "ugc_scripts");
-    await consumeCredits(workspace_id, "ugc_script_scene", { script_id: data.script_id });
 
-    try {
-      const sj = (script.script_json ?? {}) as any;
-      const scene = (sj.scenes ?? []).find((s: any) => s.scene_no === data.scene_no);
-      if (!scene) throw new Error("Scene not found");
-      const { biz, brand } = await loadBrandContext(context.supabase, script.business_id as string);
+    return withBillingGuard(
+      context.supabase,
+      script.business_id as string,
+      { feature: "ugc_scripts", creditAction: "ugc_script_scene", metadata: { script_id: data.script_id } },
+      async () => {
+        const sj = (script.script_json ?? {}) as any;
+        const scene = (sj.scenes ?? []).find((s: any) => s.scene_no === data.scene_no);
+        if (!scene) throw new Error("Scene not found");
+        const { biz, brand } = await loadBrandContext(context.supabase, script.business_id as string);
 
-      const SceneSchema = ScriptSchema.properties.scenes.items;
-      const tool = {
-        type: "function" as const,
-        function: {
-          name: "rewrite_scene",
-          description: "Rewrite a single UGC scene.",
-          parameters: { type: "object", properties: { scene: SceneSchema }, required: ["scene"], additionalProperties: false },
-        },
-      };
-      const parsed = await callAITool(
-        [
-          { role: "system", content: `You are Wazeer. Rewrite ONE UGC scene only. Keep the same scene_no and similar duration. Reply via tool. ${SAFETY_RAILS}` },
-          {
-            role: "user",
-            content: `Brand: ${brand?.brand_name ?? biz?.name} | Tone: ${brand?.tone ?? "confident"}
+        const SceneSchema = ScriptSchema.properties.scenes.items;
+        const tool = {
+          type: "function" as const,
+          function: {
+            name: "rewrite_scene",
+            description: "Rewrite a single UGC scene.",
+            parameters: { type: "object", properties: { scene: SceneSchema }, required: ["scene"], additionalProperties: false },
+          },
+        };
+        const parsed = await callAITool(
+          [
+            { role: "system", content: `You are Wazeer. Rewrite ONE UGC scene only. Keep the same scene_no and similar duration. Reply via tool. ${SAFETY_RAILS}` },
+            {
+              role: "user",
+              content: `Brand: ${brand?.brand_name ?? biz?.name} | Tone: ${brand?.tone ?? "confident"}
 Platform: ${PLATFORM_LABEL[script.platform as Platform]}
 Existing scene: ${JSON.stringify(scene)}
 Script title: ${sj.title}
 Hook: ${sj.hook_3s}
 CTA: ${sj.cta}
 Brief: ${data.brief || "(none)"}`,
-          },
-        ],
-        tool,
-        "rewrite_scene",
-      );
-      const newScene = { ...parsed.scene, scene_no: data.scene_no };
-      const next = { ...sj, scenes: (sj.scenes ?? []).map((s: any) => s.scene_no === data.scene_no ? newScene : s) };
-      const { error: upErr } = await context.supabase.from("ugc_scripts").update({ script_json: next as any }).eq("id", script.id);
-      if (upErr) throw new Error(upErr.message);
-      return { ok: true, scene: newScene };
-    } catch (err) {
-      await refundCredits(workspace_id, "ugc_script_scene", { script_id: data.script_id });
-      throw err;
-    }
+            },
+          ],
+          tool,
+          "rewrite_scene",
+        );
+        const newScene = { ...parsed.scene, scene_no: data.scene_no };
+        const next = { ...sj, scenes: (sj.scenes ?? []).map((s: any) => s.scene_no === data.scene_no ? newScene : s) };
+        const { error: upErr } = await context.supabase.from("ugc_scripts").update({ script_json: next as any }).eq("id", script.id);
+        if (upErr) throw new Error(upErr.message);
+        return { ok: true, scene: newScene };
+      },
+    );
   });
 
 export const updateUgcScript = createServerFn({ method: "POST" })
