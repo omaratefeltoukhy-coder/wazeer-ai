@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, Link, useNavigate, useRouterState, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Link, useNavigate, useRouterState, useRouter, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useEntitlements } from "@/hooks/useEntitlements";
@@ -11,7 +11,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   LayoutDashboard, ShoppingBag, Image as ImageIcon, Video, Mail, Megaphone, Target, Link2,
   BarChart3, Settings, LogOut, Plus, Loader2, CreditCard, Sparkles, FileVideo, Workflow, Users, Menu, Package,
-  DollarSign, Receipt, Wallet, Wand2, Link as LinkIcon, ChevronDown, Zap, User, Globe,
+  DollarSign, Receipt, Wallet, Wand2, Link as LinkIcon, ArrowLeft, Zap, User, Globe,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -162,9 +162,19 @@ function NavList({
 function AuthenticatedLayout() {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { data: ent } = useEntitlements();
   const [open, setOpen] = useState(false);
+  const showBack = pathname !== "/dashboard" && pathname !== "/";
+
+  const handleBack = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.history.back();
+    } else {
+      navigate({ to: "/dashboard" });
+    }
+  };
 
   if (loading || !user) {
     return (
@@ -241,6 +251,13 @@ function AuthenticatedLayout() {
         </header>
 
         <main className="flex-1 min-w-0">
+          {showBack && (
+            <div className="px-4 sm:px-6 lg:px-10 pt-4">
+              <Button variant="ghost" size="sm" onClick={handleBack} className="-ml-2 text-muted-foreground hover:text-foreground">
+                <ArrowLeft className="h-4 w-4" /> Back
+              </Button>
+            </div>
+          )}
           <Outlet />
         </main>
         <CofounderChat />
