@@ -1,4 +1,4 @@
-﻿import { createServerFn } from "@tanstack/react-start";
+import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { consumeCredits, refundCredits, requireEntitlement, checkUsageCap, incrementUsage } from "@/lib/billing/guard.server";
@@ -18,7 +18,7 @@ export const PLATFORM_LABEL: Record<Platform, string> = {
   meta_ad: "Meta Ad",
   testimonial: "Testimonial",
   founder_story: "Founder Story",
-  problem_solution: "Problem â†’ Solution",
+  problem_solution: "Problem → Solution",
   product_demo: "Product Demo",
 };
 
@@ -131,13 +131,13 @@ ${SAFETY_RAILS}`;
       const userPrompt = `Brand: ${brand?.brand_name ?? biz?.name}
 Tone: ${brand?.tone ?? "confident, friendly"}
 Positioning: ${brand?.positioning ?? ""}
-Business: ${biz?.name} (${biz?.type}) â€” ${biz?.description ?? ""}
+Business: ${biz?.name} (${biz?.type}) — ${biz?.description ?? ""}
 Audience: ${biz?.target_audience ?? ""}
 Pain point: ${biz?.pain_point ?? ""}
 Desired result: ${biz?.desired_result ?? ""}
-Offer: ${offer?.name ?? "â€”"} â€” ${offer?.description ?? ""}
-Top benefits: ${benefits.map((b: any) => b.title || b).slice(0, 6).join(", ") || "â€”"}
-Top pain points: ${pains.slice(0, 4).join(", ") || "â€”"}
+Offer: ${offer?.name ?? "—"} — ${offer?.description ?? ""}
+Top benefits: ${benefits.map((b: any) => b.title || b).slice(0, 6).join(", ") || "—"}
+Top pain points: ${pains.slice(0, 4).join(", ") || "—"}
 Platform: ${PLATFORM_LABEL[data.platform]}
 Total length: ${data.length_s}s. Allocate scene durations so they sum to about ${data.length_s}s.
 Extra direction: ${data.brief || "(none)"}`;

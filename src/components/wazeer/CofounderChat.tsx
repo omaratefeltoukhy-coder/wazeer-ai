@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -15,7 +15,7 @@ export function CofounderChat() {
   const [messages, setMessages] = useState<Msg[]>([
     {
       role: "assistant",
-      content: "Hey! I'm Wazeer, your AI cofounder. Ask me anything about growing your business â€” strategy, marketing, pricing, or just vent about what's hard. I'm here.",
+      content: "Hey! I'm Wazeer, your AI cofounder. Ask me anything about growing your business — strategy, marketing, pricing, or just vent about what's hard. I'm here.",
     },
   ]);
   const [loading, setLoading] = useState(false);

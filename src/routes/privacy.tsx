@@ -1,13 +1,13 @@
-﻿import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Navbar } from "@/components/wazeer/Navbar";
 import { Footer } from "@/components/wazeer/Footer";
 
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "Privacy Notice â€” Wazeer" },
+      { title: "Privacy Notice — Wazeer" },
       { name: "description", content: "How Wazeer collects, uses, and protects your personal data." },
-      { property: "og:title", content: "Privacy Notice â€” Wazeer" },
+      { property: "og:title", content: "Privacy Notice — Wazeer" },
       { property: "og:description", content: "How Wazeer collects, uses, and protects your personal data." },
     ],
   }),
@@ -55,19 +55,19 @@ function PrivacyPage() {
           <h2>4. Legal bases</h2>
           <p>We rely on the following legal bases under applicable data protection laws:</p>
           <ul>
-            <li><strong>Performance of a contract</strong> â€” to provide the service you signed up for.</li>
-            <li><strong>Legitimate interests</strong> â€” security, fraud prevention, product improvement.</li>
-            <li><strong>Consent</strong> â€” for optional analytics, marketing, and cookies where required.</li>
-            <li><strong>Legal obligation</strong> â€” tax, accounting, and regulatory compliance.</li>
+            <li><strong>Performance of a contract</strong> — to provide the service you signed up for.</li>
+            <li><strong>Legitimate interests</strong> — security, fraud prevention, product improvement.</li>
+            <li><strong>Consent</strong> — for optional analytics, marketing, and cookies where required.</li>
+            <li><strong>Legal obligation</strong> — tax, accounting, and regulatory compliance.</li>
           </ul>
 
           <h2>5. How we share your data</h2>
           <p>We share personal data only with:</p>
           <ul>
-            <li><strong>Service providers / subprocessors</strong> â€” hosting, database, AI inference, email delivery, analytics, and customer support tooling, all bound by contract.</li>
-            <li><strong>Merchant of Record (Paddle)</strong> â€” Paddle.com Market Limited acts as the reseller and Merchant of Record for all our orders. Paddle handles payments, billing, subscription management, sales tax, invoicing, and refunds. See <a href="https://www.paddle.com/legal/privacy" target="_blank" rel="noopener noreferrer">Paddle's privacy notice</a>.</li>
-            <li><strong>Professional advisers</strong> â€” legal, accounting, and audit firms, where necessary.</li>
-            <li><strong>Authorities</strong> â€” where required by law, court order, or to protect our rights.</li>
+            <li><strong>Service providers / subprocessors</strong> — hosting, database, AI inference, email delivery, analytics, and customer support tooling, all bound by contract.</li>
+            <li><strong>Merchant of Record (Paddle)</strong> — Paddle.com Market Limited acts as the reseller and Merchant of Record for all our orders. Paddle handles payments, billing, subscription management, sales tax, invoicing, and refunds. See <a href="https://www.paddle.com/legal/privacy" target="_blank" rel="noopener noreferrer">Paddle's privacy notice</a>.</li>
+            <li><strong>Professional advisers</strong> — legal, accounting, and audit firms, where necessary.</li>
+            <li><strong>Authorities</strong> — where required by law, court order, or to protect our rights.</li>
           </ul>
           <p>We do not sell your personal data.</p>
 

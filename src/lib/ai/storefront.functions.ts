@@ -1,4 +1,4 @@
-﻿import { createServerFn } from "@tanstack/react-start";
+import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { consumeCredits, refundCredits, requireEntitlement } from "@/lib/billing/guard.server";
@@ -21,19 +21,19 @@ function buildSectionMock(
   switch (section) {
     case "hero":
       return {
-        headline: `${brandName} â€” ${result}.`,
+        headline: `${brandName} — ${result}.`,
         sub: `Built for ${audience}. ${ctx.brand?.positioning || "Skip the marketing learning curve."}`,
         cta: "Get started",
       };
     case "benefits":
       return [
         { title: "Set up in minutes, not weeks", body: "From idea to ready-to-launch in a single workflow." },
-        { title: "Stays on-brand automatically", body: `Every asset matches ${brandName}'s tone and visuals â€” no manual tweaks.` },
+        { title: "Stays on-brand automatically", body: `Every asset matches ${brandName}'s tone and visuals — no manual tweaks.` },
         { title: "Always know your next move", body: "AI recommendations surface what's working and what to fix." },
       ];
     case "how_it_works":
       return [
-        { step: "Tell us about your business", body: "One short input â€” a description, link, or product photo â€” is all we need." },
+        { step: "Tell us about your business", body: "One short input — a description, link, or product photo — is all we need." },
         { step: "Wazeer builds the kit", body: "Storefront, content, ads, and emails drafted for your review in minutes." },
         { step: "Approve and launch", body: "Edit anything, then go live with one click." },
       ];
@@ -180,7 +180,7 @@ export const regenerateStorefrontSection = createServerFn({ method: "POST" })
       const userPrompt = `Brand: ${brand?.brand_name ?? biz?.name}
 Tone: ${brand?.tone ?? "confident"}
 Positioning: ${brand?.positioning ?? ""}
-Business: ${biz?.name} (${biz?.type}) â€” ${biz?.description}
+Business: ${biz?.name} (${biz?.type}) — ${biz?.description}
 Target: ${biz?.target_audience ?? ""}
 Desired result: ${biz?.desired_result ?? ""}
 Section to rewrite: ${data.section}

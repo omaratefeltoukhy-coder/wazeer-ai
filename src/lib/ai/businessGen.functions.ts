@@ -1,4 +1,4 @@
-﻿import { createServerFn } from "@tanstack/react-start";
+import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { consumeCredits, refundCredits, requireEntitlement } from "@/lib/billing/guard.server";
@@ -55,17 +55,17 @@ function buildMockKit(data: GenInput) {
   return {
     brand: {
       brand_name: brandName,
-      tone: "Confident, helpful, and approachable â€” premium without being stiff.",
+      tone: "Confident, helpful, and approachable — premium without being stiff.",
       visual_style: "Clean, modern SaaS with rounded cards, soft shadows, and gradient accents.",
       positioning: `${brandName} helps ${audience} ${result}, without needing a marketing team.`,
       colors: { primary: "#07111F", accent: "#10B981", background: "#F8FAFC" },
       audience: {
         persona: `Busy ${audience} who want results without the learning curve.`,
-        demographics: data.country ? `Adults 25â€“55, primarily in ${data.country}.` : "Adults 25â€“55, English-speaking markets.",
+        demographics: data.country ? `Adults 25–55, primarily in ${data.country}.` : "Adults 25–55, English-speaking markets.",
         psychographics: "Time-strapped, ambitious, prefers tools that ship work over tools that show dashboards.",
       },
       benefits: [
-        "Skip the setup â€” start selling on day one",
+        "Skip the setup — start selling on day one",
         "Stay on-brand without hiring a designer",
         "Know exactly what to do next every week",
       ],
@@ -77,7 +77,7 @@ function buildMockKit(data: GenInput) {
       ],
     },
     offer: {
-      name: `${brandName} â€” Launch Offer`,
+      name: `${brandName} — Launch Offer`,
       description: `A focused offer designed to ${goal} for ${audience}. Built around the outcome they actually pay for: ${result}.`,
       price,
       billing_interval: billing as "one_time" | "month" | "year",
@@ -93,11 +93,11 @@ function buildMockKit(data: GenInput) {
       benefits: [
         { title: "Set up in minutes, not weeks", body: "Wazeer builds your storefront, content, and growth plan from one input." },
         { title: "Stays on-brand automatically", body: `Every asset matches ${brandName}'s tone, colors, and audience without manual tweaks.` },
-        { title: "Always know your next move", body: "AI recommendations spotlight what's working and what to fix â€” no analyst needed." },
+        { title: "Always know your next move", body: "AI recommendations spotlight what's working and what to fix — no analyst needed." },
       ],
       how_it_works: [
-        { step: "Tell us about your business", body: `Describe what you sell â€” we already captured: ${data.description.slice(0, 140)}${data.description.length > 140 ? "â€¦" : ""}` },
-        { step: "Wazeer builds the kit", body: "Storefront, offer, content, ads, and emails â€” drafted for your review in minutes." },
+        { step: "Tell us about your business", body: `Describe what you sell — we already captured: ${data.description.slice(0, 140)}${data.description.length > 140 ? "…" : ""}` },
+        { step: "Wazeer builds the kit", body: "Storefront, offer, content, ads, and emails — drafted for your review in minutes." },
         { step: "Approve and launch", body: "Edit anything, then go live with one click. Performance dashboards and recommendations turn on automatically." },
       ],
       testimonials: [
@@ -120,7 +120,7 @@ function buildMockKit(data: GenInput) {
       {
         category: "storefront",
         title: "Publish your storefront",
-        problem: "Your storefront is in draft mode â€” no one can see it yet.",
+        problem: "Your storefront is in draft mode — no one can see it yet.",
         recommendation: "Review the AI-generated copy, replace one or two lines with your own voice, and publish.",
         priority: "high" as const,
       },
@@ -328,7 +328,7 @@ Language: ${data.language}`;
         kit = typeof args === "string" ? JSON.parse(args) : args;
       } catch (err) {
         // Provider call failed mid-flight (network, parse, etc). Refund and
-        // surface the error â€” falling back to mock here would hide real
+        // surface the error — falling back to mock here would hide real
         // outages from operators.
         await refundCredits(data.workspace_id, "business_generation", { business_id: businessId });
         await supabase.from("businesses").update({ status: "failed", generation_log_json: { provider, error: err instanceof Error ? err.message : String(err) } }).eq("id", businessId);
@@ -398,7 +398,7 @@ Language: ${data.language}`;
       .update({
         status: "ready",
         generation_log_json: provider === "mock"
-          ? { provider: "mock", note: "LOVABLE_API_KEY not set â€” content is templated." }
+          ? { provider: "mock", note: "LOVABLE_API_KEY not set — content is templated." }
           : { provider: "lovable_ai", model: "google/gemini-2.5-flash" },
       })
       .eq("id", businessId);

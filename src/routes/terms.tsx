@@ -1,13 +1,13 @@
-﻿import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Navbar } from "@/components/wazeer/Navbar";
 import { Footer } from "@/components/wazeer/Footer";
 
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "Terms & Conditions â€” Wazeer" },
+      { title: "Terms & Conditions — Wazeer" },
       { name: "description", content: "The terms governing your use of Wazeer." },
-      { property: "og:title", content: "Terms & Conditions â€” Wazeer" },
+      { property: "og:title", content: "Terms & Conditions — Wazeer" },
       { property: "og:description", content: "The terms governing your use of Wazeer." },
     ],
   }),

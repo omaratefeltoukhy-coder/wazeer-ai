@@ -1,8 +1,8 @@
-﻿import { Lightbulb, Wand2, Rocket, TrendingUp } from "lucide-react";
+import { Lightbulb, Wand2, Rocket, TrendingUp } from "lucide-react";
 
 const steps = [
   { icon: Lightbulb, title: "Share your idea", desc: "Upload a photo, paste a link, or write one sentence about what you sell." },
-  { icon: Wand2, title: "AI builds your business", desc: "Offer, storefront, images, UGC videos, emails, posts, and ads â€” drafted for you." },
+  { icon: Wand2, title: "AI builds your business", desc: "Offer, storefront, images, UGC videos, emails, posts, and ads — drafted for you." },
   { icon: Rocket, title: "Approve & launch", desc: "Review everything, connect Meta and email, then launch with one click." },
   { icon: TrendingUp, title: "Grow on autopilot", desc: "Live dashboards and AI recommendations tell you exactly what to do next." },
 ];

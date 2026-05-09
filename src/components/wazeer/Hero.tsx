@@ -1,4 +1,4 @@
-﻿import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, Upload, Camera, Wand2, ShoppingBag, Video, Mail, Megaphone, BarChart3, X } from "lucide-react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
@@ -82,7 +82,7 @@ export function Hero() {
             Turn one idea into a <span className="text-gradient">selling system.</span>
           </h1>
           <p className="mt-5 text-lg text-muted-foreground">
-            Wazeer drafts your offer, storefront, images, videos, emails, Meta posts, ads, and growth dashboard â€” from one simple input.
+            Wazeer drafts your offer, storefront, images, videos, emails, Meta posts, ads, and growth dashboard — from one simple input.
           </p>
         </div>
 
@@ -96,7 +96,7 @@ export function Hero() {
               <textarea
                 value={idea}
                 onChange={(e) => setIdea(e.target.value)}
-                placeholder="e.g. I sell handmade candles in Dubaiâ€¦"
+                placeholder="e.g. I sell handmade candles in Dubai…"
                 rows={3}
                 className="mt-2 w-full resize-none rounded-xl border bg-background px-4 py-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
@@ -147,7 +147,7 @@ export function Hero() {
 
           <div className="mt-4 flex items-center justify-center gap-3 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-emerald-brand" /> Free 7-day trial</span>
-            <span>Â·</span>
+            <span>·</span>
             <span>No credit card needed</span>
           </div>
         </div>
