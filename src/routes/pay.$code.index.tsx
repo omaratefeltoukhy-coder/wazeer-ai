@@ -71,6 +71,7 @@ function PayPage() {
           buyer_email: email,
           buyer_name: name,
           buyer_phone: phone || undefined,
+          return_url: `${window.location.origin}/pay/${code}/thanks`,
         },
       });
       // Redirect to Paddle's hosted checkout.
