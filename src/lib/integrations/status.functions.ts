@@ -14,6 +14,7 @@ export type IntegrationStatus = {
 };
 
 export const checkIntegrations = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
   .handler(async () => {
     const results: IntegrationStatus[] = [];
 
