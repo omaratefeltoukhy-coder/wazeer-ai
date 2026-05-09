@@ -79,11 +79,11 @@ function NewProductPage() {
 
   const uploadCover = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !userId) return;
+    if (!file || !userId || !workspaceId) return;
     setCoverUploading(true);
     try {
       const ext = file.name.split(".").pop() ?? "jpg";
-      const path = `${userId}/${crypto.randomUUID()}.${ext}`;
+      const path = `${workspaceId}/${crypto.randomUUID()}.${ext}`;
       const { error } = await supabase.storage.from("product-covers").upload(path, file, { upsert: false, contentType: file.type });
       if (error) throw error;
       const { data } = supabase.storage.from("product-covers").getPublicUrl(path);

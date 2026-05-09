@@ -65,38 +65,10 @@ CREATE POLICY "workspace members view profiles"
 -- 4) Storage — product-covers: scope by workspace membership, not uploader UID
 --    Lovable: "Product-cover storage policies scope by uploader UID folder,
 --    not workspace membership"
---
---    We add a workspace_id column to storage.objects via metadata_json, and
---    create a SECURITY DEFINER helper that checks workspace membership.
---    For now, we restrict to authenticated + workspace_member via a helper.
 -- =============================================================================
 
--- Helper: check if the current user is a member of the workspace that owns a product
-CREATE OR REPLACE FUNCTION public.can_access_product_cover(product_id uuid)
-RETURNS boolean
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM public.products p
-    JOIN public.businesses b ON b.id = p.business_id
-    JOIN public.workspace_members wm ON wm.workspace_id = b.workspace_id
-    WHERE p.id = product_id AND wm.user_id = auth.uid()
-  );
-$$;
-
-REVOKE ALL ON FUNCTION public.can_access_product_cover(uuid) FROM PUBLIC, anon, authenticated;
-
--- Since storage policies can't easily call complex joins, we restrict to:
--- SELECT: public bucket, so public read is fine (CDN serves directly)
--- INSERT/UPDATE/DELETE: require authenticated + the object path contains a product_id
---                        that the user can access via the helper above.
---
--- For simplicity and security, we change the policies to:
--- - INSERT: authenticated users who are workspace members (via helper)
--- - UPDATE/DELETE: same
+-- The upload path format is changed from `user_id/filename` to `workspace_id/filename`
+-- so we can verify workspace membership directly from the path.
 
 DROP POLICY IF EXISTS "Authenticated upload product covers" ON storage.objects;
 DROP POLICY IF EXISTS "Owners update product covers" ON storage.objects;
@@ -107,8 +79,9 @@ CREATE POLICY "workspace members insert product covers"
   TO authenticated
   WITH CHECK (
     bucket_id = 'product-covers'
-    AND public.can_access_product_cover(
-      (storage.foldername(name))[2]::uuid
+    AND public.is_workspace_member(
+      (storage.foldername(name))[1]::uuid,
+      auth.uid()
     )
   );
 
@@ -117,8 +90,9 @@ CREATE POLICY "workspace members update product covers"
   TO authenticated
   USING (
     bucket_id = 'product-covers'
-    AND public.can_access_product_cover(
-      (storage.foldername(name))[2]::uuid
+    AND public.is_workspace_member(
+      (storage.foldername(name))[1]::uuid,
+      auth.uid()
     )
   );
 
@@ -127,7 +101,8 @@ CREATE POLICY "workspace members delete product covers"
   TO authenticated
   USING (
     bucket_id = 'product-covers'
-    AND public.can_access_product_cover(
-      (storage.foldername(name))[2]::uuid
+    AND public.is_workspace_member(
+      (storage.foldername(name))[1]::uuid,
+      auth.uid()
     )
   );
