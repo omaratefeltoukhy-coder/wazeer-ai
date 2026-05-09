@@ -18,8 +18,8 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UnsubscribeTokenRouteImport } from './routes/unsubscribe.$token'
 import { Route as SSlugRouteImport } from './routes/s.$slug'
-import { Route as PayCodeRouteImport } from './routes/pay.$code'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as PayCodeIndexRouteImport } from './routes/pay.$code.index'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
 import { Route as ApiPublicBillingWebhookRouteImport } from './routes/api/public/billing-webhook'
 import { Route as AuthenticatedDashboardVideosRouteImport } from './routes/_authenticated/dashboard.videos'
@@ -117,15 +117,15 @@ const SSlugRoute = SSlugRouteImport.update({
   path: '/s/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PayCodeRoute = PayCodeRouteImport.update({
-  id: '/pay/$code',
-  path: '/pay/$code',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
+} as any)
+const PayCodeIndexRoute = PayCodeIndexRouteImport.update({
+  id: '/pay/$code/',
+  path: '/pay/$code/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedDashboardIndexRoute =
   AuthenticatedDashboardIndexRouteImport.update({
@@ -447,7 +447,6 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
   '/dashboard': typeof AuthenticatedDashboardRouteWithChildren
-  '/pay/$code': typeof PayCodeRoute
   '/s/$slug': typeof SSlugRoute
   '/unsubscribe/$token': typeof UnsubscribeTokenRoute
   '/dashboard/ads': typeof AuthenticatedDashboardAdsRouteWithChildren
@@ -472,6 +471,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/videos': typeof AuthenticatedDashboardVideosRouteWithChildren
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/pay/$code/': typeof PayCodeIndexRoute
   '/dashboard/ads/$id': typeof AuthenticatedDashboardAdsIdRoute
   '/dashboard/ads/new': typeof AuthenticatedDashboardAdsNewRoute
   '/dashboard/analytics/$businessId': typeof AuthenticatedDashboardAnalyticsBusinessIdRoute
@@ -510,7 +510,6 @@ export interface FileRoutesByTo {
   '/refunds': typeof RefundsRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
-  '/pay/$code': typeof PayCodeRoute
   '/s/$slug': typeof SSlugRoute
   '/unsubscribe/$token': typeof UnsubscribeTokenRoute
   '/dashboard/analytics': typeof AuthenticatedDashboardAnalyticsRouteWithChildren
@@ -531,6 +530,7 @@ export interface FileRoutesByTo {
   '/dashboard/videos': typeof AuthenticatedDashboardVideosRouteWithChildren
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
+  '/pay/$code': typeof PayCodeIndexRoute
   '/dashboard/ads/$id': typeof AuthenticatedDashboardAdsIdRoute
   '/dashboard/ads/new': typeof AuthenticatedDashboardAdsNewRoute
   '/dashboard/analytics/$businessId': typeof AuthenticatedDashboardAnalyticsBusinessIdRoute
@@ -570,7 +570,6 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteWithChildren
-  '/pay/$code': typeof PayCodeRoute
   '/s/$slug': typeof SSlugRoute
   '/unsubscribe/$token': typeof UnsubscribeTokenRoute
   '/_authenticated/dashboard/ads': typeof AuthenticatedDashboardAdsRouteWithChildren
@@ -595,6 +594,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/videos': typeof AuthenticatedDashboardVideosRouteWithChildren
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/pay/$code/': typeof PayCodeIndexRoute
   '/_authenticated/dashboard/ads/$id': typeof AuthenticatedDashboardAdsIdRoute
   '/_authenticated/dashboard/ads/new': typeof AuthenticatedDashboardAdsNewRoute
   '/_authenticated/dashboard/analytics/$businessId': typeof AuthenticatedDashboardAnalyticsBusinessIdRoute
@@ -636,7 +636,6 @@ export interface FileRouteTypes {
     | '/signup'
     | '/terms'
     | '/dashboard'
-    | '/pay/$code'
     | '/s/$slug'
     | '/unsubscribe/$token'
     | '/dashboard/ads'
@@ -661,6 +660,7 @@ export interface FileRouteTypes {
     | '/dashboard/videos'
     | '/api/public/billing-webhook'
     | '/dashboard/'
+    | '/pay/$code/'
     | '/dashboard/ads/$id'
     | '/dashboard/ads/new'
     | '/dashboard/analytics/$businessId'
@@ -699,7 +699,6 @@ export interface FileRouteTypes {
     | '/refunds'
     | '/signup'
     | '/terms'
-    | '/pay/$code'
     | '/s/$slug'
     | '/unsubscribe/$token'
     | '/dashboard/analytics'
@@ -720,6 +719,7 @@ export interface FileRouteTypes {
     | '/dashboard/videos'
     | '/api/public/billing-webhook'
     | '/dashboard'
+    | '/pay/$code'
     | '/dashboard/ads/$id'
     | '/dashboard/ads/new'
     | '/dashboard/analytics/$businessId'
@@ -758,7 +758,6 @@ export interface FileRouteTypes {
     | '/signup'
     | '/terms'
     | '/_authenticated/dashboard'
-    | '/pay/$code'
     | '/s/$slug'
     | '/unsubscribe/$token'
     | '/_authenticated/dashboard/ads'
@@ -783,6 +782,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/videos'
     | '/api/public/billing-webhook'
     | '/_authenticated/dashboard/'
+    | '/pay/$code/'
     | '/_authenticated/dashboard/ads/$id'
     | '/_authenticated/dashboard/ads/new'
     | '/_authenticated/dashboard/analytics/$businessId'
@@ -823,10 +823,10 @@ export interface RootRouteChildren {
   RefundsRoute: typeof RefundsRoute
   SignupRoute: typeof SignupRoute
   TermsRoute: typeof TermsRoute
-  PayCodeRoute: typeof PayCodeRoute
   SSlugRoute: typeof SSlugRoute
   UnsubscribeTokenRoute: typeof UnsubscribeTokenRoute
   ApiPublicBillingWebhookRoute: typeof ApiPublicBillingWebhookRoute
+  PayCodeIndexRoute: typeof PayCodeIndexRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
@@ -896,19 +896,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/pay/$code': {
-      id: '/pay/$code'
-      path: '/pay/$code'
-      fullPath: '/pay/$code'
-      preLoaderRoute: typeof PayCodeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/pay/$code/': {
+      id: '/pay/$code/'
+      path: '/pay/$code'
+      fullPath: '/pay/$code/'
+      preLoaderRoute: typeof PayCodeIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/dashboard/': {
       id: '/_authenticated/dashboard/'
@@ -1625,13 +1625,23 @@ const rootRouteChildren: RootRouteChildren = {
   RefundsRoute: RefundsRoute,
   SignupRoute: SignupRoute,
   TermsRoute: TermsRoute,
-  PayCodeRoute: PayCodeRoute,
   SSlugRoute: SSlugRoute,
   UnsubscribeTokenRoute: UnsubscribeTokenRoute,
   ApiPublicBillingWebhookRoute: ApiPublicBillingWebhookRoute,
+  PayCodeIndexRoute: PayCodeIndexRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
