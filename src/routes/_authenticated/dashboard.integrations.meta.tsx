@@ -229,14 +229,19 @@ function IntegrationsMetaPage() {
       )}
 
       <Card className="p-4 text-sm text-muted-foreground space-y-2">
-        <p className="font-medium text-foreground">Webhook Bridge (Recommended — no business verification)</p>
-        <p>Set <code className="px-1 bg-muted rounded">META_WEBHOOK_URL</code> to a Zapier or Make.com webhook. Wazeer will POST post data there, and Zapier publishes to Facebook/Instagram using their verified Meta app.</p>
+        <p className="font-medium text-foreground">Ayrshare Bridge (Recommended — no business verification)</p>
+        <p>Easiest plug-and-play. Connect Facebook/Instagram in Ayrshare dashboard, add your API key, and Wazeer posts directly.</p>
+        <ul className="list-disc list-inside text-xs space-y-0.5">
+          <li><code className="px-1 bg-muted rounded">AYRSHARE_API_KEY</code> — from <a href="https://www.ayrshare.com" target="_blank" rel="noreferrer" className="underline">ayrshare.com</a></li>
+        </ul>
+        <p className="font-medium text-foreground mt-2">Webhook Bridge (Zapier/Make)</p>
+        <p>Set <code className="px-1 bg-muted rounded">META_WEBHOOK_URL</code> to a Zapier or Make.com webhook.</p>
         <p className="font-medium text-foreground mt-2">Direct Meta API (Requires business verification)</p>
         <ul className="list-disc list-inside text-xs space-y-0.5">
           <li><code className="px-1 bg-muted rounded">META_APP_ID</code></li>
           <li><code className="px-1 bg-muted rounded">META_APP_SECRET</code></li>
           <li><code className="px-1 bg-muted rounded">META_REDIRECT_URI</code></li>
-          <li><code className="px-1 bg-muted rounded">META_TOKEN_ENCRYPTION_KEY</code> (32+ chars)</li>
+          <li><code className="px-1 bg-muted rounded">META_TOKEN_ENCRYPTION_KEY</code></li>
         </ul>
         <div className="mt-2"><Link to="/dashboard/posts" search={{ idea: "" }} className="underline">Go to Meta Posts →</Link></div>
       </Card>

@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { consumeCredits, refundCredits, requireEntitlement } from "@/lib/billing/guard.server";
 import { callAI } from "@/lib/ai/gateway";
+import { publishViaAyrshare } from "@/lib/integrations/ayrshare.server";
 
 export const POST_TYPES = ["feed", "reel", "story", "carousel", "announcement", "educational", "offer", "testimonial", "ugc", "founder_story"] as const;
 export const PLATFORMS = ["facebook", "instagram"] as const;
@@ -326,7 +327,38 @@ export const publishMetaPost = createServerFn({ method: "POST" })
     const message = [caption, hashtags, cta].filter(Boolean).join("\n\n");
     const mediaUrl = await fetchMediaUrl(context.supabase, (post as any).media_asset_id);
 
-    // Option 1: Webhook bridge (Zapier/Make) — no Meta business verification needed
+    // Option 1: Ayrshare bridge — plug-and-play, no business verification
+    const ayrshareKey = process.env.AYRSHARE_API_KEY;
+    if (ayrshareKey) {
+      try {
+        const result = await publishViaAyrshare({
+          text: message,
+          platforms: [platform],
+          mediaUrl,
+        });
+        await context.supabase.from("meta_posts").update({
+          status: "published",
+          external_post_id: result.id,
+          published_at: new Date().toISOString(),
+          error_message: null,
+        } as any).eq("id", data.post_id);
+
+        await supabaseAdmin.from("audit_logs").insert({
+          workspace_id: ws_id, business_id: (post as any).business_id, user_id: context.userId,
+          action: "publish_meta_post", entity: "meta_post", entity_id: data.post_id,
+          metadata_json: { platform, mode: "ayrshare", external_post_id: result.id } as never,
+        });
+        return { ok: true, mode: "ayrshare" as const, external_post_id: result.id };
+      } catch (err: any) {
+        const errMsg = err?.message || "Ayrshare publishing failed";
+        await context.supabase.from("meta_posts").update({
+          status: "failed", error_message: errMsg,
+        } as any).eq("id", data.post_id);
+        throw new Error(errMsg);
+      }
+    }
+
+    // Option 2: Webhook bridge (Zapier/Make)
     const webhookUrl = process.env.META_WEBHOOK_URL;
     if (webhookUrl) {
       const webhookRes = await fetch(webhookUrl, {
