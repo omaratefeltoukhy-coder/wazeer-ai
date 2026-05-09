@@ -201,6 +201,13 @@ function AuthenticatedLayout() {
         </header>
 
         <main className="flex-1 min-w-0">
+          {showBack && (
+            <div className="px-4 sm:px-6 lg:px-10 pt-4">
+              <Button variant="ghost" size="sm" onClick={handleBack} className="-ml-2 text-muted-foreground hover:text-foreground">
+                <ArrowLeft className="h-4 w-4" /> Back
+              </Button>
+            </div>
+          )}
           <Outlet />
         </main>
       </div>
