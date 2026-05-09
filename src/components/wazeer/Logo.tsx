@@ -6,7 +6,7 @@ export function Logo({ className = "" }: { className?: string }) {
         <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-emerald-brand animate-pulse-ring" />
       </div>
       <span className="font-semibold text-lg tracking-tight">
-        Wazeer <span className="text-gradient">AI</span>
+        Wazeer
       </span>
     </div>
   );
