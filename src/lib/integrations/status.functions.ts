@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { callAI } from "@/lib/ai/gateway";
 
 export type IntegrationStatus = {
@@ -13,6 +14,7 @@ export type IntegrationStatus = {
 };
 
 export const checkIntegrations = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
   .handler(async () => {
     const results: IntegrationStatus[] = [];
 

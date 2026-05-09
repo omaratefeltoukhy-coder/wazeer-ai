@@ -5,7 +5,13 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export const resolvePaddlePrice = createServerFn({ method: "GET" })
-  .inputValidator((data: { priceId: string; environment: PaddleEnv }) => data)
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({
+      priceId: z.string().min(1).max(200),
+      environment: z.enum(["sandbox", "live"]),
+    }).parse(data)
+  )
   .handler(async ({ data }) => {
     try {
       const response = await gatewayFetch(
