@@ -3,7 +3,8 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { consumeCredits, refundCredits, requireEntitlement } from "@/lib/billing/guard.server";
-import { callAI } from "@/lib/ai/gateway";
+import { callAITool } from "@/lib/ai/gateway";
+import { loadWorkspaceId, loadBrandContext } from "@/lib/server/context";
 import { publishViaAyrshare } from "@/lib/integrations/ayrshare.server";
 
 export const POST_TYPES = ["feed", "reel", "story", "carousel", "announcement", "educational", "offer", "testimonial", "ugc", "founder_story"] as const;
@@ -31,32 +32,6 @@ const PostSchema = {
   },
 } as const;
 
-async function loadWs(supabase: any, business_id: string): Promise<string> {
-  const { data } = await supabase.from("businesses").select("workspace_id").eq("id", business_id).maybeSingle();
-  if (!data) throw new Error("Business not found");
-  return (data as any).workspace_id;
-}
-
-async function loadCtx(supabase: any, business_id: string) {
-  const [{ data: biz }, { data: brand }, { data: offer }] = await Promise.all([
-    supabase.from("businesses").select("name, type, description, target_audience, desired_result, pain_point, currency").eq("id", business_id).maybeSingle(),
-    supabase.from("brand_profiles").select("brand_name, tone, positioning, audience_json, benefits_json").eq("business_id", business_id).maybeSingle(),
-    supabase.from("offers").select("name, description, price, currency").eq("business_id", business_id).maybeSingle(),
-  ]);
-  return { biz, brand, offer };
-}
-
-async function callPostsAI(messages: any[], tool: any, toolName: string) {
-  const aiRes = await callAI({
-    messages,
-    tools: [tool as any],
-    toolChoice: { type: "function", function: { name: toolName } },
-  });
-  const args = aiRes.toolCalls?.[0]?.function?.arguments;
-  if (!args) throw new Error("AI returned no structured output");
-  return typeof args === "string" ? JSON.parse(args) : args;
-}
-
 export const generateMetaPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) => z.object({
@@ -67,11 +42,11 @@ export const generateMetaPost = createServerFn({ method: "POST" })
     brief: z.string().max(500).optional().default(""),
   }).parse(i))
   .handler(async ({ data, context }) => {
-    const ws_id = await loadWs(context.supabase, data.business_id);
+    const ws_id = await loadWorkspaceId(context.supabase, data.business_id);
     await requireEntitlement(ws_id, "meta_posts");
     await consumeCredits(ws_id, "meta_post", { business_id: data.business_id, post_type: data.post_type });
     try {
-      const { biz, brand, offer } = await loadCtx(context.supabase, data.business_id);
+      const { biz, brand, offer } = await loadBrandContext(context.supabase, data.business_id);
       const tool = { type: "function" as const, function: { name: "write_post", description: "Write one social post.", parameters: PostSchema as any } };
       const sys = `You are Wazeer. Write ONE ${data.platform} ${data.post_type} post. Reply via tool. ${SAFETY}`;
       const user = `Brand: ${brand?.brand_name ?? biz?.name} | Tone: ${brand?.tone ?? "warm"}
@@ -80,7 +55,7 @@ Business: ${biz?.name} (${biz?.type}) — ${biz?.description ?? ""}
 Audience: ${biz?.target_audience ?? ""}
 Offer: ${offer?.name ?? "—"} — ${offer?.description ?? ""}
 Brief: ${data.brief || "(none)"}`;
-      const parsed = await callPostsAI([{ role: "system", content: sys }, { role: "user", content: user }], tool, "write_post");
+      const parsed = await callAITool([{ role: "system", content: sys }, { role: "user", content: user }], tool, "write_post");
 
       const { data: row, error } = await context.supabase.from("meta_posts").insert({
         business_id: data.business_id,
@@ -153,7 +128,7 @@ export const approveMetaPost = createServerFn({ method: "POST" })
     try {
       const { data: post } = await context.supabase.from("meta_posts").select("id, business_id").eq("id", data.post_id).maybeSingle();
       if (!post) throw new Error("Post not found");
-      const ws_id = await loadWs(context.supabase, (post as any).business_id);
+      const ws_id = await loadWorkspaceId(context.supabase, (post as any).business_id);
       const { error } = await context.supabase.from("meta_posts").update({
         approval_status: "approved", approved_at: new Date().toISOString(), approved_by: context.userId,
       } as any).eq("id", data.post_id);
@@ -338,7 +313,7 @@ export const publishMetaPost = createServerFn({ method: "POST" })
     if ((post as any).approval_status !== "approved") {
       throw new Error("Approval required. Approve the post before publishing.");
     }
-    const ws_id = await loadWs(context.supabase, (post as any).business_id);
+    const ws_id = await loadWorkspaceId(context.supabase, (post as any).business_id);
     const platform = (post as any).platform as "facebook" | "instagram";
 
     const caption = (post as any).caption ?? "";

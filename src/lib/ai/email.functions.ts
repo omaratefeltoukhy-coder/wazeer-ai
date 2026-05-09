@@ -3,7 +3,8 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { consumeCredits, refundCredits, requireEntitlement, checkUsageCap, incrementUsage } from "@/lib/billing/guard.server";
-import { callAI } from "@/lib/ai/gateway";
+import { callAITool } from "@/lib/ai/gateway";
+import { loadWorkspaceId, loadBrandContext } from "@/lib/server/context";
 import {
   sendEmailViaResend,
   sendEmailBatchViaResend,
@@ -80,32 +81,6 @@ const SingleEmailSchema = {
   properties: SequenceSchema.properties.emails.items.properties,
 } as const;
 
-async function callEmailAI(messages: any[], tool: any, toolName: string) {
-  const aiRes = await callAI({
-    messages,
-    tools: [tool as any],
-    toolChoice: { type: "function", function: { name: toolName } },
-  });
-  const args = aiRes.toolCalls?.[0]?.function?.arguments;
-  if (!args) throw new Error("AI returned no structured output");
-  return typeof args === "string" ? JSON.parse(args) : args;
-}
-
-async function loadWorkspaceId(supabase: any, business_id: string): Promise<string> {
-  const { data, error } = await supabase.from("businesses").select("workspace_id").eq("id", business_id).maybeSingle();
-  if (error || !data) throw new Error(error?.message || "Business not found");
-  return data.workspace_id as string;
-}
-
-async function loadContext(supabase: any, business_id: string) {
-  const [{ data: biz }, { data: brand }, { data: offer }] = await Promise.all([
-    supabase.from("businesses").select("name, type, description, target_audience, desired_result, pain_point, currency").eq("id", business_id).maybeSingle(),
-    supabase.from("brand_profiles").select("brand_name, tone, positioning, audience_json, benefits_json, pain_points_json, objections_json").eq("business_id", business_id).maybeSingle(),
-    supabase.from("offers").select("name, description, price, currency, billing_interval, free_trial_days").eq("business_id", business_id).maybeSingle(),
-  ]);
-  return { biz, brand, offer };
-}
-
 async function audit(supabase: any, business_id: string, action: string, entity: string, entity_id: string | null, metadata: Record<string, unknown> = {}) {
   const ws_id = await loadWorkspaceId(supabase, business_id);
   const { data: { user } } = await supabase.auth.getUser();
@@ -131,7 +106,7 @@ export const generateEmailCampaign = createServerFn({ method: "POST" })
     await consumeCredits(ws_id, "email_campaign", { business_id: data.business_id, type: data.type });
 
     try {
-      const { biz, brand, offer } = await loadContext(context.supabase, data.business_id);
+      const { biz, brand, offer } = await loadBrandContext(context.supabase, data.business_id);
       const tool = {
         type: "function" as const,
         function: { name: "write_sequence", description: "Write an email sequence.", parameters: SequenceSchema as any },
@@ -153,7 +128,7 @@ Trial days: ${offer?.free_trial_days ?? 0}
 Campaign type: ${CAMPAIGN_LABEL[data.type]}
 Length: ${data.length} emails`;
 
-      const parsed = await callEmailAI(
+      const parsed = await callAITool(
         [{ role: "system", content: sys }, { role: "user", content: user }],
         tool, "write_sequence",
       );
@@ -209,14 +184,14 @@ export const regenerateEmailMessage = createServerFn({ method: "POST" })
     await requireEntitlement(ws_id, "email_campaigns");
     await consumeCredits(ws_id, "email_regenerate", { message_id: msg.id });
     try {
-      const { biz, brand, offer } = await loadContext(context.supabase, msg.business_id as string);
+      const { biz, brand, offer } = await loadBrandContext(context.supabase, msg.business_id as string);
       const tool = { type: "function" as const, function: { name: "rewrite_email", description: "Rewrite a single email.", parameters: SingleEmailSchema as any } };
       const sys = `You are Wazeer. Rewrite ONE email keeping its goal & send_delay. Reply via tool. ${SAFETY_RAILS}`;
       const user = `Brand: ${brand?.brand_name ?? biz?.name} | Tone: ${brand?.tone ?? "warm"}
 Offer: ${offer?.name ?? "—"} — ${offer?.description ?? ""}
 Existing email: ${JSON.stringify(msg)}
 Brief: ${data.brief || "(none)"}`;
-      const parsed = await callEmailAI([{ role: "system", content: sys }, { role: "user", content: user }], tool, "rewrite_email");
+      const parsed = await callAITool([{ role: "system", content: sys }, { role: "user", content: user }], tool, "rewrite_email");
       const { error: upErr } = await context.supabase.from("email_messages").update({
         name: parsed.name, goal: parsed.goal,
         subject_line: parsed.subject_line, preview_text: parsed.preview_text,

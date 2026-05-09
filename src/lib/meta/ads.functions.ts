@@ -3,7 +3,8 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { consumeCredits, refundCredits, requireEntitlement } from "@/lib/billing/guard.server";
-import { callAI } from "@/lib/ai/gateway";
+import { callAITool } from "@/lib/ai/gateway";
+import { loadWorkspaceId, loadBrandContext } from "@/lib/server/context";
 
 export const AD_GOALS = ["sales", "leads", "website_traffic", "messages", "awareness", "subscriptions"] as const;
 export const AUDIENCE_KINDS = ["ai_recommended", "local", "interest", "retargeting", "lookalike"] as const;
@@ -28,33 +29,6 @@ const AdCopySchema = {
   },
 } as const;
 
-async function loadWs(supabase: any, business_id: string): Promise<string> {
-  const { data } = await supabase.from("businesses").select("workspace_id").eq("id", business_id).maybeSingle();
-  if (!data) throw new Error("Business not found");
-  return (data as any).workspace_id;
-}
-
-async function loadCtx(supabase: any, business_id: string) {
-  const [{ data: biz }, { data: brand }, { data: offer }, { data: sf }] = await Promise.all([
-    supabase.from("businesses").select("name, type, description, target_audience, desired_result, pain_point, currency, country").eq("id", business_id).maybeSingle(),
-    supabase.from("brand_profiles").select("brand_name, tone, positioning, audience_json, benefits_json").eq("business_id", business_id).maybeSingle(),
-    supabase.from("offers").select("id, name, description, price, currency").eq("business_id", business_id).maybeSingle(),
-    supabase.from("storefronts").select("slug").eq("business_id", business_id).maybeSingle(),
-  ]);
-  return { biz, brand, offer, sf };
-}
-
-async function callAdsAI(messages: any[], tool: any, toolName: string) {
-  const aiRes = await callAI({
-    messages,
-    tools: [tool as any],
-    toolChoice: { type: "function", function: { name: toolName } },
-  });
-  const args = aiRes.toolCalls?.[0]?.function?.arguments;
-  if (!args) throw new Error("AI returned no structured output");
-  return typeof args === "string" ? JSON.parse(args) : args;
-}
-
 export const generateMetaAdCopy = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) => z.object({
@@ -68,11 +42,11 @@ export const generateMetaAdCopy = createServerFn({ method: "POST" })
     brief: z.string().max(500).optional().default(""),
   }).parse(i))
   .handler(async ({ data, context }) => {
-    const ws_id = await loadWs(context.supabase, data.business_id);
+    const ws_id = await loadWorkspaceId(context.supabase, data.business_id);
     await requireEntitlement(ws_id, "meta_ads");
     await consumeCredits(ws_id, "meta_ad", { business_id: data.business_id, goal: data.goal });
     try {
-      const { biz, brand, offer, sf } = await loadCtx(context.supabase, data.business_id);
+      const { biz, brand, offer, storefront } = await loadBrandContext(context.supabase, data.business_id);
       const tool = { type: "function" as const, function: { name: "write_ad", description: "Write Meta ad copy.", parameters: AdCopySchema as any } };
       const sys = `You are Wazeer, a senior Meta media buyer. Write compliant ad copy. Reply via tool. ${SAFETY}`;
       const user = `Brand: ${brand?.brand_name ?? biz?.name} | Tone: ${brand?.tone ?? "warm"}
@@ -81,9 +55,9 @@ Audience: ${biz?.target_audience ?? ""} | Country: ${biz?.country ?? ""}
 Offer: ${offer?.name ?? "—"} — ${offer?.description ?? ""} (${offer?.price ?? ""} ${offer?.currency ?? ""})
 Goal: ${data.goal} | Audience kind: ${data.audience_kind}
 Daily budget: $${data.daily_budget} | Duration: ${data.duration_days} days
-Storefront slug: ${sf?.slug ?? "—"}
+Storefront slug: ${storefront?.slug ?? "—"}
 Brief: ${data.brief || "(none)"}`;
-      const parsed = await callAdsAI([{ role: "system", content: sys }, { role: "user", content: user }], tool, "write_ad");
+      const parsed = await callAITool([{ role: "system", content: sys }, { role: "user", content: user }], tool, "write_ad");
       return { ok: true, copy: parsed };
     } catch (err) {
       await refundCredits(ws_id, "meta_ad", { business_id: data.business_id });
@@ -106,7 +80,7 @@ export const createMetaCampaign = createServerFn({ method: "POST" })
   }).parse(i))
   .handler(async ({ data, context }) => {
     try {
-      const ws_id = await loadWs(context.supabase, data.business_id);
+      const ws_id = await loadWorkspaceId(context.supabase, data.business_id);
       const isDemo = (process.env.META_MODE ?? "demo") === "demo";
 
       const { data: camp, error: cErr } = await context.supabase.from("meta_campaigns").insert({
@@ -181,7 +155,7 @@ export const pauseMetaCampaign = createServerFn({ method: "POST" })
     try {
       const { data: camp } = await context.supabase.from("meta_campaigns").select("id, business_id").eq("id", data.campaign_id).maybeSingle();
       if (!camp) throw new Error("Campaign not found");
-      const ws_id = await loadWs(context.supabase, (camp as any).business_id);
+      const ws_id = await loadWorkspaceId(context.supabase, (camp as any).business_id);
       const { error } = await context.supabase.from("meta_campaigns").update({
         status: data.pause ? "paused" : "active",
       } as any).eq("id", data.campaign_id);
@@ -209,7 +183,7 @@ export const updateMetaBudget = createServerFn({ method: "POST" })
     try {
       const { data: camp } = await context.supabase.from("meta_campaigns").select("id, business_id, daily_budget").eq("id", data.campaign_id).maybeSingle();
       if (!camp) throw new Error("Campaign not found");
-      const ws_id = await loadWs(context.supabase, (camp as any).business_id);
+      const ws_id = await loadWorkspaceId(context.supabase, (camp as any).business_id);
       const { error } = await context.supabase.from("meta_campaigns").update({
         daily_budget: data.daily_budget, budget: data.daily_budget,
       } as any).eq("id", data.campaign_id);
@@ -235,18 +209,18 @@ export const regenerateAdCreative = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: ad } = await context.supabase.from("meta_ads").select("id, business_id, copy_json, campaign_id").eq("id", data.ad_id).maybeSingle();
     if (!ad) throw new Error("Ad not found");
-    const ws_id = await loadWs(context.supabase, (ad as any).business_id);
+    const ws_id = await loadWorkspaceId(context.supabase, (ad as any).business_id);
     await requireEntitlement(ws_id, "meta_ads");
     await consumeCredits(ws_id, "meta_ad_creative", { ad_id: data.ad_id });
     try {
-      const { biz, brand, offer } = await loadCtx(context.supabase, (ad as any).business_id);
+      const { biz, brand, offer } = await loadBrandContext(context.supabase, (ad as any).business_id);
       const tool = { type: "function" as const, function: { name: "write_ad", description: "Rewrite Meta ad copy.", parameters: AdCopySchema as any } };
       const sys = `You are Wazeer. Rewrite Meta ad copy. Reply via tool. ${SAFETY}`;
       const user = `Brand: ${brand?.brand_name ?? biz?.name} | Tone: ${brand?.tone ?? "warm"}
 Existing: ${JSON.stringify((ad as any).copy_json)}
 Offer: ${offer?.name ?? "—"} — ${offer?.description ?? ""}
 Brief: ${data.brief || "(none)"}`;
-      const parsed = await callAdsAI([{ role: "system", content: sys }, { role: "user", content: user }], tool, "write_ad");
+      const parsed = await callAITool([{ role: "system", content: sys }, { role: "user", content: user }], tool, "write_ad");
       const { error } = await context.supabase.from("meta_ads").update({
         headline: parsed.headline, primary_text: parsed.primary_text, cta: parsed.cta,
         copy_json: parsed as any, approval_status: "pending",

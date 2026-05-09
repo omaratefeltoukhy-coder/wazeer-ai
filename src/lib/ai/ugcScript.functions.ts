@@ -3,7 +3,8 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { consumeCredits, refundCredits, requireEntitlement, checkUsageCap, incrementUsage } from "@/lib/billing/guard.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { callAI } from "@/lib/ai/gateway";
+import { callAITool } from "@/lib/ai/gateway";
+import { loadWorkspaceId, loadBrandContext } from "@/lib/server/context";
 
 export const PLATFORMS = [
   "tiktok", "instagram_reels", "facebook_reels", "meta_ad",
@@ -24,22 +25,6 @@ export const PLATFORM_LABEL: Record<Platform, string> = {
 
 export const LENGTHS = [15, 30, 45, 60] as const;
 export type Length = (typeof LENGTHS)[number];
-
-async function loadWorkspaceId(supabase: any, business_id: string): Promise<string> {
-  const { data, error } = await supabase
-    .from("businesses").select("workspace_id").eq("id", business_id).maybeSingle();
-  if (error || !data) throw new Error(error?.message || "Business not found");
-  return data.workspace_id as string;
-}
-
-async function loadBrandContext(supabase: any, business_id: string) {
-  const [{ data: biz }, { data: brand }, { data: offer }] = await Promise.all([
-    supabase.from("businesses").select("name, type, description, target_audience, desired_result, pain_point, currency").eq("id", business_id).maybeSingle(),
-    supabase.from("brand_profiles").select("brand_name, tone, positioning, audience_json, benefits_json, pain_points_json, objections_json").eq("business_id", business_id).maybeSingle(),
-    supabase.from("offers").select("name, description, price, currency").eq("business_id", business_id).maybeSingle(),
-  ]);
-  return { biz, brand, offer };
-}
 
 const ScriptSchema = {
   type: "object",
@@ -83,17 +68,6 @@ const SAFETY_RAILS = `Hard rules:
 - No fake before/after results or unverifiable statistics.
 - Use empty-state friendly language; suggest the creator records authentic footage.
 - Keep the brand's voice and product identity exactly as provided.`;
-
-async function callUgcAI(messages: any[], tool: any, toolName: string) {
-  const aiRes = await callAI({
-    messages,
-    tools: [tool as any],
-    toolChoice: { type: "function", function: { name: toolName } },
-  });
-  const args = aiRes.toolCalls?.[0]?.function?.arguments;
-  if (!args) throw new Error("AI returned no structured output");
-  return typeof args === "string" ? JSON.parse(args) : args;
-}
 
 export const generateUgcScript = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -142,7 +116,7 @@ Platform: ${PLATFORM_LABEL[data.platform]}
 Total length: ${data.length_s}s. Allocate scene durations so they sum to about ${data.length_s}s.
 Extra direction: ${data.brief || "(none)"}`;
 
-      const parsed = await callUgcAI(
+      const parsed = await callAITool(
         [{ role: "system", content: sysPrompt }, { role: "user", content: userPrompt }],
         tool,
         "write_ugc_script",
@@ -196,7 +170,7 @@ export const regenerateUgcScene = createServerFn({ method: "POST" })
           parameters: { type: "object", properties: { scene: SceneSchema }, required: ["scene"], additionalProperties: false },
         },
       };
-      const parsed = await callUgcAI(
+      const parsed = await callAITool(
         [
           { role: "system", content: `You are Wazeer. Rewrite ONE UGC scene only. Keep the same scene_no and similar duration. Reply via tool. ${SAFETY_RAILS}` },
           {

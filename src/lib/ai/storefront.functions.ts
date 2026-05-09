@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { consumeCredits, refundCredits, requireEntitlement } from "@/lib/billing/guard.server";
 import { callAI } from "@/lib/ai/gateway";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { loadWorkspaceId } from "@/lib/server/context";
 
 const SECTIONS = ["hero", "benefits", "how_it_works", "faq", "final_cta"] as const;
 type Section = (typeof SECTIONS)[number];
@@ -62,16 +63,6 @@ async function loadStorefront(supabase: any, business_id: string) {
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Storefront not found");
   return data;
-}
-
-async function loadWorkspaceId(supabase: any, business_id: string): Promise<string> {
-  const { data, error } = await supabase
-    .from("businesses")
-    .select("workspace_id")
-    .eq("id", business_id)
-    .maybeSingle();
-  if (error || !data) throw new Error(error?.message || "Business not found");
-  return data.workspace_id as string;
 }
 
 export const getStorefrontByBusiness = createServerFn({ method: "POST" })

@@ -3,12 +3,14 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { consumeCredits, refundCredits, requireEntitlement } from "@/lib/billing/guard.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { loadWorkspaceId, loadBrandContext } from "@/lib/server/context";
 import { getImageProvider } from "./imageProvider.server";
 import {
   composePrompt,
   type ImageType,
   type ImageStyle,
   type ImageFormat,
+  type BrandContext as ImageBrandContext,
 } from "./imagePrompt";
 
 const TYPES: [ImageType, ...ImageType[]] = [
@@ -18,35 +20,6 @@ const STYLES: [ImageStyle, ...ImageStyle[]] = [
   "premium_studio", "lifestyle", "minimal", "luxury", "local_market", "creator_led", "bold_ad", "clean_ecommerce",
 ];
 const FORMATS: [ImageFormat, ...ImageFormat[]] = ["1_1", "9_16", "16_9", "ad", "email_banner"];
-
-async function loadWorkspaceId(supabase: any, business_id: string): Promise<string> {
-  const { data, error } = await supabase
-    .from("businesses")
-    .select("workspace_id")
-    .eq("id", business_id)
-    .maybeSingle();
-  if (error || !data) throw new Error(error?.message || "Business not found");
-  return data.workspace_id as string;
-}
-
-async function loadBrandContext(supabase: any, business_id: string) {
-  const [{ data: biz }, { data: brand }, { data: offer }] = await Promise.all([
-    supabase.from("businesses").select("name, target_audience, description").eq("id", business_id).maybeSingle(),
-    supabase.from("brand_profiles").select("brand_name, tone, visual_style, positioning, audience_json").eq("business_id", business_id).maybeSingle(),
-    supabase.from("offers").select("name, description").eq("business_id", business_id).maybeSingle(),
-  ]);
-  const audienceJson = (brand?.audience_json ?? {}) as Record<string, string>;
-  const audience = [audienceJson.persona, audienceJson.demographics].filter(Boolean).join(" — ") || biz?.target_audience || null;
-  return {
-    brand_name: brand?.brand_name ?? biz?.name ?? null,
-    tone: brand?.tone ?? null,
-    visual_style: brand?.visual_style ?? null,
-    positioning: brand?.positioning ?? null,
-    audience,
-    product_name: offer?.name ?? null,
-    product_description: offer?.description ?? biz?.description ?? null,
-  };
-}
 
 const GenSchema = z.object({
   business_id: z.string().uuid(),
@@ -65,7 +38,18 @@ export const generateImage = createServerFn({ method: "POST" })
     await requireEntitlement(workspace_id, "ai_images");
     await consumeCredits(workspace_id, "ai_image", { business_id: data.business_id, type: data.type });
 
-    const brand = await loadBrandContext(context.supabase, data.business_id);
+    const ctx = await loadBrandContext(context.supabase, data.business_id);
+    const audienceJson = (ctx.brand?.audience_json ?? {}) as Record<string, string>;
+    const audience = [audienceJson.persona, audienceJson.demographics].filter(Boolean).join(" — ") || ctx.biz?.target_audience || null;
+    const brand: ImageBrandContext = {
+      brand_name: ctx.brand?.brand_name ?? ctx.biz?.name ?? null,
+      tone: ctx.brand?.tone ?? null,
+      visual_style: ctx.brand?.visual_style ?? null,
+      positioning: ctx.brand?.positioning ?? null,
+      audience,
+      product_name: ctx.offer?.name ?? null,
+      product_description: ctx.offer?.description ?? ctx.biz?.description ?? null,
+    };
     const prompt = composePrompt({
       type: data.type,
       style: data.style,

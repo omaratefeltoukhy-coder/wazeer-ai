@@ -43,22 +43,29 @@ export async function sendEmailViaResend(opts: SendEmailOpts): Promise<SendEmail
   if (opts.replyTo) body.reply_to = opts.replyTo;
   if (opts.headers) body.headers = opts.headers;
 
-  const res = await fetch(`${RESEND_API_URL}/emails`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${RESEND_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
+  try {
+    const res = await fetch(`${RESEND_API_URL}/emails`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
 
-  if (!res.ok) {
-    const text = await res.text();
-    return { ok: false, error: `Resend ${res.status}: ${text.slice(0, 500)}` };
+    if (!res.ok) {
+      const text = await res.text();
+      return { ok: false, error: `Resend ${res.status}: ${text.slice(0, 500)}` };
+    }
+
+    const json = await res.json();
+    return { ok: true, resendId: json.id };
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const json = await res.json();
-  return { ok: true, resendId: json.id };
 }
 
 export async function sendEmailBatchViaResend(
@@ -94,37 +101,44 @@ export async function sendEmailBatchViaResend(
       return item;
     });
 
-    const res = await fetch(`${RESEND_API_URL}/emails/batch`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${RESEND_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(batchBody),
-    });
-
-    if (!res.ok) {
-      const text = await res.text();
-      chunk.forEach((email) => {
-        results.push({ to: email.to, error: `Resend batch ${res.status}: ${text.slice(0, 500)}` });
-        failed++;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+    try {
+      const res = await fetch(`${RESEND_API_URL}/emails/batch`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(batchBody),
+        signal: controller.signal,
       });
-      continue;
-    }
 
-    const json = await res.json();
-    const data = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : [];
-
-    chunk.forEach((email, idx) => {
-      const id = data[idx]?.id;
-      if (id) {
-        results.push({ to: email.to, resendId: id });
-        sent++;
-      } else {
-        results.push({ to: email.to, error: "No ID returned from Resend" });
-        failed++;
+      if (!res.ok) {
+        const text = await res.text();
+        chunk.forEach((email) => {
+          results.push({ to: email.to, error: `Resend batch ${res.status}: ${text.slice(0, 500)}` });
+          failed++;
+        });
+        continue;
       }
-    });
+
+      const json = await res.json();
+      const data = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : [];
+
+      chunk.forEach((email, idx) => {
+        const id = data[idx]?.id;
+        if (id) {
+          results.push({ to: email.to, resendId: id });
+          sent++;
+        } else {
+          results.push({ to: email.to, error: "No ID returned from Resend" });
+          failed++;
+        }
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
   }
 
   return { ok: sent > 0, sent, failed, results };
