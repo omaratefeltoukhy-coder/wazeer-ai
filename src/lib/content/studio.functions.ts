@@ -232,10 +232,10 @@ export const suggestPrompt = createServerFn({ method: "POST" })
         .from("products").select("title, description").eq("id", data.product_id).maybeSingle();
       if (p) productCtx = `Product: ${p.title} â€” ${p.description ?? ""}`;
     }
-    const aiRes = await callAI([
+    const aiRes = await callAI({ messages: [
       { role: "system", content: "You write concise, vivid image generation prompts (one paragraph, max 80 words). Reply with the prompt only â€” no prefix, no quotes." },
       { role: "user", content: `Goal: ${data.goal}\n${productCtx}\nWrite the prompt now.` },
-    ]);
+    ]});
     const text: string = aiRes.content?.trim() || "";
     return { prompt: text };
   });
@@ -252,10 +252,10 @@ export const generateVideoScript = createServerFn({ method: "POST" })
         .from("products").select("title, description").eq("id", data.product_id).maybeSingle();
       if (p) productCtx = `Product: ${p.title} â€” ${p.description ?? ""}`;
     }
-    const aiRes = await callAI([
+    const aiRes = await callAI({ messages: [
       { role: "system", content: "You write short ~30 second video scripts. Plain text, 3-6 short lines, no headings. Avoid invented claims." },
       { role: "user", content: `Goal: ${data.goal}\n${productCtx}\nWrite the script now.` },
-    ]);
+    ]});
     const text: string = aiRes.content?.trim() || "";
     return { script: text };
   });

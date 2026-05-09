@@ -10,7 +10,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  PRODUCT_TYPES, productTypeMeta, type ProductRow, type ProductStatus,
+  PRODUCT_TYPES, productTypeMeta, type ProductRow, type ProductStatus, type ProductType,
 } from "@/lib/products/types";
 import { Plus, Package, Sparkles, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
@@ -61,7 +61,7 @@ function ProductsListPage() {
 
   const startCreate = (typeId?: string) => {
     setPickerOpen(false);
-    navigate({ to: "/dashboard/products/new", search: typeId ? { type: typeId } : {} });
+    navigate({ to: "/dashboard/products/new", search: typeId ? { type: typeId as ProductType } : {} });
   };
 
   return (

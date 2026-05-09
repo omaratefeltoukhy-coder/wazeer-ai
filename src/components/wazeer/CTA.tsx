@@ -16,12 +16,12 @@ export function CTA() {
           </p>
           <div className="mt-8 flex items-center justify-center gap-3">
             <Button asChild size="lg" className="bg-brand-gradient text-primary-foreground shadow-glow">
-              <Link to="/signup">
+              <Link to="/signup" search={{ redirect: "/dashboard", idea: "" }}>
                 Start selling with AI <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild size="lg" variant="ghost">
-              <Link to="/dashboard/new">Generate my business</Link>
+              <Link to="/dashboard/new" search={{ idea: "" }}>Generate my business</Link>
             </Button>
           </div>
         </div>

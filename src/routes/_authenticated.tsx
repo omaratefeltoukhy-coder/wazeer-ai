@@ -112,7 +112,7 @@ function NavList({
     <>
       <div className="px-2 py-2"><Logo /></div>
       <Link
-        to="/dashboard/new"
+        to="/dashboard/new" search={{ idea: "" }}
         onClick={onNavigate}
         className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-brand-gradient text-primary-foreground px-3 py-2 text-sm font-medium shadow-glow"
       >

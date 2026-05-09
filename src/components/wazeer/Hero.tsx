@@ -175,7 +175,7 @@ export function Hero() {
 
         <div className="mt-10 flex items-center justify-center gap-3">
           <Button asChild size="lg" className="bg-foreground text-background hover:opacity-90">
-            <Link to="/signup">
+            <Link to="/signup" search={{ redirect: "/dashboard", idea: "" }}>
               Start selling with AI <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>

@@ -106,7 +106,7 @@ function DomainsPage() {
           <Globe className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
           <h3 className="font-medium">Create a business first</h3>
           <p className="text-sm text-muted-foreground mt-1">You need a storefront before connecting a custom domain.</p>
-          <Link to="/dashboard/new">
+          <Link to="/dashboard/new" search={{ idea: "" }}>
             <Button className="mt-4 bg-brand-gradient text-primary-foreground">Create business</Button>
           </Link>
         </div>

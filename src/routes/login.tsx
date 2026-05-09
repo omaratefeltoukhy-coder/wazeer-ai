@@ -74,7 +74,7 @@ function LoginPage() {
       </form>
       <p className="text-center text-sm text-muted-foreground">
         New here?{" "}
-        <Link to="/signup" className="text-foreground font-medium hover:underline">Create an account</Link>
+        <Link to="/signup" search={{ redirect: "/dashboard", idea: "" }} className="text-foreground font-medium hover:underline">Create an account</Link>
       </p>
     </AuthShell>
   );

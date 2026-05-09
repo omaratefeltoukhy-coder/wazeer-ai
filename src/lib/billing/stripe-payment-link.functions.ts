@@ -15,13 +15,13 @@ export const createStripePaymentLinkCheckout = createServerFn({ method: "POST" }
       .parse(i)
   )
   .handler(async ({ data }) => {
-    const supabase = supabaseAdmin();
+    const supabase = supabaseAdmin;
 
     const { data: link, error } = await supabase
       .from("payment_links")
       .select("*")
-      .eq("code", data.code)
-      .eq("active", true)
+      .eq("unique_code", data.code)
+      .eq("is_active", true)
       .single();
 
     if (error || !link) {
@@ -29,7 +29,7 @@ export const createStripePaymentLinkCheckout = createServerFn({ method: "POST" }
     }
 
     const amount = Number(link.amount);
-    const fee = link.include_fee ? Math.round(amount * 0.03 * 100) / 100 : 0;
+    const fee = link.pass_fee_to_buyer ? Math.round(amount * 0.03 * 100) / 100 : 0;
     const totalCents = Math.round((amount + fee) * 100);
 
     const session = await createStripeCheckoutSession({
@@ -37,7 +37,7 @@ export const createStripePaymentLinkCheckout = createServerFn({ method: "POST" }
         {
           price_data: {
             currency: link.currency.toLowerCase() || "usd",
-            product_data: { name: link.title, description: link.description || undefined },
+            product_data: { name: link.custom_title || "Payment", description: link.description || undefined },
             unit_amount: totalCents,
           },
           quantity: 1,

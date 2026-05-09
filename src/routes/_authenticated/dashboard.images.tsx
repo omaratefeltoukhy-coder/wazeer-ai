@@ -47,7 +47,7 @@ function ImagesIndex() {
           </div>
           <h3 className="font-medium">No business yet</h3>
           <p className="text-sm text-muted-foreground mt-1 mb-4">Create one to start generating images.</p>
-          <Link to="/dashboard/new"><Button className="bg-brand-gradient text-primary-foreground"><Plus className="h-4 w-4" /> Create business</Button></Link>
+          <Link to="/dashboard/new" search={{ idea: "" }}><Button className="bg-brand-gradient text-primary-foreground"><Plus className="h-4 w-4" /> Create business</Button></Link>
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">

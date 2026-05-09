@@ -30,7 +30,7 @@ function PricingPage() {
           </p>
           <div className="mt-8 flex items-center justify-center gap-3">
             <Button asChild size="lg" className="bg-foreground text-background hover:opacity-90">
-              <Link to="/signup">
+              <Link to="/signup" search={{ redirect: "/dashboard", idea: "" }}>
                 Start your free trial <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>

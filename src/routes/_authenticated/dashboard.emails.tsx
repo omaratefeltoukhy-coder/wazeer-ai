@@ -50,7 +50,7 @@ function EmailsList() {
             <Mail className="h-5 w-5 text-primary-foreground" />
           </div>
           <h3 className="font-medium">Create a business first</h3>
-          <Link to="/dashboard/new" className="inline-flex items-center gap-2 mt-4 rounded-lg bg-brand-gradient text-primary-foreground px-3 py-2 text-sm font-medium shadow-glow">
+          <Link to="/dashboard/new" search={{ idea: "" }} className="inline-flex items-center gap-2 mt-4 rounded-lg bg-brand-gradient text-primary-foreground px-3 py-2 text-sm font-medium shadow-glow">
             <Plus className="h-4 w-4" /> New business
           </Link>
         </div>

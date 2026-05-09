@@ -31,7 +31,7 @@ function PostsHubPage() {
       ) : businesses.length === 0 ? (
         <Card className="p-6 text-center">
           <p className="text-sm text-muted-foreground mb-3">Create a business first.</p>
-          <Link to="/dashboard/new" className="text-primary underline text-sm">New business →</Link>
+          <Link to="/dashboard/new" search={{ idea: "" }} className="text-primary underline text-sm">New business →</Link>
         </Card>
       ) : (
         <div className="grid sm:grid-cols-2 gap-3">

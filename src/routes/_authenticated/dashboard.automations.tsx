@@ -27,7 +27,7 @@ function AutomationsList() {
       {biz.length === 0 ? (
         <div className="rounded-2xl border bg-card p-10 text-center">
           <h3 className="font-medium">Create a business first</h3>
-          <Link to="/dashboard/new" className="inline-flex items-center gap-2 mt-4 rounded-lg bg-brand-gradient text-primary-foreground px-3 py-2 text-sm font-medium shadow-glow">
+          <Link to="/dashboard/new" search={{ idea: "" }} className="inline-flex items-center gap-2 mt-4 rounded-lg bg-brand-gradient text-primary-foreground px-3 py-2 text-sm font-medium shadow-glow">
             <Plus className="h-4 w-4" /> New business
           </Link>
         </div>

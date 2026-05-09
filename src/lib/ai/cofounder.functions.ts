@@ -58,10 +58,10 @@ async function callCofounderAI(messages: any[]) {
 
 export const cofounderChat = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: ChatInput) => ChatSchema.parse(data))
+  .inputValidator((input) => ChatSchema.parse(input))
   .handler(async ({ data, context }) => {
     const userId = context.userId;
-    const supabase = supabaseAdmin();
+    const supabase = supabaseAdmin;
 
     // Look up workspace from user
     const { data: m } = await supabase

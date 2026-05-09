@@ -40,10 +40,10 @@ export function Navbar() {
 
           <div className="hidden md:flex items-center gap-2">
             <Button asChild variant="ghost" size="sm">
-              <Link to="/login">Sign in</Link>
+              <Link to="/login" search={{ redirect: "/dashboard" }}>Sign in</Link>
             </Button>
             <Button asChild size="sm" className="bg-foreground text-background hover:opacity-90">
-              <Link to="/signup">Start selling with AI</Link>
+              <Link to="/signup" search={{ redirect: "/dashboard", idea: "" }}>Start selling with AI</Link>
             </Button>
           </div>
 
@@ -92,10 +92,10 @@ export function Navbar() {
                 </nav>
                 <div className="mt-auto flex flex-col gap-3">
                   <Button asChild variant="outline" onClick={() => setOpen(false)}>
-                    <Link to="/login">Sign in</Link>
+                    <Link to="/login" search={{ redirect: "/dashboard" }}>Sign in</Link>
                   </Button>
                   <Button asChild className="bg-foreground text-background hover:opacity-90" onClick={() => setOpen(false)}>
-                    <Link to="/signup">Start selling with AI</Link>
+                    <Link to="/signup" search={{ redirect: "/dashboard", idea: "" }}>Start selling with AI</Link>
                   </Button>
                 </div>
               </div>

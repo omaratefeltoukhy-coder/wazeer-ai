@@ -14,7 +14,7 @@ import {
   Plus, ShoppingBag, TrendingUp, Users, Sparkles, Pencil, Bell, ExternalLink,
   Megaphone, BarChart3, ChevronDown, ChevronUp, Check, RefreshCw, Eye, Mail, Target,
   CreditCard, Store, Package, BookOpen, Repeat, GraduationCap, Briefcase, Calendar,
-  Box, Loader2,
+  Box, Loader2, Gift,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ReferralBanner } from "@/components/wazeer/ReferralBanner";
@@ -181,7 +181,7 @@ function DashboardHome() {
 
   const goNew = (_type?: string) => {
     setProductPickerOpen(false);
-    navigate({ to: "/dashboard/new" });
+    navigate({ to: "/dashboard/new", search: { idea: "" } });
   };
 
   // Empty state — no business yet
@@ -195,7 +195,7 @@ function DashboardHome() {
         <p className="text-muted-foreground mt-2 max-w-lg">
           Tell Wazeer about your offer and we'll generate your storefront, brand, emails and ads — ready to launch.
         </p>
-        <Link to="/dashboard/new" className="mt-8">
+        <Link to="/dashboard/new" search={{ idea: "" }} className="mt-8">
           <Button size="lg" className="bg-brand-gradient text-primary-foreground shadow-glow">
             Create my first product <Plus className="h-4 w-4" />
           </Button>

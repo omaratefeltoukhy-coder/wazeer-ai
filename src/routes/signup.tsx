@@ -45,7 +45,7 @@ function SignupPage() {
     setLoading(false);
     if (error) return toast.error(error.message);
     toast.success("Check your email to confirm your account.");
-    navigate({ to: "/login", search: search.idea ? { redirect: search.redirect, idea: search.idea } : undefined });
+    navigate({ to: "/login", search: { redirect: search.redirect } });
   };
 
   const handleGoogle = async () => {
@@ -86,7 +86,7 @@ function SignupPage() {
       </form>
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}
-        <Link to="/login" className="text-foreground font-medium hover:underline">Sign in</Link>
+        <Link to="/login" search={{ redirect: "/dashboard" }} className="text-foreground font-medium hover:underline">Sign in</Link>
       </p>
     </AuthShell>
   );

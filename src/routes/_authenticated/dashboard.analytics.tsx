@@ -41,7 +41,7 @@ function AnalyticsList() {
           </div>
           <h3 className="font-medium">No businesses yet</h3>
           <p className="text-sm text-muted-foreground mt-1">Create a business to start tracking performance.</p>
-          <Link to="/dashboard/new" className="inline-flex items-center gap-2 mt-4 rounded-lg bg-brand-gradient text-primary-foreground px-3 py-2 text-sm font-medium shadow-glow">
+          <Link to="/dashboard/new" search={{ idea: "" }} className="inline-flex items-center gap-2 mt-4 rounded-lg bg-brand-gradient text-primary-foreground px-3 py-2 text-sm font-medium shadow-glow">
             <Plus className="h-4 w-4" /> New business
           </Link>
         </div>

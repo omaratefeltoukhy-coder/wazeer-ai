@@ -70,7 +70,7 @@ export function Pricing() {
                 {t.cta === "Talk to sales" ? (
                   <a href="mailto:sales@wazeer.io?subject=Agency%20plan%20inquiry">{t.cta}</a>
                 ) : (
-                  <Link to="/signup">{t.cta}</Link>
+                  <Link to="/signup" search={{ redirect: "/dashboard", idea: "" }}>{t.cta}</Link>
                 )}
               </Button>
             </div>

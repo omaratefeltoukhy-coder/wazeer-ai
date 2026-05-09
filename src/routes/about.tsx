@@ -66,7 +66,7 @@ function AboutPage() {
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center space-y-4">
           <h2 className="text-xl font-semibold">Start building your selling system today.</h2>
           <Button asChild size="lg" className="bg-foreground text-background hover:opacity-90">
-            <Link to="/signup">
+            <Link to="/signup" search={{ redirect: "/dashboard", idea: "" }}>
               Start selling with AI <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
