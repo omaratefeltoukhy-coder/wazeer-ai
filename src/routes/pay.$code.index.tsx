@@ -29,7 +29,7 @@ type PaymentLinkRow = {
 };
 
 function PayPage() {
-  const { code } = useParams({ from: "/pay/$code" });
+  const { code } = useParams({ from: "/pay/$code/" });
   const startCheckout = useServerFn(createPaymentLinkCheckout);
   const [link, setLink] = useState<PaymentLinkRow | null>(null);
   const [loading, setLoading] = useState(true);
