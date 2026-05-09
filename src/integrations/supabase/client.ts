@@ -5,10 +5,12 @@ import type { Database } from './types';
 function readEnv() {
   const SUPABASE_URL =
     (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_SUPABASE_URL) ||
+    (typeof import.meta !== 'undefined' && (import.meta as any).env?.SUPABASE_URL) ||
     (typeof process !== 'undefined' && process.env?.SUPABASE_URL) ||
     (typeof process !== 'undefined' && process.env?.VITE_SUPABASE_URL);
   const SUPABASE_PUBLISHABLE_KEY =
     (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_SUPABASE_PUBLISHABLE_KEY) ||
+    (typeof import.meta !== 'undefined' && (import.meta as any).env?.SUPABASE_PUBLISHABLE_KEY) ||
     (typeof process !== 'undefined' && process.env?.SUPABASE_PUBLISHABLE_KEY) ||
     (typeof process !== 'undefined' && process.env?.VITE_SUPABASE_PUBLISHABLE_KEY);
   return { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY };
