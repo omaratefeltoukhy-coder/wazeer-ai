@@ -22,6 +22,7 @@ import { Route as PayCodeRouteImport } from './routes/pay.$code'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as PayCodeIndexRouteImport } from './routes/pay.$code.index'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard.index'
+import { Route as PayCodeThanksRouteImport } from './routes/pay.$code.thanks'
 import { Route as ApiPublicBillingWebhookRouteImport } from './routes/api/public/billing-webhook'
 import { Route as AuthenticatedDashboardVideosRouteImport } from './routes/_authenticated/dashboard.videos'
 import { Route as AuthenticatedDashboardUgcRouteImport } from './routes/_authenticated/dashboard.ugc'
@@ -139,6 +140,11 @@ const AuthenticatedDashboardIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const PayCodeThanksRoute = PayCodeThanksRouteImport.update({
+  id: '/thanks',
+  path: '/thanks',
+  getParentRoute: () => PayCodeRoute,
+} as any)
 const ApiPublicBillingWebhookRoute = ApiPublicBillingWebhookRouteImport.update({
   id: '/api/public/billing-webhook',
   path: '/api/public/billing-webhook',
@@ -477,6 +483,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/ugc': typeof AuthenticatedDashboardUgcRouteWithChildren
   '/dashboard/videos': typeof AuthenticatedDashboardVideosRouteWithChildren
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
+  '/pay/$code/thanks': typeof PayCodeThanksRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/pay/$code/': typeof PayCodeIndexRoute
   '/dashboard/ads/$id': typeof AuthenticatedDashboardAdsIdRoute
@@ -536,6 +543,7 @@ export interface FileRoutesByTo {
   '/dashboard/ugc': typeof AuthenticatedDashboardUgcRouteWithChildren
   '/dashboard/videos': typeof AuthenticatedDashboardVideosRouteWithChildren
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
+  '/pay/$code/thanks': typeof PayCodeThanksRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/pay/$code': typeof PayCodeIndexRoute
   '/dashboard/ads/$id': typeof AuthenticatedDashboardAdsIdRoute
@@ -601,6 +609,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/ugc': typeof AuthenticatedDashboardUgcRouteWithChildren
   '/_authenticated/dashboard/videos': typeof AuthenticatedDashboardVideosRouteWithChildren
   '/api/public/billing-webhook': typeof ApiPublicBillingWebhookRoute
+  '/pay/$code/thanks': typeof PayCodeThanksRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/pay/$code/': typeof PayCodeIndexRoute
   '/_authenticated/dashboard/ads/$id': typeof AuthenticatedDashboardAdsIdRoute
@@ -668,6 +677,7 @@ export interface FileRouteTypes {
     | '/dashboard/ugc'
     | '/dashboard/videos'
     | '/api/public/billing-webhook'
+    | '/pay/$code/thanks'
     | '/dashboard/'
     | '/pay/$code/'
     | '/dashboard/ads/$id'
@@ -727,6 +737,7 @@ export interface FileRouteTypes {
     | '/dashboard/ugc'
     | '/dashboard/videos'
     | '/api/public/billing-webhook'
+    | '/pay/$code/thanks'
     | '/dashboard'
     | '/pay/$code'
     | '/dashboard/ads/$id'
@@ -791,6 +802,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/ugc'
     | '/_authenticated/dashboard/videos'
     | '/api/public/billing-webhook'
+    | '/pay/$code/thanks'
     | '/_authenticated/dashboard/'
     | '/pay/$code/'
     | '/_authenticated/dashboard/ads/$id'
@@ -933,6 +945,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard/'
       preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
+    }
+    '/pay/$code/thanks': {
+      id: '/pay/$code/thanks'
+      path: '/thanks'
+      fullPath: '/pay/$code/thanks'
+      preLoaderRoute: typeof PayCodeThanksRouteImport
+      parentRoute: typeof PayCodeRoute
     }
     '/api/public/billing-webhook': {
       id: '/api/public/billing-webhook'
@@ -1635,10 +1654,12 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 )
 
 interface PayCodeRouteChildren {
+  PayCodeThanksRoute: typeof PayCodeThanksRoute
   PayCodeIndexRoute: typeof PayCodeIndexRoute
 }
 
 const PayCodeRouteChildren: PayCodeRouteChildren = {
+  PayCodeThanksRoute: PayCodeThanksRoute,
   PayCodeIndexRoute: PayCodeIndexRoute,
 }
 
