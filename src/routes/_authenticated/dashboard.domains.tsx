@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Globe, Copy, Check, ExternalLink, AlertCircle, ArrowLeft } from "lucide-react";
+import { Globe, Copy, Check, AlertCircle, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard/domains")({
@@ -21,8 +21,6 @@ function isValidDomain(d: string) {
 
 function DomainsPage() {
   const [biz, setBiz] = useState<Biz[] | null>(null);
-  const [saving, setSaving] = useState<string | null>(null);
-  const [copied, setCopied] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -42,7 +40,6 @@ function DomainsPage() {
 
   const saveDomain = async (businessId: string, domain: string) => {
     if (!domain.trim()) {
-      // Clear custom domain
       const { error } = await supabase.from("storefronts").update({ published_url: null }).eq("business_id", businessId);
       if (error) toast.error(error.message);
       else {
@@ -64,9 +61,7 @@ function DomainsPage() {
       return;
     }
 
-    setSaving(businessId);
     const { error } = await supabase.from("storefronts").update({ published_url: clean }).eq("business_id", businessId);
-    setSaving(null);
     if (error) {
       toast.error(error.message);
       return;
@@ -79,13 +74,6 @@ function DomainsPage() {
           : x
       ) ?? null
     );
-  };
-
-  const copy = (text: string, key: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(key);
-    toast.success("Copied to clipboard");
-    setTimeout(() => setCopied(null), 2000);
   };
 
   if (biz === null) {
@@ -118,83 +106,102 @@ function DomainsPage() {
         </div>
       ) : (
         <div className="space-y-6">
-          {biz.map((b) => {
-            const sf = b.storefronts?.[0];
-            const currentDomain = sf?.published_url || "";
-            const [domain, setDomain] = useState(currentDomain);
-
-            return (
-              <Card key={b.id} className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="font-semibold">{b.name}</h3>
-                    <p className="text-xs text-muted-foreground">
-                      Default: {window.location.origin}/s/{sf?.slug || b.slug || "..."}
-                    </p>
-                  </div>
-                  {currentDomain ? (
-                    <Badge className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/10">Configured</Badge>
-                  ) : (
-                    <Badge variant="outline">Default URL</Badge>
-                  )}
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4 text-muted-foreground" />
-                    <Input
-                      value={domain}
-                      onChange={(e) => setDomain(e.target.value)}
-                      placeholder="shop.yourdomain.com"
-                      className="flex-1"
-                    />
-                    <Button
-                      size="sm"
-                      onClick={() => saveDomain(b.id, domain)}
-                      disabled={saving === b.id}
-                      className="bg-brand-gradient text-primary-foreground"
-                    >
-                      {saving === b.id ? "Saving..." : "Save"}
-                    </Button>
-                  </div>
-
-                  {currentDomain && (
-                    <div className="rounded-lg border bg-secondary/40 p-4 space-y-3">
-                      <div className="flex items-center gap-2">
-                        <AlertCircle className="h-4 w-4 text-amber-600" />
-                        <span className="text-sm font-medium">DNS Configuration Required</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Add this CNAME record in your DNS provider to point your domain to Wazeer:
-                      </p>
-                      <div className="grid gap-2">
-                        <div className="flex items-center justify-between rounded-md border bg-background px-3 py-2 text-xs">
-                          <div className="grid grid-cols-3 gap-4 flex-1">
-                            <div><span className="text-muted-foreground">Type</span><div className="font-medium">CNAME</div></div>
-                            <div><span className="text-muted-foreground">Name</span><div className="font-medium">{currentDomain.split(".")[0]}</div></div>
-                            <div><span className="text-muted-foreground">Value</span><div className="font-medium">cname.wazeer.io</div></div>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={() => copy(`CNAME  ${currentDomain.split(".")[0]}  cname.wazeer.io`, b.id)}
-                          >
-                            {copied === b.id ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                          </Button>
-                        </div>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        DNS changes can take up to 24 hours to propagate. Contact support if you need help.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </Card>
-            );
-          })}
+          {biz.map((b) => (
+            <DomainCard key={b.id} business={b} onSave={saveDomain} />
+          ))}
         </div>
       )}
     </div>
+  );
+}
+
+function DomainCard({ business, onSave }: { business: Biz; onSave: (id: string, domain: string) => Promise<void> }) {
+  const sf = business.storefronts?.[0];
+  const currentDomain = sf?.published_url || "";
+  const [domain, setDomain] = useState(currentDomain);
+  const [saving, setSaving] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    await onSave(business.id, domain);
+    setSaving(false);
+  };
+
+  const copy = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    toast.success("Copied to clipboard");
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <Card className="p-6">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="font-semibold">{business.name}</h3>
+          <p className="text-xs text-muted-foreground">
+            Default: {window.location.origin}/s/{sf?.slug || business.slug || "..."}
+          </p>
+        </div>
+        {currentDomain ? (
+          <Badge className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/10">Configured</Badge>
+        ) : (
+          <Badge variant="outline">Default URL</Badge>
+        )}
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Globe className="h-4 w-4 text-muted-foreground" />
+          <Input
+            value={domain}
+            onChange={(e) => setDomain(e.target.value)}
+            placeholder="shop.yourdomain.com"
+            className="flex-1"
+          />
+          <Button
+            size="sm"
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-brand-gradient text-primary-foreground"
+          >
+            {saving ? "Saving..." : "Save"}
+          </Button>
+        </div>
+
+        {currentDomain && (
+          <div className="rounded-lg border bg-secondary/40 p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-amber-600" />
+              <span className="text-sm font-medium">DNS Configuration Required</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Add this CNAME record in your DNS provider to point your domain to Wazeer:
+            </p>
+            <div className="grid gap-2">
+              <div className="flex items-center justify-between rounded-md border bg-background px-3 py-2 text-xs">
+                <div className="grid grid-cols-3 gap-4 flex-1">
+                  <div><span className="text-muted-foreground">Type</span><div className="font-medium">CNAME</div></div>
+                  <div><span className="text-muted-foreground">Name</span><div className="font-medium">{currentDomain.split(".")[0]}</div></div>
+                  <div><span className="text-muted-foreground">Value</span><div className="font-medium">cname.wazeer.io</div></div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => copy(`CNAME  ${currentDomain.split(".")[0]}  cname.wazeer.io`)}
+                >
+                  {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              DNS changes can take up to 24 hours to propagate. Contact support if you need help.
+            </p>
+          </div>
+        )}
+      </div>
+    </Card>
   );
 }

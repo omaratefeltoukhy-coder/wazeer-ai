@@ -191,7 +191,7 @@ export const sendCampaign = createServerFn({ method: "POST" })
       if (!recipients.length) throw new Error("No recipients matched the audience.");
 
       const from = process.env.MARKETING_FROM_EMAIL || "Marketing <onboarding@wazeer.io>";
-      let mocked = !process.env.RESEND_API_KEY;
+      const mocked = !process.env.RESEND_API_KEY;
 
       const emails: any[] = [];
       for (const r of recipients.slice(0, 500)) {
