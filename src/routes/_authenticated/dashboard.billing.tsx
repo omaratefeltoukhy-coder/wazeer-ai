@@ -9,9 +9,9 @@ import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { listInvoices } from "@/lib/billing/checkout.functions";
-import { createPortalSession } from "@/lib/billing/paddle.functions";
+import { createStripePortalSession } from "@/lib/billing/stripe-checkout.functions";
 import { CREDIT_PACKS } from "@/lib/billing/packs";
-import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
+import { useStripeCheckout } from "@/hooks/useStripeCheckout";
 import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 import { ReferralBanner } from "@/components/wazeer/ReferralBanner";
 
@@ -21,6 +21,8 @@ export const Route = createFileRoute("/_authenticated/dashboard/billing")({
 
 const ORDER: PlanId[] = ["trial", "starter", "growth", "pro", "agency"];
 
+// TODO: Replace these with actual Stripe Price IDs (price_xxx)
+// after running `npx tsx scripts/create-stripe-products.ts`
 const PLAN_PRICE_ID: Record<Exclude<PlanId, "trial">, string> = {
   starter: "starter_monthly",
   growth: "growth_monthly",
@@ -48,8 +50,8 @@ type InvoiceRow = {
 function BillingPage() {
   const { data, loading, refresh } = useEntitlements();
   const fetchInvoices = useServerFn(listInvoices);
-  const portal = useServerFn(createPortalSession);
-  const { openCheckout } = usePaddleCheckout();
+  const portal = useServerFn(createStripePortalSession);
+  const { openCheckout } = useStripeCheckout();
 
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | undefined>(undefined);
@@ -107,7 +109,8 @@ function BillingPage() {
       await openCheckout({
         priceId: PLAN_PRICE_ID[plan as Exclude<PlanId, "trial">],
         customerEmail: userEmail,
-        customData: { workspaceId, userId },
+        customData: { workspaceId, userId, planId: plan },
+        mode: "subscription",
       });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Checkout failed");
@@ -121,7 +124,8 @@ function BillingPage() {
       await openCheckout({
         priceId: PACK_PRICE_ID[packId],
         customerEmail: userEmail,
-        customData: { workspaceId, userId },
+        customData: { workspaceId, userId, packId },
+        mode: "payment",
       });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Top-up failed");

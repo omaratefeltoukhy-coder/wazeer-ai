@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Plus, Copy, Link2, Check, ChevronLeft, ChevronRight, Loader2, MessageCircle, Mail, Instagram } from "lucide-react";
 import { toast } from "sonner";
-import { getPaddleEnvironment } from "@/lib/paddle";
+import { isStripeTestMode } from "@/lib/billing/stripe.server";
 
 export const Route = createFileRoute("/_authenticated/dashboard/payment-links")({
   component: PaymentLinksPage,
@@ -80,7 +80,7 @@ function PaymentLinksPage() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-semibold">Payment Links</h1>
-            {getPaddleEnvironment() === "sandbox" ? (
+            {isStripeTestMode() ? (
               <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
                 Sandbox
               </span>

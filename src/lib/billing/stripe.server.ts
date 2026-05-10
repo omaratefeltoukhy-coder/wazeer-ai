@@ -58,8 +58,16 @@ export async function createStripeSubscriptionSession(
     mode: "subscription",
     success_url: opts.successUrl,
     cancel_url: opts.cancelUrl,
+    subscription_data: opts.metadata
+      ? { metadata: opts.metadata }
+      : undefined,
   });
   return session;
+}
+
+export function isStripeTestMode(): boolean {
+  const key = process.env.STRIPE_SECRET_KEY ?? "";
+  return key.startsWith("sk_test_");
 }
 
 export async function constructStripeEvent(

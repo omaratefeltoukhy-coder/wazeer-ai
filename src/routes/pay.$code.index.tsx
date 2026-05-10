@@ -2,8 +2,7 @@ import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
-import { createPaymentLinkCheckout } from "@/lib/billing/paymentLink.functions";
-import { getPaddleEnvironment } from "@/lib/paddle";
+import { createStripePaymentLinkCheckout } from "@/lib/billing/stripe-payment-link.functions";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +29,7 @@ type PaymentLinkRow = {
 
 function PayPage() {
   const { code } = useParams({ from: "/pay/$code/" });
-  const startCheckout = useServerFn(createPaymentLinkCheckout);
+  const startCheckout = useServerFn(createStripePaymentLinkCheckout);
   const [link, setLink] = useState<PaymentLinkRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
@@ -67,15 +66,13 @@ function PayPage() {
       const res = await startCheckout({
         data: {
           code,
-          environment: getPaddleEnvironment(),
-          buyer_email: email,
-          buyer_name: name,
-          buyer_phone: phone || undefined,
-          return_url: `${window.location.origin}/pay/${code}/thanks`,
+          buyerEmail: email,
+          buyerName: name,
+          buyerPhone: phone || undefined,
         },
       });
-      // Redirect to Paddle's hosted checkout.
-      window.location.href = res.url;
+      // Redirect to Stripe hosted checkout.
+      window.location.href = res.url!;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Could not start checkout";
       toast.error(msg);
@@ -92,7 +89,7 @@ function PayPage() {
       <div className="min-h-screen grid place-items-center p-4">
         <Card className="p-8 max-w-md text-center">
           <h1 className="font-semibold text-lg">Link not available</h1>
-          <p className="text-sm text-muted-foreground mt-1">This payment link is paused or doesn't exist.</p>
+          <p className="text-sm text-muted-foreground mt-1">This payment link is paused or doesn&apos;t exist.</p>
         </Card>
       </div>
     );
@@ -139,7 +136,7 @@ function PayPage() {
             </Button>
 
             <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-              <ShieldCheck className="h-3.5 w-3.5" /> Payments processed securely by Paddle
+              <ShieldCheck className="h-3.5 w-3.5" /> Payments processed securely by Stripe
             </div>
           </form>
         </div>
