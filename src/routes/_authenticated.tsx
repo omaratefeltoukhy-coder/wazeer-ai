@@ -16,27 +16,35 @@ import {
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async ({ location }) => {
+    console.log("[_authenticated beforeLoad] running");
     // Skip on the server — Supabase session lives in localStorage on the client.
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined") {
+      console.log("[_authenticated beforeLoad] server - skipping");
+      return;
+    }
 
     // OAuth callback: Lovable broker redirects back with tokens in URL hash.
     // Parse them here BEFORE checking session so we don't redirect away.
     const hash = window.location.hash;
+    console.log("[_authenticated beforeLoad] hash:", hash ? hash.substring(0, 50) : "none");
     if (hash && hash.includes("access_token=")) {
       const params = new URLSearchParams(hash.substring(1));
       const access_token = params.get("access_token");
       const refresh_token = params.get("refresh_token");
+      console.log("[_authenticated beforeLoad] found access_token:", !!access_token);
       if (access_token) {
-        await supabase.auth.setSession({
+        const { error } = await supabase.auth.setSession({
           access_token,
           refresh_token: refresh_token || "",
         });
+        console.log("[_authenticated beforeLoad] setSession error:", error);
         window.history.replaceState(null, "", window.location.pathname + window.location.search);
       }
     }
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
+      console.log("[_authenticated beforeLoad] session:", !!session);
       if (!session) {
         // Defense-in-depth: never capture /login or /signup as the redirect target.
         const target = location.pathname.startsWith("/login") || location.pathname.startsWith("/signup")
@@ -195,7 +203,9 @@ function AuthenticatedLayout() {
   const showBack = pathname !== "/dashboard" && pathname !== "/";
 
   useEffect(() => {
+    console.log("[AuthenticatedLayout] useEffect - loading:", loading, "user:", !!user);
     if (!loading && !user) {
+      console.log("[AuthenticatedLayout] redirecting to login");
       navigate({ to: "/login", search: { redirect: typeof window !== "undefined" ? window.location.href : "/dashboard" } });
     }
   }, [loading, user, navigate]);

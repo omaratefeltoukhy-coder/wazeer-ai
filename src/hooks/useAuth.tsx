@@ -34,21 +34,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // AuthenticatedLayout's useEffect checks auth state.
       if (typeof window !== "undefined") {
         const hash = window.location.hash;
+        console.log("[AuthProvider] hash:", hash ? hash.substring(0, 50) : "none");
         if (hash && hash.includes("access_token=")) {
           const params = new URLSearchParams(hash.substring(1));
           const access_token = params.get("access_token");
           const refresh_token = params.get("refresh_token");
+          console.log("[AuthProvider] found access_token:", !!access_token);
           if (access_token) {
-            await supabase.auth.setSession({
+            const { error } = await supabase.auth.setSession({
               access_token,
               refresh_token: refresh_token || "",
             });
+            console.log("[AuthProvider] setSession error:", error);
             window.history.replaceState(null, "", window.location.pathname + window.location.search);
           }
         }
       }
 
       const { data } = await supabase.auth.getSession();
+      console.log("[AuthProvider] getSession result:", data.session ? "has session" : "no session");
       if (!mounted) return;
       setSession(data.session);
       setLoading(false);
