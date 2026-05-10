@@ -18,6 +18,23 @@ export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async ({ location }) => {
     // Skip on the server — Supabase session lives in localStorage on the client.
     if (typeof window === "undefined") return;
+
+    // OAuth callback: Lovable broker redirects back with tokens in URL hash.
+    // Parse them here BEFORE checking session so we don't redirect away.
+    const hash = window.location.hash;
+    if (hash && hash.includes("access_token=")) {
+      const params = new URLSearchParams(hash.substring(1));
+      const access_token = params.get("access_token");
+      const refresh_token = params.get("refresh_token");
+      if (access_token) {
+        await supabase.auth.setSession({
+          access_token,
+          refresh_token: refresh_token || "",
+        });
+        window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      }
+    }
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
